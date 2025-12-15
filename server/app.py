@@ -1,0 +1,500 @@
+"""
+FastAPI Backend Server for QNA-Auth
+Implements REST API for device enrollment and authentication
+"""
+
+from fastapi import FastAPI, HTTPException, BackgroundTasks, status
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
+from typing import List, Optional, Dict
+import torch
+import numpy as np
+from pathlib import Path
+import logging
+
+# Import QNA-Auth modules
+from model.siamese_model import SiameseNetwork, DeviceEmbedder
+from preprocessing.features import NoisePreprocessor, FeatureVector
+from auth import (
+    DeviceEnroller,
+    DeviceAuthenticator,
+    ChallengeResponseProtocol,
+    SecureAuthenticationFlow,
+    AuthenticationSession
+)
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Create FastAPI app
+app = FastAPI(
+    title="QNA-Auth API",
+    description="Quantum Noise Assisted Authentication System",
+    version="1.0.0"
+)
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Configure appropriately for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Global state (in production, use proper dependency injection)
+class AppState:
+    embedder: Optional[DeviceEmbedder] = None
+    preprocessor: Optional[NoisePreprocessor] = None
+    feature_converter: Optional[FeatureVector] = None
+    enroller: Optional[DeviceEnroller] = None
+    authenticator: Optional[DeviceAuthenticator] = None
+    challenge_protocol: Optional[ChallengeResponseProtocol] = None
+    auth_flow: Optional[SecureAuthenticationFlow] = None
+
+state = AppState()
+
+
+# Pydantic models
+class EnrollmentRequest(BaseModel):
+    device_name: Optional[str] = Field(None, description="Optional device name")
+    num_samples: int = Field(50, description="Number of noise samples to collect", ge=10, le=200)
+    sources: List[str] = Field(['qrng'], description="Noise sources to use")
+
+
+class EnrollmentResponse(BaseModel):
+    device_id: str
+    status: str
+    message: str
+    metadata: Dict
+
+
+class AuthenticationRequest(BaseModel):
+    device_id: str = Field(..., description="Device identifier to authenticate")
+    sources: List[str] = Field(['qrng'], description="Noise sources to use")
+    num_samples_per_source: int = Field(5, description="Samples per source", ge=1, le=20)
+
+
+class ChallengeRequest(BaseModel):
+    device_id: str = Field(..., description="Device identifier")
+
+
+class ChallengeResponse(BaseModel):
+    challenge_id: str
+    nonce: str
+    expires_at: str
+
+
+class VerifyRequest(BaseModel):
+    challenge_id: str = Field(..., description="Challenge identifier")
+    response: str = Field(..., description="Challenge response signature")
+    device_id: str = Field(..., description="Device identifier")
+    noise_samples: List[List[float]] = Field(..., description="Fresh noise samples for embedding")
+
+
+class VerifyResponse(BaseModel):
+    authenticated: bool
+    similarity: float
+    details: Dict
+
+
+class DeviceListResponse(BaseModel):
+    devices: List[str]
+    count: int
+
+
+class HealthResponse(BaseModel):
+    status: str
+    model_loaded: bool
+    components_initialized: bool
+
+
+# Startup event
+@app.on_event("startup")
+async def startup_event():
+    """Initialize system components"""
+    logger.info("Initializing QNA-Auth system...")
+    
+    try:
+        # Initialize preprocessor first to determine feature dimension
+        state.preprocessor = NoisePreprocessor(normalize=True)
+        state.feature_converter = FeatureVector()
+        
+        # Extract features from a dummy sample to get the actual feature dimension
+        dummy_sample = np.random.randn(1024)
+        dummy_features = state.preprocessor.extract_all_features(dummy_sample)
+        dummy_vector = state.feature_converter.to_vector(dummy_features)
+        input_dim = len(dummy_vector)
+        
+        logger.info(f"Detected feature dimension: {input_dim}")
+        
+        embedding_dim = 128
+        
+        # Create embedder (this creates and initializes the model on cuda:0)
+        state.embedder = DeviceEmbedder(input_dim=input_dim, embedding_dim=embedding_dim)
+        
+        # Load model if checkpoint exists
+        model_path = Path("./model/checkpoints/best_model.pt")
+        if model_path.exists():
+            state.embedder.load_model(str(model_path))
+            logger.info("Loaded trained model from checkpoint")
+        else:
+            logger.warning("No trained model found, using random initialization")
+        
+        # Initialize enroller
+        state.enroller = DeviceEnroller(
+            embedder=state.embedder,
+            preprocessor=state.preprocessor,
+            feature_converter=state.feature_converter,
+            storage_dir="./auth/device_embeddings"
+        )
+        
+        # Initialize authenticator
+        state.authenticator = DeviceAuthenticator(
+            embedder=state.embedder,
+            preprocessor=state.preprocessor,
+            feature_converter=state.feature_converter,
+            enroller=state.enroller,
+            threshold=0.85
+        )
+        
+        # Initialize challenge-response protocol
+        state.challenge_protocol = ChallengeResponseProtocol(
+            nonce_length=32,
+            challenge_expiry_seconds=60
+        )
+        
+        state.auth_flow = SecureAuthenticationFlow(
+            protocol=state.challenge_protocol,
+            similarity_threshold=0.85
+        )
+        
+        logger.info("QNA-Auth system initialized successfully")
+        
+    except Exception as e:
+        logger.error(f"Failed to initialize system: {e}")
+        raise
+
+
+# Health check endpoint
+@app.get("/health", response_model=HealthResponse)
+async def health_check():
+    """Check system health"""
+    return {
+        "status": "healthy",
+        "model_loaded": state.embedder is not None,
+        "components_initialized": all([
+            state.embedder,
+            state.preprocessor,
+            state.enroller,
+            state.authenticator,
+            state.challenge_protocol
+        ])
+    }
+
+
+# Enrollment endpoint
+@app.post("/enroll", response_model=EnrollmentResponse, status_code=status.HTTP_201_CREATED)
+async def enroll_device(request: EnrollmentRequest, background_tasks: BackgroundTasks):
+    """
+    Enroll a new device
+    
+    This endpoint collects noise samples and creates a device embedding
+    """
+    if not state.enroller:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Enrollment service not initialized"
+        )
+    
+    try:
+        logger.info(f"Enrollment request: device_name={request.device_name}, "
+                   f"num_samples={request.num_samples}, sources={request.sources}")
+        
+        # Enroll device
+        device_id = state.enroller.enroll_device(
+            device_name=request.device_name,
+            num_samples=request.num_samples,
+            sources=request.sources
+        )
+        
+        # Load metadata
+        metadata_path = state.enroller.storage_dir / f"{device_id}_metadata.json"
+        import json
+        with open(metadata_path, 'r') as f:
+            metadata = json.load(f)
+        
+        return {
+            "device_id": device_id,
+            "status": "success",
+            "message": f"Device enrolled successfully",
+            "metadata": metadata
+        }
+        
+    except Exception as e:
+        logger.error(f"Enrollment failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Enrollment failed: {str(e)}"
+        )
+
+
+# Authentication endpoint (simple version)
+@app.post("/authenticate")
+async def authenticate_device(request: AuthenticationRequest):
+    """
+    Authenticate a device using noise samples
+    
+    This is a simplified authentication flow
+    """
+    if not state.authenticator:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Authentication service not initialized"
+        )
+    
+    try:
+        logger.info(f"Authentication request: device_id={request.device_id}")
+        
+        # Authenticate
+        is_authenticated, details = state.authenticator.authenticate(
+            device_id=request.device_id,
+            sources=request.sources,
+            num_samples_per_source=request.num_samples_per_source
+        )
+        
+        if is_authenticated:
+            return {
+                "authenticated": True,
+                "device_id": request.device_id,
+                "details": details
+            }
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication failed",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Authentication error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Authentication error: {str(e)}"
+        )
+
+
+# Challenge-response endpoints
+@app.post("/challenge", response_model=ChallengeResponse)
+async def create_challenge(request: ChallengeRequest):
+    """
+    Create authentication challenge
+    
+    Step 1 of challenge-response protocol
+    """
+    if not state.challenge_protocol:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Challenge protocol not initialized"
+        )
+    
+    try:
+        challenge = state.challenge_protocol.create_challenge(request.device_id)
+        return challenge
+        
+    except Exception as e:
+        logger.error(f"Challenge creation failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Challenge creation failed: {str(e)}"
+        )
+
+
+@app.post("/verify", response_model=VerifyResponse)
+async def verify_challenge_response(request: VerifyRequest):
+    """
+    Verify challenge response
+    
+    Step 2 of challenge-response protocol
+    """
+    if not state.auth_flow or not state.enroller:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Verification service not initialized"
+        )
+    
+    try:
+        # Load stored embedding
+        stored_embedding = state.enroller.load_device_embedding(request.device_id)
+        
+        if stored_embedding is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Device not enrolled"
+            )
+        
+        # Convert noise samples to embedding
+        noise_arrays = [np.array(sample, dtype=np.float32) for sample in request.noise_samples]
+        auth_embedding = state.authenticator.generate_authentication_embedding(noise_arrays)
+        
+        if auth_embedding is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Failed to generate authentication embedding"
+            )
+        
+        # Complete authentication
+        is_authenticated, details = state.auth_flow.complete_authentication(
+            challenge_id=request.challenge_id,
+            response=request.response,
+            auth_embedding=auth_embedding,
+            stored_embedding=stored_embedding
+        )
+        
+        if is_authenticated:
+            return {
+                "authenticated": True,
+                "similarity": details['embedding_similarity'],
+                "details": details
+            }
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Verification failed",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Verification error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Verification error: {str(e)}"
+        )
+
+
+# Device management endpoints
+@app.get("/devices", response_model=DeviceListResponse)
+async def list_devices():
+    """List all enrolled devices"""
+    if not state.enroller:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Enrollment service not initialized"
+        )
+    
+    try:
+        devices = state.enroller.list_enrolled_devices()
+        return {
+            "devices": devices,
+            "count": len(devices)
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to list devices: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to list devices: {str(e)}"
+        )
+
+
+@app.get("/devices/{device_id}")
+async def get_device_info(device_id: str):
+    """Get device metadata"""
+    if not state.enroller:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Enrollment service not initialized"
+        )
+    
+    try:
+        metadata_path = state.enroller.storage_dir / f"{device_id}_metadata.json"
+        
+        if not metadata_path.exists():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Device not found"
+            )
+        
+        import json
+        with open(metadata_path, 'r') as f:
+            metadata = json.load(f)
+        
+        return metadata
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get device info: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get device info: {str(e)}"
+        )
+
+
+@app.delete("/devices/{device_id}")
+async def delete_device(device_id: str):
+    """Delete enrolled device"""
+    if not state.enroller:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Enrollment service not initialized"
+        )
+    
+    try:
+        # Delete embedding and metadata files
+        embedding_path = state.enroller.storage_dir / f"{device_id}_embedding.pt"
+        metadata_path = state.enroller.storage_dir / f"{device_id}_metadata.json"
+        
+        if not embedding_path.exists():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Device not found"
+            )
+        
+        embedding_path.unlink()
+        metadata_path.unlink()
+        
+        logger.info(f"Deleted device: {device_id}")
+        
+        return {
+            "status": "success",
+            "message": f"Device {device_id} deleted successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to delete device: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete device: {str(e)}"
+        )
+
+
+# Root endpoint
+@app.get("/")
+async def root():
+    """API root"""
+    return {
+        "service": "QNA-Auth API",
+        "version": "1.0.0",
+        "description": "Quantum Noise Assisted Authentication System",
+        "endpoints": {
+            "health": "/health",
+            "enroll": "/enroll",
+            "authenticate": "/authenticate",
+            "challenge": "/challenge",
+            "verify": "/verify",
+            "devices": "/devices"
+        }
+    }
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
