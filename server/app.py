@@ -3,13 +3,22 @@ FastAPI Backend Server for QNA-Auth
 Implements REST API for device enrollment and authentication
 """
 
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+# Ensure project root is on sys.path when running `python server/app.py`
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from fastapi import FastAPI, HTTPException, BackgroundTasks, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict
 import torch
 import numpy as np
-from pathlib import Path
 import logging
 
 # Import QNA-Auth modules

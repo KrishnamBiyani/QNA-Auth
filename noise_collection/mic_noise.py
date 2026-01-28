@@ -4,12 +4,16 @@ Captures ambient noise and microphone self-noise
 """
 
 import numpy as np
-import sounddevice as sd
 from typing import Optional, Tuple
 import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+try:
+    import sounddevice as sd  # type: ignore
+except ImportError:  # pragma: no cover
+    sd = None
 
 
 class MicrophoneNoiseCollector:
@@ -32,6 +36,11 @@ class MicrophoneNoiseCollector:
         
     def list_devices(self):
         """List available audio devices"""
+        if sd is None:
+            raise ImportError(
+                "Microphone features require the 'sounddevice' package. "
+                "Install it with: pip install sounddevice"
+            )
         print("\n=== Available Audio Devices ===")
         print(sd.query_devices())
     
@@ -51,6 +60,11 @@ class MicrophoneNoiseCollector:
             Numpy array of audio samples or None if failed
         """
         try:
+            if sd is None:
+                raise ImportError(
+                    "Microphone features require the 'sounddevice' package. "
+                    "Install it with: pip install sounddevice"
+                )
             logger.info(f"Recording {duration}s of ambient noise...")
             
             # Record audio
