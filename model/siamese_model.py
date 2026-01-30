@@ -43,8 +43,8 @@ class EmbeddingNetwork(nn.Module):
             layers.extend([
                 nn.Linear(prev_dim, hidden_dim),
                 # nn.BatchNorm1d(hidden_dim),  # Disabled due to CUDA device issues
-                nn.ReLU(),
-                nn.Dropout(0.3)
+                nn.Tanh(), # Switched from ReLU to Tanh to avoid dying ReLU collapse
+                # nn.Dropout(0.3) # Remove dropout for untrained deterministic projection
             ])
             prev_dim = hidden_dim
         

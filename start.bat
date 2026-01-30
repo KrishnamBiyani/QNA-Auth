@@ -3,7 +3,7 @@ echo Starting QNA-Auth System
 echo.
 
 echo Starting Backend Server...
-start "QNA-Auth Backend" cmd /k "cd /d %~dp0 && D:/QNA-Auth/venv/Scripts/python.exe server/app.py"
+start "QNA-Auth Backend" cmd /k "cd /d %~dp0 && call .venv\Scripts\activate.bat && python server/app.py"
 
 timeout /t 3 /nobreak >nul
 

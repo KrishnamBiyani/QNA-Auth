@@ -83,3 +83,8 @@ htmlcov/
 *.tmp
 temp/
 tmp/
+
+# Local config and temp files
+config.py
+server/models/
+

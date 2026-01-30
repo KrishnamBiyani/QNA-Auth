@@ -23,6 +23,7 @@ import logging
 
 # Import QNA-Auth modules
 from model.siamese_model import SiameseNetwork, DeviceEmbedder
+from dataset.builder import DatasetBuilder
 from preprocessing.features import NoisePreprocessor, FeatureVector
 from auth import (
     DeviceEnroller,
@@ -31,6 +32,7 @@ from auth import (
     SecureAuthenticationFlow,
     AuthenticationSession
 )
+import config  # Import configuration
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -43,7 +45,10 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Configure CORS
+@app.get("/")
+async def root():
+    return {"status": "online", "message": "QNA-Auth Server is running"}
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Configure appropriately for production
@@ -70,6 +75,7 @@ class EnrollmentRequest(BaseModel):
     device_name: Optional[str] = Field(None, description="Optional device name")
     num_samples: int = Field(50, description="Number of noise samples to collect", ge=10, le=200)
     sources: List[str] = Field(['qrng'], description="Noise sources to use")
+    client_samples: Optional[Dict[str, List[List[float]]]] = Field(None, description="Optional raw noise samples provided by client")
 
 
 class EnrollmentResponse(BaseModel):
@@ -83,6 +89,7 @@ class AuthenticationRequest(BaseModel):
     device_id: str = Field(..., description="Device identifier to authenticate")
     sources: List[str] = Field(['qrng'], description="Noise sources to use")
     num_samples_per_source: int = Field(5, description="Samples per source", ge=1, le=20)
+    client_samples: Optional[Dict[str, List[List[float]]]] = Field(None, description="Optional raw noise samples provided by client")
 
 
 class ChallengeRequest(BaseModel):
@@ -127,7 +134,8 @@ async def startup_event():
     
     try:
         # Initialize preprocessor first to determine feature dimension
-        state.preprocessor = NoisePreprocessor(normalize=True)
+        # DISABLE normalization to preserve amplitude/loudness differences between sensors
+        state.preprocessor = NoisePreprocessor(normalize=False)
         state.feature_converter = FeatureVector()
         
         # Extract features from a dummy sample to get the actual feature dimension
@@ -140,23 +148,29 @@ async def startup_event():
         
         embedding_dim = 128
         
-        # Create embedder (this creates and initializes the model on cuda:0)
-        state.embedder = DeviceEmbedder(input_dim=input_dim, embedding_dim=embedding_dim)
+        # Create embedder (this creates and initializes the model on device)
+        state.embedder = DeviceEmbedder(input_dim=input_dim, embedding_dim=embedding_dim, device=config.DEVICE)
         
         # Load model if checkpoint exists
-        model_path = Path("./model/checkpoints/best_model.pt")
+        # Use path from config, or fallback to the one in server/models
+        model_path = Path(config.MODEL_PATH)
+        
         if model_path.exists():
             state.embedder.load_model(str(model_path))
-            logger.info("Loaded trained model from checkpoint")
+            logger.info(f"Loaded trained model from {model_path}")
         else:
-            logger.warning("No trained model found, using random initialization")
+            logger.warning(f"No trained model found at {model_path}, using random initialization")
         
+        # Initialize dataset builder for training data collection
+        dataset_builder = DatasetBuilder()
+
         # Initialize enroller
         state.enroller = DeviceEnroller(
             embedder=state.embedder,
             preprocessor=state.preprocessor,
             feature_converter=state.feature_converter,
-            storage_dir="./auth/device_embeddings"
+            storage_dir="./auth/device_embeddings",
+            dataset_builder=dataset_builder
         )
         
         # Initialize authenticator
@@ -225,7 +239,8 @@ async def enroll_device(request: EnrollmentRequest, background_tasks: Background
         device_id = state.enroller.enroll_device(
             device_name=request.device_name,
             num_samples=request.num_samples,
-            sources=request.sources
+            sources=request.sources,
+            client_samples=request.client_samples
         )
         
         # Load metadata
@@ -266,11 +281,21 @@ async def authenticate_device(request: AuthenticationRequest):
     try:
         logger.info(f"Authentication request: device_id={request.device_id}")
         
+        # DEBUG: Check if client_samples arrived
+        if request.client_samples:
+            logger.info("API: received client_samples in request")
+            logger.info(f"API: keys={list(request.client_samples.keys())}")
+            for k, v in request.client_samples.items():
+                logger.info(f"API: source {k} has {len(v)} samples")
+        else:
+            logger.warning("API: request.client_samples is None or Empty")
+
         # Authenticate
         is_authenticated, details = state.authenticator.authenticate(
             device_id=request.device_id,
             sources=request.sources,
-            num_samples_per_source=request.num_samples_per_source
+            num_samples_per_source=request.num_samples_per_source,
+            client_samples=request.client_samples
         )
         
         if is_authenticated:

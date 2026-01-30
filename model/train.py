@@ -14,6 +14,7 @@ import logging
 from tqdm import tqdm
 
 from .siamese_model import SiameseNetwork, TripletLoss, ContrastiveLoss
+from preprocessing.features import NoisePreprocessor, FeatureVector
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -189,8 +190,7 @@ class ModelTrainer:
             self.optimizer,
             mode='min',
             factor=0.5,
-            patience=5,
-            verbose=True
+            patience=5
         )
         
         # Training history
@@ -391,33 +391,99 @@ class ModelTrainer:
         logger.info(f"Loaded checkpoint from epoch {checkpoint['epoch']}")
 
 
-def main():
-    """Test training pipeline"""
-    print("\n=== Training Pipeline Test ===")
+def load_real_dataset(data_dir="./dataset/samples"):
+    """Load and process real dataset from disk"""
+    print(f"Loading dataset from {data_dir}...")
+    json_dir = Path(data_dir) / "json"
+    if not json_dir.exists():
+        print("Dataset directory not found!")
+        return {}, 0
     
-    # Create synthetic dataset
-    input_dim = 50
-    embedding_dim = 128
-    num_devices = 5
-    samples_per_device = 50
+    preprocessor = NoisePreprocessor(normalize=True)
+    converter = FeatureVector()
     
-    # Generate synthetic features for each device
     features_by_device = {}
-    for i in range(num_devices):
-        device_id = f"device_{i:03d}"
-        # Each device has slightly different feature distribution
-        base_features = np.random.randn(samples_per_device, input_dim) + i * 0.5
-        features_by_device[device_id] = [base_features[j] for j in range(samples_per_device)]
+    sample_count = 0
     
-    print(f"Created dataset with {num_devices} devices")
+    json_files = list(json_dir.glob("*.json"))
+    # Limit to 20 samples for speed during demo
+    import random
+    if len(json_files) > 20:
+        print("Subsampling to 20 samples for speed...")
+        random.shuffle(json_files)
+        json_files = json_files[:20]
+        
+    print(f"Found {len(json_files)} samples.")
+    
+    if not json_files:
+        return {}, 0
+    
+    for json_file in tqdm(json_files, desc="Processing samples"):
+        try:
+            with open(json_file, 'r') as f:
+                meta = json.load(f)
+            
+            device_id = meta['device_id']
+            # fix path (remove leading slash if present in metadata relative path)
+            rel_path = meta['raw_data_path'].lstrip('/\\')
+            raw_path = Path(data_dir) / rel_path
+            
+            if not raw_path.exists():
+                # Fallback to absolute check or check if relative to root
+                if (Path(data_dir).parent.parent / rel_path).exists():
+                     raw_path = Path(data_dir).parent.parent / rel_path
+                else:
+                    # logger.warning(f"Raw file not found: {raw_path}")
+                    continue
+                
+            raw_data = np.load(raw_path)
+            
+            # Process
+            features = preprocessor.extract_all_features(raw_data)
+            vector = converter.to_vector(features)
+            
+            if device_id not in features_by_device:
+                features_by_device[device_id] = []
+            
+            features_by_device[device_id].append(vector)
+            sample_count += 1
+            
+        except Exception as e:
+            logger.error(f"Error loading {json_file}: {e}")
+            continue
+            
+    input_dim = len(next(iter(features_by_device.values()))[0]) if sample_count > 0 else 0
+    logger.info(f"Loaded {sample_count} samples from {len(features_by_device)} devices")
+    return features_by_device, input_dim
+
+
+def main():
+    """Train pipeline with real data"""
+    print("\n=== Siamese Network Training ===")
+    
+    # Load Real Dataset
+    features_by_device, input_dim = load_real_dataset()
+    
+    if not features_by_device or len(features_by_device) < 2:
+        print("!! INSUFFICIENT DATA !!")
+        print("Need at least 2 devices with samples to train.")
+        print("Run 'python auto_collect.py' to generate data.")
+        return
+
+    embedding_dim = 128
+    
+    print(f"Input Feature Dimension: {input_dim}")
+    print(f"Devices: {len(features_by_device)}")
     
     # Create datasets
-    train_dataset = TripletDataset(features_by_device, samples_per_epoch=200)
-    val_dataset = TripletDataset(features_by_device, samples_per_epoch=50)
+    # Adjust samples_per_epoch based on available data size
+    total_samples = sum(len(v) for v in features_by_device.values())
+    samples_per_epoch = max(100, total_samples * 2)
+    
+    train_dataset = TripletDataset(features_by_device, samples_per_epoch=samples_per_epoch)
     
     # Create data loaders
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=min(32, samples_per_epoch), shuffle=True)
     
     # Create model
     model = SiameseNetwork(input_dim=input_dim, embedding_dim=embedding_dim)
@@ -430,17 +496,25 @@ def main():
     )
     
     # Train
-    print("\n=== Training ===")
+    print("\n=== Starting Training Loop ===")
     history = trainer.train(
         train_loader=train_loader,
-        val_loader=val_loader,
-        epochs=5,
-        save_dir="./model/test_checkpoints"
+        val_loader=None, # storing validation data is tricky with small datasets, skipping for now
+        epochs=10,
+        save_dir="./model/checkpoints"
     )
     
-    print("\n=== Training History ===")
-    print(f"Train losses: {[f'{l:.4f}' for l in history['train_loss']]}")
-    print(f"Val losses: {[f'{l:.4f}' for l in history['val_loss']]}")
+    print("\n=== Training Completed ===")
+    print(f"Final Loss: {history['train_loss'][-1]:.4f}")
+    
+    # Save as best_model for server to pick up
+    best_path = Path("model/checkpoints/best_model.pt")
+    server_path = Path("server/models/best_model.pt")
+    
+    import shutil
+    server_path.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy(best_path, server_path)
+    print(f"Deployed model to {server_path}")
 
 
 if __name__ == "__main__":

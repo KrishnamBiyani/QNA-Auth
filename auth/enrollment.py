@@ -28,7 +28,8 @@ class DeviceEnroller:
         embedder: DeviceEmbedder,
         preprocessor: NoisePreprocessor,
         feature_converter: FeatureVector,
-        storage_dir: str = "./auth/device_embeddings"
+        storage_dir: str = "./auth/device_embeddings",
+        dataset_builder: Optional[object] = None
     ):
         """
         Initialize device enroller
@@ -38,12 +39,14 @@ class DeviceEnroller:
             preprocessor: Noise preprocessor
             feature_converter: Feature vector converter
             storage_dir: Directory to store device embeddings
+            dataset_builder: Optional dataset builder for saving raw training data
         """
         self.embedder = embedder
         self.preprocessor = preprocessor
         self.feature_converter = feature_converter
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(parents=True, exist_ok=True)
+        self.dataset_builder = dataset_builder
         
         logger.info("DeviceEnroller initialized")
     
@@ -296,7 +299,8 @@ class DeviceEnroller:
         self,
         device_name: Optional[str] = None,
         num_samples: int = 50,
-        sources: List[str] = ['qrng', 'camera', 'microphone']
+        sources: List[str] = ['qrng', 'camera', 'microphone'],
+        client_samples: Optional[Dict[str, List[List[float]]]] = None
     ) -> str:
         """
         Complete device enrollment process
@@ -305,6 +309,7 @@ class DeviceEnroller:
             device_name: Optional device name
             num_samples: Number of noise samples to collect
             sources: Noise sources to use
+            client_samples: Optional raw noise samples provided by client
             
         Returns:
             Device ID
@@ -316,10 +321,17 @@ class DeviceEnroller:
         logger.info(f"Generated device ID: {device_id}")
         
         # Collect noise samples
-        noise_samples = self.collect_noise_samples(
-            num_samples=num_samples,
-            sources=sources
-        )
+        if client_samples:
+            logger.info("Using client-provided samples")
+            noise_samples = {}
+            for source, samples_list in client_samples.items():
+                # Convert list of lists back to numpy arrays
+                noise_samples[source] = [np.array(s) for s in samples_list]
+        else:
+            noise_samples = self.collect_noise_samples(
+                num_samples=num_samples,
+                sources=sources
+            )
         
         # Validate samples were collected
         if not noise_samples:
@@ -336,6 +348,20 @@ class DeviceEnroller:
         
         logger.info(f"Total samples collected: {total_samples} from {len(noise_samples)} sources")
         
+        # Save raw data for training if builder is configured
+        if self.dataset_builder:
+            logger.info("Saving raw samples to dataset...")
+            try:
+                for source, samples in noise_samples.items():
+                    self.dataset_builder.add_batch(
+                        device_id=device_id,
+                        noise_source=source,
+                        samples=samples
+                    )
+                logger.info("Raw samples saved to dataset")
+            except Exception as e:
+                logger.error(f"Failed to save raw samples: {e}")
+
         # Process to feature vectors
         feature_vectors = self.process_noise_to_features(noise_samples)
         

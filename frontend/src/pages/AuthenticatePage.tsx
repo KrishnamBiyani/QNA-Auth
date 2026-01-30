@@ -1,70 +1,194 @@
-import { useState, useEffect } from 'react'
-import { qnaAuthService, AuthenticationResponse } from '../services/api'
-import { Loader2, CheckCircle, XCircle } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { qnaAuthService, AuthenticationResponse } from "../services/api";
+import {
+  CameraNoiseCollector,
+  MicNoiseCollector,
+} from "../services/collectors";
+import { Loader2, CheckCircle, XCircle } from "lucide-react";
 
 export default function AuthenticatePage() {
-  const [devices, setDevices] = useState<string[]>([])
-  const [selectedDevice, setSelectedDevice] = useState('')
-  const [sources, setSources] = useState<string[]>(['qrng'])
-  const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<AuthenticationResponse | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [devices, setDevices] = useState<string[]>([]);
+  const [selectedDevice, setSelectedDevice] = useState("");
+  const [sources, setSources] = useState<string[]>(["qrng"]);
+  // Default to TRUE if we are not on localhost (i.e. we are on a mobile/remote device)
+  const isRemote =
+    window.location.hostname !== "localhost" &&
+    window.location.hostname !== "127.0.0.1";
+  const [useClientSensors, setUseClientSensors] = useState(isRemote);
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<string>("");
+  const [result, setResult] = useState<AuthenticationResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadDevices()
-  }, [])
+    loadDevices();
+  }, []);
 
   const loadDevices = async () => {
     try {
-      const response = await qnaAuthService.listDevices()
-      setDevices(response.devices)
+      const response = await qnaAuthService.listDevices();
+      setDevices(response.devices);
     } catch (err) {
-      console.error('Failed to load devices:', err)
+      console.error("Failed to load devices:", err);
     }
-  }
+  };
 
   const handleSourceToggle = (source: string) => {
-    setSources(prev =>
+    setSources((prev) =>
       prev.includes(source)
-        ? prev.filter(s => s !== source)
-        : [...prev, source]
-    )
-  }
+        ? prev.filter((s) => s !== source)
+        : [...prev, source],
+    );
+  };
+
+  const collectClientSamples = async (
+    numSamples: number,
+  ): Promise<Record<string, number[][]>> => {
+    const clientSamples: Record<string, number[][]> = {};
+
+    if (sources.includes("camera")) {
+      setStatus("Initializing Camera...");
+      const camCollector = new CameraNoiseCollector();
+      if (await camCollector.initialize()) {
+        setStatus("Collecting Camera Noise...");
+        const samples: number[][] = [];
+        for (let i = 0; i < numSamples; i++) {
+          const sample = await camCollector.captureDarkFrame(50); // Fast capture
+          if (sample) samples.push(sample);
+        }
+        clientSamples["camera"] = samples;
+        camCollector.release();
+      } else {
+        console.error("Camera failed to init");
+      }
+    }
+
+    if (sources.includes("microphone")) {
+      setStatus("Initializing Microphone...");
+      console.log("DEBUG: Frontend - Initializing Microphone Collector");
+      const micCollector = new MicNoiseCollector();
+      const initSuccess = await micCollector.initialize();
+      console.log("DEBUG: Frontend - Mic Init Success:", initSuccess);
+
+      if (initSuccess) {
+        setStatus("Collecting Microphone Noise...");
+        const samples: number[][] = [];
+        for (let i = 0; i < numSamples; i++) {
+          console.log(
+            `DEBUG: Frontend - Capturing Mic Sample ${i + 1}/${numSamples}`,
+          );
+          // Short bursts for efficiency
+          const sample = await micCollector.captureAmbientNoise(1.0);
+          console.log(
+            `DEBUG: Frontend - Sample ${i + 1} length:`,
+            sample?.length,
+          );
+          if (sample && sample.length > 0) samples.push(sample);
+        }
+        console.log(
+          "DEBUG: Frontend - Total Mic Samples collected:",
+          samples.length,
+        );
+
+        if (samples.length === 0) {
+          alert(
+            "CRITICAL ERROR: Microphone initialized but captured 0 samples! The browser might be blocking audio capture despite permissions.",
+          );
+        }
+
+        clientSamples["microphone"] = samples;
+        micCollector.release();
+      } else {
+        console.error("Microphone failed to init");
+        setStatus("Microphone Init Failed");
+        alert(
+          "Microphone initialization failed. Please check browser permissions.",
+        );
+      }
+    }
+
+    return clientSamples;
+  };
 
   const handleAuthenticate = async () => {
     if (!selectedDevice) {
-      setError('Please select a device')
-      return
+      setError("Please select a device");
+      return;
     }
 
     if (sources.length === 0) {
-      setError('Please select at least one noise source')
-      return
+      setError("Please select at least one noise source");
+      return;
     }
 
-    setLoading(true)
-    setError(null)
-    setResult(null)
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    setStatus("Initializing...");
 
     try {
+      // 1. Collect Client-Side Samples if needed
+      let clientSamples: Record<string, number[][]> | undefined = undefined;
+
+      // Check if we need to collect from client hardware
+      // FORCE client collection if the user toggled it, regardless of source types initially
+      const needsClientCollection = useClientSensors;
+
+      if (needsClientCollection) {
+        // Ensure sources list includes microphone if not already present
+        if (!sources.includes("microphone")) {
+          sources.push("microphone");
+        }
+        const samplesPerSource = 5; // Default for auth
+        clientSamples = await collectClientSamples(samplesPerSource);
+
+        // Verify we got what we needed
+        if (sources.includes("camera") && !clientSamples["camera"]) {
+          throw new Error("Failed to access Camera. Please allow permissions.");
+        }
+        if (sources.includes("microphone") && !clientSamples["microphone"]) {
+          throw new Error(
+            "Failed to access Microphone. Please allow permissions.",
+          );
+        }
+      }
+
+      setStatus("Authenticating...");
+
+      console.log("DEBUG: Calling Authentication Endpoint with:", {
+        deviceId: selectedDevice,
+        sources: sources,
+        clientSamplesKeys: clientSamples ? Object.keys(clientSamples) : "None",
+      });
+
       const response = await qnaAuthService.authenticateDevice({
         device_id: selectedDevice,
         sources: sources,
         num_samples_per_source: 5,
-      })
-      setResult(response)
+        client_samples: clientSamples, // Ensure this property name matches the Python Pydantic model exactly
+      });
+      setResult(response);
     } catch (err) {
-      const error = err as { response?: { data?: { detail?: string } } }
-      setError(error.response?.data?.detail || 'Authentication failed')
-      setResult({ 
+      console.log(err);
+      const error = err as {
+        response?: { data?: { detail?: string } };
+        message?: string;
+      };
+      setError(
+        error.response?.data?.detail ||
+          error.message ||
+          "Authentication failed",
+      );
+      setResult({
         authenticated: false,
         device_id: selectedDevice,
-        message: 'Authentication failed'
-      })
+        message: "Authentication failed",
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
+      setStatus("");
     }
-  }
+  };
 
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-8rem)] p-4">
@@ -77,7 +201,9 @@ export default function AuthenticatePage() {
               Select Device
             </label>
             {devices.length === 0 ? (
-              <p className="text-neutral-400 text-sm">No devices enrolled yet</p>
+              <p className="text-neutral-400 text-sm">
+                No devices enrolled yet
+              </p>
             ) : (
               <select
                 value={selectedDevice}
@@ -98,25 +224,41 @@ export default function AuthenticatePage() {
             <label className="block text-sm font-medium mb-3">
               Noise Sources
             </label>
-            <div className="space-y-2">
-              <SourceCheckbox
-                label="Quantum RNG"
-                value="qrng"
-                checked={sources.includes('qrng')}
-                onChange={handleSourceToggle}
-              />
-              <SourceCheckbox
-                label="Camera"
-                value="camera"
-                checked={sources.includes('camera')}
-                onChange={handleSourceToggle}
-              />
-              <SourceCheckbox
-                label="Microphone"
-                value="microphone"
-                checked={sources.includes('microphone')}
-                onChange={handleSourceToggle}
-              />
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <SourceCheckbox
+                  label="Quantum RNG"
+                  value="qrng"
+                  checked={sources.includes("qrng")}
+                  onChange={handleSourceToggle}
+                />
+                <SourceCheckbox
+                  label="Camera"
+                  value="camera"
+                  checked={sources.includes("camera")}
+                  onChange={handleSourceToggle}
+                />
+                <SourceCheckbox
+                  label="Microphone"
+                  value="microphone"
+                  checked={sources.includes("microphone")}
+                  onChange={handleSourceToggle}
+                />
+              </div>
+
+              <div className="pt-2 border-t border-neutral-700">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={useClientSensors}
+                    onChange={(e) => setUseClientSensors(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-600 bg-neutral-800 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-neutral-300">
+                    Use Mobile/Local Hardware
+                  </span>
+                </label>
+              </div>
             </div>
           </div>
 
@@ -128,7 +270,7 @@ export default function AuthenticatePage() {
             {loading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Authenticating...</span>
+                <span>{status || "Authenticating..."}</span>
               </>
             ) : (
               <>
@@ -142,12 +284,19 @@ export default function AuthenticatePage() {
           <div className="mt-6 p-4 bg-green-900/30 border border-green-500">
             <div className="flex items-center gap-2 mb-2">
               <CheckCircle className="w-5 h-5 text-green-500" />
-              <h3 className="font-semibold text-green-500">Authentication Successful</h3>
+              <h3 className="font-semibold text-green-500">
+                Authentication Successful
+              </h3>
             </div>
             <div className="text-sm space-y-1">
-              <p><strong>Device ID:</strong> {result.device_id}</p>
+              <p>
+                <strong>Device ID:</strong> {result.device_id}
+              </p>
               {result.details?.similarity && (
-                <p><strong>Similarity:</strong> {(result.details.similarity * 100).toFixed(2)}%</p>
+                <p>
+                  <strong>Similarity:</strong>{" "}
+                  {(result.details.similarity * 100).toFixed(2)}%
+                </p>
               )}
             </div>
           </div>
@@ -157,7 +306,9 @@ export default function AuthenticatePage() {
           <div className="mt-6 p-4 bg-red-900/30 border border-red-500">
             <div className="flex items-center gap-2 mb-2">
               <XCircle className="w-5 h-5 text-red-500" />
-              <h3 className="font-semibold text-red-500">Authentication Failed</h3>
+              <h3 className="font-semibold text-red-500">
+                Authentication Failed
+              </h3>
             </div>
           </div>
         )}
@@ -172,17 +323,22 @@ export default function AuthenticatePage() {
         )}
       </div>
     </div>
-  )
+  );
 }
 
 interface SourceCheckboxProps {
-  label: string
-  value: string
-  checked: boolean
-  onChange: (value: string) => void
+  label: string;
+  value: string;
+  checked: boolean;
+  onChange: (value: string) => void;
 }
 
-function SourceCheckbox({ label, value, checked, onChange }: SourceCheckboxProps) {
+function SourceCheckbox({
+  label,
+  value,
+  checked,
+  onChange,
+}: SourceCheckboxProps) {
   return (
     <label className="flex items-center gap-3 p-3 bg-neutral-800 border border-neutral-700 cursor-pointer hover:bg-neutral-750 transition">
       <input
@@ -193,5 +349,5 @@ function SourceCheckbox({ label, value, checked, onChange }: SourceCheckboxProps
       />
       <span className="font-medium">{label}</span>
     </label>
-  )
+  );
 }
