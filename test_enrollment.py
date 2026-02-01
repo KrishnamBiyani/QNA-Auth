@@ -19,7 +19,7 @@ def test_enrollment(device_name, noise_sources, num_samples=20):
     print(f"Enrolling device: {device_name}")
     payload = {
         "device_name": device_name,
-        "noise_sources": noise_sources,
+        "sources": noise_sources,
         "num_samples": num_samples
     }
     
@@ -43,7 +43,7 @@ def test_authentication(device_id, noise_sources):
     print(f"Authenticating device: {device_id}")
     payload = {
         "device_id": device_id,
-        "noise_sources": noise_sources
+        "sources": noise_sources
     }
     
     response = requests.post(f"{BASE_URL}/authenticate", json=payload)
@@ -68,6 +68,7 @@ def test_challenge_response(device_id):
     verify_payload = {
         "challenge_id": challenge_data["challenge_id"],
         "device_id": device_id,
+        "response": "dummy_signature_for_demo",
         "noise_samples": [[1, 2, 3, 4, 5] for _ in range(5)]  # Dummy noise samples
     }
     
@@ -93,8 +94,8 @@ if __name__ == "__main__":
     print("=" * 60 + "\n")
     
     enrollment_result = test_enrollment(
-        device_name="TestDevice_QRNG",
-        noise_sources=["qrng"],
+        device_name="TestDevice_Microphone",
+        noise_sources=["microphone"],
         num_samples=20
     )
     
@@ -113,7 +114,7 @@ if __name__ == "__main__":
     print("=" * 60)
     print("Testing Device Authentication")
     print("=" * 60 + "\n")
-    test_authentication(device_id, ["qrng"])
+    test_authentication(device_id, ["microphone"])
     
     # Test challenge-response
     print("=" * 60)

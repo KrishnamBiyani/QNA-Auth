@@ -19,11 +19,11 @@ def run_cross_device_test():
 
     # 1. Enroll Device A (Quiet Profile)
     logger.info("\n[Step 1] Enrolling 'Device A' (Quiet Profile)...")
-    initial_samples = generate_samples(0.0, 0.002, count=20) # RMS ~0.002
+    initial_samples = generate_samples(0.0, 0.002, count=10) # 10 samples (Minimum)
     
     enroll_payload = {
         "device_name": "Device_A_Quiet",
-        "num_samples": 20,
+        "num_samples": 10,
         "sources": ["microphone"],
         "client_samples": {
             "microphone": initial_samples

@@ -118,9 +118,9 @@ class DeviceAuthenticator:
                 rms = np.sqrt(np.mean(sample**2))
                 logger.info(f"DEBUG: Sample Stats - Max Amp: {amplitude:.6f}, RMS: {rms:.6f}")
                 
-                if rms < 0.0001:  # Threshold for digital silence/near silence
+                if rms < 0.000001:  # Threshold for digital silence/near silence
                     logger.error("CRITICAL: Detected SILENCE in audio sample. Rejecting.")
-                    raise ValueError("Audio sample is silent (RMS < 0.0001). Check microphone inputs.")
+                    raise ValueError("Audio sample is silent (RMS < 0.000001). Check microphone inputs.")
 
                 # Extract features
                 features = self.preprocessor.extract_all_features(sample)

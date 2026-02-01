@@ -98,6 +98,8 @@ class NoisePreprocessor:
         Returns:
             Dictionary of statistical features
         """
+        rms = float(np.sqrt(np.mean(data**2)))
+        
         features = {
             # Basic statistics
             'mean': float(np.mean(data)),
@@ -118,10 +120,16 @@ class NoisePreprocessor:
             'iqr': float(np.percentile(data, 75) - np.percentile(data, 25)),
             
             # RMS
-            'rms': float(np.sqrt(np.mean(data**2))),
+            'rms': rms,
+            
+            # Magnitude Encoding: Map amplitude to rotation
+            # Use sin/cos of RMS to create circular features
+            # Weights tuned to be robust to small noise (freq=100) but sensitive to large (weight=500)
+            'rms_enc_sin': 500.0 * np.sin(rms * 100),
+            'rms_enc_cos': 500.0 * np.cos(rms * 100),
             
             # Peak factor
-            'peak_factor': float(np.max(np.abs(data)) / (np.sqrt(np.mean(data**2)) + 1e-10))
+            'peak_factor': float(np.max(np.abs(data)) / (rms + 1e-10))
         }
         
         return features
@@ -265,10 +273,10 @@ class NoisePreprocessor:
         
         # For large arrays, downsample before computing expensive features
         # Approximate entropy and Hurst exponent have O(n²) complexity
-        if len(data) > 1000:
-            # Downsample to max 1000 points for complexity calculations
-            step = len(data) // 1000
-            data_downsampled = data[::step][:1000]
+        if len(data) > 200:
+            # Downsample to max 200 points for complexity calculations
+            step = len(data) // 200
+            data_downsampled = data[::step][:200]
             logger.info(f"Downsampled {len(data)} samples to {len(data_downsampled)} for complexity features")
         else:
             data_downsampled = data
