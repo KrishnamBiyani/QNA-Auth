@@ -79,13 +79,22 @@ SERVER_CONFIG = {
     "workers": 1
 }
 
-# CORS Configuration
+# CORS Configuration (use these origins in production; no "*" with credentials)
 CORS_CONFIG = {
     "allow_origins": ["http://localhost:3000", "http://localhost:5173"],
     "allow_credentials": True,
     "allow_methods": ["*"],
     "allow_headers": ["*"]
 }
+
+# API protection (optional)
+# Set API_KEY to a secret string to require X-API-Key header on enroll/authenticate/challenge/verify/delete
+API_KEY = None  # e.g. os.environ.get("QNA_AUTH_API_KEY")
+
+# Rate limiting for auth endpoints (per IP)
+# RATE_LIMIT_REQUESTS = 0 disables rate limiting
+RATE_LIMIT_REQUESTS = 30   # Max requests per window per IP
+RATE_LIMIT_WINDOW_SEC = 60
 
 # Logging Configuration
 LOGGING_CONFIG = {

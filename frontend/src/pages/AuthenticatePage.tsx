@@ -201,9 +201,11 @@ export default function AuthenticatePage() {
               Select Device
             </label>
             {devices.length === 0 ? (
-              <p className="text-neutral-400 text-sm">
-                No devices enrolled yet
-              </p>
+              <div className="p-4 bg-amber-900/30 border border-amber-600 rounded">
+                <p className="text-amber-200 font-medium">No devices enrolled.</p>
+                <p className="text-neutral-400 text-sm mt-1">Enroll a device first, then return here to authenticate.</p>
+                <a href="/enroll" className="inline-block mt-3 text-blue-400 hover:text-blue-300 font-medium">Enroll device →</a>
+              </div>
             ) : (
               <select
                 value={selectedDevice}
@@ -310,6 +312,9 @@ export default function AuthenticatePage() {
                 Authentication Failed
               </h3>
             </div>
+            <p className="text-sm text-neutral-300 mt-1">
+              Similarity: {(typeof result.similarity === "number" ? result.similarity : 0).toFixed(2)} (threshold 0.85). Try again with the same noise sources used at enrollment.
+            </p>
           </div>
         )}
 
@@ -321,7 +326,63 @@ export default function AuthenticatePage() {
             </div>
           </div>
         )}
+
+        <ChallengeResponseSection devices={devices} selectedDevice={selectedDevice} />
       </div>
+    </div>
+  );
+}
+
+function ChallengeResponseSection({ devices, selectedDevice }: { devices: DeviceSummary[]; selectedDevice: string }) {
+  const [challenge, setChallenge] = useState<{ challenge_id: string; nonce: string; expires_at: string } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [expand, setExpand] = useState(false);
+
+  const handleGetChallenge = async () => {
+    if (!selectedDevice) return;
+    setLoading(true);
+    setChallenge(null);
+    try {
+      const data = await qnaAuthService.createChallenge(selectedDevice);
+      setChallenge(data);
+    } catch (err) {
+      console.error("Challenge failed:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="mt-8 pt-6 border-t border-neutral-700">
+      <button
+        type="button"
+        onClick={() => setExpand(!expand)}
+        className="text-neutral-400 hover:text-white font-medium"
+      >
+        {expand ? "▼" : "▶"} Challenge-Response (advanced)
+      </button>
+      {expand && (
+        <div className="mt-3 p-4 bg-neutral-800/50 border border-neutral-700 rounded text-sm">
+          <p className="text-neutral-400 mb-3">
+            Get a one-time challenge (nonce) for this device. Verification requires computing a response from the stored embedding and nonce (e.g. via API or secure element).
+          </p>
+          <button
+            type="button"
+            onClick={handleGetChallenge}
+            disabled={!selectedDevice || loading || devices.length === 0}
+            className="bg-neutral-700 hover:bg-neutral-600 disabled:opacity-50 px-4 py-2 rounded"
+          >
+            {loading ? "Loading..." : "Get challenge"}
+          </button>
+          {challenge && (
+            <div className="mt-3 p-3 bg-neutral-900 rounded font-mono text-xs break-all">
+              <p><strong>challenge_id:</strong> {challenge.challenge_id}</p>
+              <p><strong>nonce:</strong> {challenge.nonce}</p>
+              <p><strong>expires_at:</strong> {challenge.expires_at}</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

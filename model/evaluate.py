@@ -143,7 +143,7 @@ class ModelEvaluator:
         
         far = fp / (fp + tn) if (fp + tn) > 0 else 0  # False Acceptance Rate
         frr = fn / (fn + tp) if (fn + tp) > 0 else 0  # False Rejection Rate
-        
+
         metrics = {
             'threshold': threshold,
             'accuracy': accuracy,
@@ -191,9 +191,46 @@ class ModelEvaluator:
                 best_metrics = metrics
         
         logger.info(f"Optimal threshold: {best_threshold:.4f} ({metric}={best_score:.4f})")
-        
+
         return best_threshold, best_metrics
-    
+
+    def compute_eer(
+        self,
+        scores: List[float],
+        labels: List[int],
+        n_thresholds: int = 200,
+    ) -> Tuple[float, float]:
+        """
+        Compute Equal Error Rate (EER): the rate at the threshold where FAR = FRR.
+        Returns (eer_rate, eer_threshold).
+        """
+        thresholds = np.linspace(min(scores), max(scores), n_thresholds)
+        best_eer = 1.0
+        eer_threshold = 0.0
+        for t in thresholds:
+            m = self.evaluate_threshold(scores, labels, t)
+            far, frr = m["far"], m["frr"]
+            if abs(far - frr) < 1e-6 or (far + frr) / 2 < best_eer:
+                eer_val = (far + frr) / 2.0
+                if eer_val < best_eer:
+                    best_eer = eer_val
+                    eer_threshold = t
+        return float(best_eer), float(eer_threshold)
+
+    def threshold_sweep(
+        self,
+        scores: List[float],
+        labels: List[int],
+        n_thresholds: int = 100,
+    ) -> List[Dict[str, float]]:
+        """Return list of {threshold, far, frr, accuracy, ...} for plotting FAR/FRR vs threshold."""
+        thresholds = np.linspace(min(scores), max(scores), n_thresholds)
+        rows = []
+        for t in thresholds:
+            m = self.evaluate_threshold(scores, labels, t)
+            rows.append({"threshold": t, "far": m["far"], "frr": m["frr"], **m})
+        return rows
+
     def plot_roc_curve(
         self,
         scores: List[float],

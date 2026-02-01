@@ -93,9 +93,9 @@ class DeviceEnroller:
         if 'qrng' in sources:
             logger.info(f"Collecting {num_samples} QRNG samples...")
             try:
-                # Use API key from environment or hardcoded
+                # Use API key from environment only (no hardcoded default)
                 import os
-                api_key = os.getenv('QRNG_API_KEY', 'qnrk_e07be9c8e69b605ab33d13c241fc7f5b027de62cbd592c2c')
+                api_key = os.getenv('QRNG_API_KEY')
                 qrng_client = QRNGClient(api_key=api_key)
                 samples = qrng_client.fetch_multiple_samples(
                     num_samples=num_samples,

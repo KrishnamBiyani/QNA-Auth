@@ -95,10 +95,65 @@ Frontend runs on `http://localhost:3000`
 
 ---
 
+## Install, data, train, evaluate, and run server
+
+### Install
+- **Python**: 3.8+ (3.10+ recommended). Create a venv, activate it, then:
+  ```bash
+  pip install -r requirements.txt
+  ```
+- **Node.js**: 18+ for the frontend (`cd frontend && npm install && npm run dev`).
+- Optional: CUDA for faster training (`pip install torch ... --index-url https://download.pytorch.org/whl/cu124`).
+
+### Dataset layout
+- Training/enrollment data lives under **`dataset/samples/`** (config: `config.DATA_DIR` or `STORAGE_CONFIG["dataset_dir"]`).
+- Layout: `dataset/samples/json/` (one JSON metadata file per sample) and raw `.npy` files referenced in the JSON (e.g. `*_raw.npy`).
+- Each JSON has `device_id`, `noise_source` (qrng/camera/microphone), `raw_data_path`, and other metadata.
+
+### Collect data (for training)
+- **Participants** (no repo needed): run the standalone script; install deps and run:
+  ```bash
+  pip install numpy requests opencv-python sounddevice
+  python scripts/collect_data_for_training.py
+  ```
+  Then zip the created folder and send it. See `scripts/collect_data_for_training.py` docstring and `docs/DATA_COLLECTION.md` if present.
+- **Ingest** received folders into the project dataset:
+  ```bash
+  python scripts/ingest_collected_data.py path/to/collection_folder1 [folder2 ...]
+  ```
+  This merges into `dataset/samples/`.
+
+### Train
+- Train on the dataset (canonical features, reproducible seeds, best checkpoint by validation loss):
+  ```bash
+  python scripts/train_and_evaluate.py --data-dir dataset/samples [--epochs 20] [--seed 42]
+  ```
+  Or quick demo: `python -m model.train` (subsamples to 20 samples).
+- Trained model is written to `server/models/best_model.pt` (and feature pipeline metadata is saved with it).
+
+### Run evaluation
+- FAR, FRR, EER, threshold sweep, ROC, and ablation by noise source (QRNG / camera / mic / combined):
+  ```bash
+  python scripts/run_evaluation.py [--data-dir dataset/samples] [--model-path server/models/best_model.pt]
+  ```
+  Output: metrics and plots under `model/evaluation/` and an ablation table in the console. Use `--ablations-only` to skip full plots.
+
+### Start server
+- From project root:
+  ```bash
+  python server/app.py
+  ```
+  Server uses `config.MODEL_PATH` (default `server/models/best_model.pt`), `config.EMBEDDINGS_DIR`, and `config.DATABASE_URL`. See `config.example.py` and `docs/PROJECT_STATUS.md`.
+
+---
+
 ## Configuration
 
-### `config.example.py` (optional template)
-There is a `config.example.py` you can copy to `config.py`. **Important:** the current backend (`server/app.py`) mostly uses **hard-coded defaults** (e.g., threshold=0.85) and does **not** fully wire `config.py` everywhere. Treat `config.example.py` primarily as a ?future config? template.
+### `config.example.py` (copy to `config.py`)
+Copy `config.example.py` to `config.py` and adjust paths, CORS origins, and optional API protection:
+- **CORS**: `CORS_CONFIG["allow_origins"]` — restrict to your frontend origin(s) in production (e.g. `["http://localhost:3000", "http://localhost:5173"]`).
+- **API protection**: Set `API_KEY` (e.g. from `os.environ.get("QNA_AUTH_API_KEY")`) to require an `X-API-Key` header on enroll, authenticate, challenge, verify, and delete. Leave `None` for local dev without API key.
+- **Rate limiting**: `RATE_LIMIT_REQUESTS` and `RATE_LIMIT_WINDOW_SEC` limit auth-related requests per IP; set to `0` to disable.
 
 ### QRNG API key
 `auth/enrollment.py` attempts to read `QRNG_API_KEY` from the environment, otherwise it uses a fallback string.
@@ -347,9 +402,9 @@ This section explains the ?meaningful? files (source code + scripts). Generated 
 
 ## Notes on limitations (important)
 
-- The backend stores embeddings and challenges **in-process** (no database). Restarting the server clears in-memory active challenges.
-- `server/app.py` loads a model from `./model/checkpoints/best_model.pt` if it exists; otherwise it runs with random weights.
-- Some scripts are demos and may drift from the current API shape (e.g., `test_enrollment.py` payload field names).
+- The backend uses a **database** (SQLite by default) for devices, challenges, and audit logs; embeddings are still stored as `.pt` files in `auth/device_embeddings/`.
+- `server/app.py` loads a model from `config.MODEL_PATH` (default `server/models/best_model.pt`) if it exists; otherwise it runs with random weights.
+- Optional API key and rate limiting are configured via `config.py`; set `API_KEY` to require `X-API-Key` on protected endpoints.
 
 # QNA-Auth - Quantum Noise Assisted Authentication
 

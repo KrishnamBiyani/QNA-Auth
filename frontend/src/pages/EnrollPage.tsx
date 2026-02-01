@@ -50,6 +50,7 @@ export default function EnrollPage() {
         clientSamples["camera"] = samples;
         camCollector.release();
       } else {
+        setError("Camera unavailable. Check permissions or try another source.");
         console.error("Camera failed to init");
       }
     }
@@ -61,13 +62,13 @@ export default function EnrollPage() {
         setStatus("Collecting Microphone Noise...");
         const samples: number[][] = [];
         for (let i = 0; i < numSamples; i++) {
-          // Short bursts for efficiency
           const sample = await micCollector.captureAmbientNoise(0.5);
           if (sample) samples.push(sample);
         }
         clientSamples["microphone"] = samples;
         micCollector.release();
       } else {
+        setError("Microphone unavailable. Check browser permissions.");
         console.error("Microphone failed to init");
       }
     }

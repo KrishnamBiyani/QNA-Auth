@@ -13,6 +13,10 @@ Requirements (install before running):
   - opencv-python  (required for camera)
   - sounddevice    (optional, for microphone)
 
+Note: The ANU QRNG API is limited to 1 request per minute. QRNG collection will
+wait ~65 seconds between samples (e.g. 50 samples ≈ 50+ minutes). Use fewer
+samples (e.g. --num-samples 5) or camera/microphone for faster collection.
+
   python collect_data_for_training.py
 
 Creates a folder in the current directory with raw samples and manifest.json.
@@ -72,9 +76,10 @@ def _sanitize(s: str) -> str:
 
 
 # -----------------------------------------------------------------------------
-# QRNG: ANU API (no key required). Standalone implementation.
+# QRNG: ANU API (no key required). Rate limit: 1 request per minute.
 # -----------------------------------------------------------------------------
 ANU_QRNG_URL = "https://qrng.anu.edu.au/API/jsonI.php"
+ANU_QRNG_DELAY_SEC = 65  # ANU allows 1 request/minute; wait between calls
 
 
 def _collect_qrng_standalone(num_samples: int, sample_size: int = 1024) -> list:
@@ -90,11 +95,15 @@ def _collect_qrng_standalone(num_samples: int, sample_size: int = 1024) -> list:
             if not data.get("success"):
                 continue
             arr = np.array(data["data"], dtype=np.uint8)
-            # Normalize to float32 in [0, 1] for consistency with project
             arr = arr.astype(np.float32) / 255.0
             out.append(arr)
+            if num_samples > 1 and i < num_samples - 1:
+                print(f"  QRNG sample {i+1}/{num_samples} ok; waiting {ANU_QRNG_DELAY_SEC}s for rate limit...")
+                time.sleep(ANU_QRNG_DELAY_SEC)
         except Exception as e:
             print(f"  QRNG sample {i+1} failed: {e}")
+            if i < num_samples - 1:
+                time.sleep(ANU_QRNG_DELAY_SEC)
     return out
 
 
@@ -168,8 +177,21 @@ def _collect_qrng(num_samples: int, sample_size: int = 1024) -> list:
         from noise_collection import QRNGClient
         import os
         client = QRNGClient(api_key=os.getenv("QRNG_API_KEY"))
-        samples = client.fetch_multiple_samples(num_samples=num_samples, sample_size=sample_size)
-        return [np.asarray(s, dtype=np.float32) for s in samples]
+        # ANU allows 1 request/minute; fetch one at a time with delay
+        samples = []
+        for i in range(num_samples):
+            try:
+                s = client.fetch_quantum_noise(length=sample_size)
+                arr = np.asarray(s, dtype=np.float32)
+                if hasattr(s, "dtype") and np.issubdtype(s.dtype, np.integer):
+                    arr = arr / 255.0
+                samples.append(arr)
+            except Exception as e:
+                print(f"  QRNG sample {i+1} failed: {e}")
+            if num_samples > 1 and i < num_samples - 1:
+                print(f"  QRNG sample {i+1}/{num_samples} ok; waiting {ANU_QRNG_DELAY_SEC}s for rate limit...")
+                time.sleep(ANU_QRNG_DELAY_SEC)
+        return samples
     except ImportError:
         samples = _collect_qrng_standalone(num_samples, sample_size)
         return [np.asarray(s, dtype=np.float32) for s in samples]
@@ -291,8 +313,8 @@ def main():
     parser.add_argument(
         "--sources",
         type=str,
-        default="qrng",
-        help="Comma-separated: qrng,camera,microphone (default: qrng)",
+        default="qrng,camera,microphone",
+        help="Comma-separated: qrng,camera,microphone (default: all three)",
     )
     parser.add_argument(
         "--num-samples",
