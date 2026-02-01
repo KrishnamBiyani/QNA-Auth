@@ -208,8 +208,7 @@ export default function AuthenticatePage() {
               <select
                 value={selectedDevice}
                 onChange={(e) => setSelectedDevice(e.target.value)}
-                className="w-full px-4 py-2 bg-neutral-800 border border-neutral-700 focus:ring-2 focus:ring-blue-500 outline-none"
-              >
+                className="w-full px-4 py-2 bg-neutral-800 border border-neutral-700 focus:ring-2 focus:ring-blue-500 outline-none"                aria-label="Select device for authentication"              >
                 <option value="">Choose a device...</option>
                 {devices.map((d) => (
                   <option key={d.device_id} value={d.device_id}>

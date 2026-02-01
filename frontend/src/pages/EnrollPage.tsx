@@ -164,6 +164,8 @@ export default function EnrollPage() {
               value={numSamples}
               onChange={(e) => setNumSamples(parseInt(e.target.value))}
               className="w-full"
+              aria-label="Number of samples slider"
+              title="Adjust number of samples to collect"
             />
           </div>
 
