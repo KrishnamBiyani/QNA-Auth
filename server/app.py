@@ -13,11 +13,10 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks, status, Request, Depends
+from fastapi import FastAPI, HTTPException, BackgroundTasks, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict
-import time
 import torch
 import numpy as np
 import logging
@@ -55,48 +54,13 @@ app = FastAPI(
 async def root():
     return {"status": "online", "message": "QNA-Auth Server is running"}
 
-# CORS from config (restrict origins in production)
-_cors = getattr(config, "CORS_CONFIG", {})
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_cors.get("allow_origins", ["http://localhost:3000", "http://localhost:5173"]),
-    allow_credentials=_cors.get("allow_credentials", True),
-    allow_methods=_cors.get("allow_methods", ["*"]),
-    allow_headers=_cors.get("allow_headers", ["*"]),
+    allow_origins=["*"],  # Configure appropriately for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
-
-# Rate limit state: client_ip -> list of request timestamps (pruned by window)
-_rate_limit_times: Dict[str, List[float]] = {}
-_api_key = getattr(config, "API_KEY", None)
-_rate_limit_n = getattr(config, "RATE_LIMIT_REQUESTS", 0)
-_rate_limit_sec = getattr(config, "RATE_LIMIT_WINDOW_SEC", 60)
-
-
-async def require_api_key(request: Request) -> None:
-    """If API_KEY is set, require X-API-Key header."""
-    if not _api_key:
-        return
-    key = request.headers.get("X-API-Key")
-    if key != _api_key:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or missing X-API-Key")
-
-
-async def rate_limit(request: Request) -> None:
-    """Enforce per-IP rate limit on auth-related endpoints."""
-    if _rate_limit_n <= 0:
-        return
-    client = request.client
-    ip = client.host if client else "unknown"
-    now = time.time()
-    if ip not in _rate_limit_times:
-        _rate_limit_times[ip] = []
-    times = _rate_limit_times[ip]
-    times.append(now)
-    # Prune older than window
-    cutoff = now - _rate_limit_sec
-    _rate_limit_times[ip] = [t for t in times if t > cutoff]
-    if len(_rate_limit_times[ip]) > _rate_limit_n:
-        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Rate limit exceeded")
 
 # Global state (in production, use proper dependency injection)
 class AppState:
@@ -212,9 +176,8 @@ async def startup_event():
         else:
             logger.warning(f"No trained model found at {model_path}, using random initialization")
         
-        # Initialize dataset builder (path from config)
-        dataset_dir = getattr(config, "DATA_DIR", None) or config.STORAGE_CONFIG.get("dataset_dir", config.PROJECT_ROOT / "dataset" / "samples")
-        dataset_builder = DatasetBuilder(base_dir=str(dataset_dir))
+        # Initialize dataset builder for training data collection
+        dataset_builder = DatasetBuilder()
 
         # Initialize database (create tables if missing)
         init_db()
@@ -235,7 +198,7 @@ async def startup_event():
             preprocessor=state.preprocessor,
             feature_converter=state.feature_converter,
             enroller=state.enroller,
-            threshold=0.40
+            threshold=0.70
         )
         
         # Initialize challenge-response protocol (DB-backed store)
@@ -315,12 +278,7 @@ async def health_check():
 
 # Enrollment endpoint
 @app.post("/enroll", response_model=EnrollmentResponse, status_code=status.HTTP_201_CREATED)
-async def enroll_device(
-    request: EnrollmentRequest,
-    background_tasks: BackgroundTasks,
-    _: None = Depends(require_api_key),
-    __: None = Depends(rate_limit),
-):
+async def enroll_device(request: EnrollmentRequest, background_tasks: BackgroundTasks):
     """
     Enroll a new device
     
@@ -380,11 +338,7 @@ async def enroll_device(
 
 # Authentication endpoint (simple version)
 @app.post("/authenticate")
-async def authenticate_device(
-    request: AuthenticationRequest,
-    _: None = Depends(require_api_key),
-    __: None = Depends(rate_limit),
-):
+async def authenticate_device(request: AuthenticationRequest):
     """
     Authenticate a device using noise samples
     
@@ -465,11 +419,7 @@ async def authenticate_device(
 
 # Challenge-response endpoints
 @app.post("/challenge", response_model=ChallengeResponse)
-async def create_challenge(
-    request: ChallengeRequest,
-    _: None = Depends(require_api_key),
-    __: None = Depends(rate_limit),
-):
+async def create_challenge(request: ChallengeRequest):
     """
     Create authentication challenge
     
@@ -494,11 +444,7 @@ async def create_challenge(
 
 
 @app.post("/verify", response_model=VerifyResponse)
-async def verify_challenge_response(
-    request: VerifyRequest,
-    _: None = Depends(require_api_key),
-    __: None = Depends(rate_limit),
-):
+async def verify_challenge_response(request: VerifyRequest):
     """
     Verify challenge response
     
@@ -633,11 +579,7 @@ async def get_device_info(device_id: str):
 
 
 @app.delete("/devices/{device_id}")
-async def delete_device(
-    device_id: str,
-    _: None = Depends(require_api_key),
-    __: None = Depends(rate_limit),
-):
+async def delete_device(device_id: str):
     """Delete enrolled device (from DB and files)"""
     if not state.enroller:
         raise HTTPException(
