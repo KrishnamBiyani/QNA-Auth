@@ -50,6 +50,11 @@ export interface Device {
   enrollment_date: string
 }
 
+export interface DeviceSummary {
+  device_id: string
+  device_name?: string | null
+}
+
 export const qnaAuthService = {
   // Health check
   async checkHealth() {
@@ -85,8 +90,8 @@ export const qnaAuthService = {
     return res.data
   },
 
-  // Device Management
-  async listDevices() {
+  // Device Management (returns devices with device_id and device_name for dropdowns)
+  async listDevices(): Promise<{ devices: DeviceSummary[]; count: number }> {
     const response = await api.get('devices')
     return response.data
   },

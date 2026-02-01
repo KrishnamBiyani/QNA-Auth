@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { qnaAuthService, AuthenticationResponse } from "../services/api";
+import { qnaAuthService, AuthenticationResponse, DeviceSummary } from "../services/api";
 import {
   CameraNoiseCollector,
   MicNoiseCollector,
@@ -7,7 +7,7 @@ import {
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 
 export default function AuthenticatePage() {
-  const [devices, setDevices] = useState<string[]>([]);
+  const [devices, setDevices] = useState<DeviceSummary[]>([]);
   const [selectedDevice, setSelectedDevice] = useState("");
   const [sources, setSources] = useState<string[]>(["qrng"]);
   // Default to TRUE if we are not on localhost (i.e. we are on a mobile/remote device)
@@ -211,9 +211,9 @@ export default function AuthenticatePage() {
                 className="w-full px-4 py-2 bg-neutral-800 border border-neutral-700 focus:ring-2 focus:ring-blue-500 outline-none"
               >
                 <option value="">Choose a device...</option>
-                {devices.map((deviceId) => (
-                  <option key={deviceId} value={deviceId}>
-                    {deviceId}
+                {devices.map((d) => (
+                  <option key={d.device_id} value={d.device_id}>
+                    {d.device_name?.trim() || d.device_id}
                   </option>
                 ))}
               </select>

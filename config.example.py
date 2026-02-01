@@ -67,6 +67,10 @@ STORAGE_CONFIG = {
     "checkpoints_dir": "./model/checkpoints"
 }
 
+# Database (SQLite by default; use DATABASE_URL for PostgreSQL etc.)
+# Example: "sqlite:///./data/qna_auth.db"
+DATABASE_URL = "sqlite:///./data/qna_auth.db"
+
 # Server Configuration
 SERVER_CONFIG = {
     "host": "0.0.0.0",

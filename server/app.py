@@ -25,7 +25,7 @@ import socket
 # Import QNA-Auth modules
 from model.siamese_model import SiameseNetwork, DeviceEmbedder
 from dataset.builder import DatasetBuilder
-from preprocessing.features import NoisePreprocessor, FeatureVector
+from preprocessing.features import NoisePreprocessor, FeatureVector, get_canonical_feature_names
 from auth import (
     DeviceEnroller,
     DeviceAuthenticator,
@@ -34,6 +34,10 @@ from auth import (
     AuthenticationSession
 )
 import config  # Import configuration
+from db import init_db
+from db.models import Device
+from db.session import get_session_factory
+from db.challenge_store import DbChallengeStore
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -116,8 +120,13 @@ class VerifyResponse(BaseModel):
     details: Dict
 
 
+class DeviceSummary(BaseModel):
+    device_id: str
+    device_name: Optional[str] = None
+
+
 class DeviceListResponse(BaseModel):
-    devices: List[str]
+    devices: List[DeviceSummary]
     count: int
 
 
@@ -125,6 +134,8 @@ class HealthResponse(BaseModel):
     status: str
     model_loaded: bool
     components_initialized: bool
+    db_ok: Optional[bool] = None  # True if DB is reachable, False on error
+    devices_in_db: Optional[int] = None  # Number of devices in DB (when db_ok is True)
 
 
 # Startup event
@@ -137,7 +148,8 @@ async def startup_event():
         # Initialize preprocessor first to determine feature dimension
         # DISABLE normalization to preserve amplitude/loudness differences between sensors
         state.preprocessor = NoisePreprocessor(normalize=False)
-        state.feature_converter = FeatureVector()
+        # Use canonical feature list so train/serve use same feature order (overridden below if checkpoint has feature_names)
+        state.feature_converter = FeatureVector(get_canonical_feature_names())
         
         # Extract features from a dummy sample to get the actual feature dimension
         dummy_sample = np.random.randn(1024)
@@ -152,12 +164,14 @@ async def startup_event():
         # Create embedder (this creates and initializes the model on device)
         state.embedder = DeviceEmbedder(input_dim=input_dim, embedding_dim=embedding_dim, device=config.DEVICE)
         
-        # Load model if checkpoint exists
-        # Use path from config, or fallback to the one in server/models
+        # Load model if checkpoint exists; use feature_names from checkpoint for train/serve consistency
         model_path = Path(config.MODEL_PATH)
         
         if model_path.exists():
-            state.embedder.load_model(str(model_path))
+            extra = state.embedder.load_model(str(model_path))
+            if extra.get("feature_names") is not None:
+                state.feature_converter = FeatureVector(extra["feature_names"])
+                logger.info(f"Using feature list from checkpoint (version={extra.get('feature_version', '?')})")
             logger.info(f"Loaded trained model from {model_path}")
         else:
             logger.warning(f"No trained model found at {model_path}, using random initialization")
@@ -165,12 +179,16 @@ async def startup_event():
         # Initialize dataset builder for training data collection
         dataset_builder = DatasetBuilder()
 
-        # Initialize enroller
+        # Initialize database (create tables if missing)
+        init_db()
+        
+        # Initialize enroller (storage_dir from config)
+        storage_dir = str(config.EMBEDDINGS_DIR)
         state.enroller = DeviceEnroller(
             embedder=state.embedder,
             preprocessor=state.preprocessor,
             feature_converter=state.feature_converter,
-            storage_dir="./auth/device_embeddings",
+            storage_dir=storage_dir,
             dataset_builder=dataset_builder
         )
         
@@ -183,10 +201,12 @@ async def startup_event():
             threshold=0.40
         )
         
-        # Initialize challenge-response protocol
+        # Initialize challenge-response protocol (DB-backed store)
+        challenge_store = DbChallengeStore()
         state.challenge_protocol = ChallengeResponseProtocol(
             nonce_length=32,
-            challenge_expiry_seconds=60
+            challenge_expiry_seconds=60,
+            challenge_store=challenge_store
         )
         
         state.auth_flow = SecureAuthenticationFlow(
@@ -227,8 +247,8 @@ def _log_local_network_urls(port: int = 8000) -> None:
 # Health check endpoint
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
-    """Check system health"""
-    return {
+    """Check system health (includes DB status)"""
+    resp = {
         "status": "healthy",
         "model_loaded": state.embedder is not None,
         "components_initialized": all([
@@ -237,8 +257,23 @@ async def health_check():
             state.enroller,
             state.authenticator,
             state.challenge_protocol
-        ])
+        ]),
+        "db_ok": None,
+        "devices_in_db": None
     }
+    try:
+        SessionLocal = get_session_factory()
+        session = SessionLocal()
+        try:
+            count = session.query(Device).count()
+            resp["db_ok"] = True
+            resp["devices_in_db"] = count
+        finally:
+            session.close()
+    except Exception as e:
+        logger.warning("Health check: DB unreachable: %s", e)
+        resp["db_ok"] = False
+    return resp
 
 
 # Enrollment endpoint
@@ -267,11 +302,24 @@ async def enroll_device(request: EnrollmentRequest, background_tasks: Background
             client_samples=request.client_samples
         )
         
-        # Load metadata
-        metadata_path = state.enroller.storage_dir / f"{device_id}_metadata.json"
+        # Load metadata and persist to DB
         import json
+        metadata_path = state.enroller.storage_dir / f"{device_id}_metadata.json"
         with open(metadata_path, 'r') as f:
             metadata = json.load(f)
+        
+        SessionLocal = get_session_factory()
+        session = SessionLocal()
+        try:
+            session.add(Device(
+                device_id=device_id,
+                device_name=request.device_name,
+                embedding_path=f"{device_id}_embedding.pt",
+                metadata_json=json.dumps(metadata)
+            ))
+            session.commit()
+        finally:
+            session.close()
         
         return {
             "device_id": device_id,
@@ -462,7 +510,7 @@ async def verify_challenge_response(request: VerifyRequest):
 # Device management endpoints
 @app.get("/devices", response_model=DeviceListResponse)
 async def list_devices():
-    """List all enrolled devices"""
+    """List all enrolled devices (from DB; fallback to file scan if DB empty)"""
     if not state.enroller:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -470,12 +518,21 @@ async def list_devices():
         )
     
     try:
-        devices = state.enroller.list_enrolled_devices()
+        SessionLocal = get_session_factory()
+        session = SessionLocal()
+        try:
+            rows = session.query(Device).all()
+            devices = [{"device_id": r.device_id, "device_name": r.device_name} for r in rows]
+        finally:
+            session.close()
+        if not devices:
+            # Fallback: file scan returns IDs only; device_name will be null
+            ids = state.enroller.list_enrolled_devices()
+            devices = [{"device_id": d, "device_name": None} for d in ids]
         return {
             "devices": devices,
             "count": len(devices)
         }
-        
     except Exception as e:
         logger.error(f"Failed to list devices: {e}")
         raise HTTPException(
@@ -486,7 +543,7 @@ async def list_devices():
 
 @app.get("/devices/{device_id}")
 async def get_device_info(device_id: str):
-    """Get device metadata"""
+    """Get device metadata (from DB; fallback to file if not in DB)"""
     if not state.enroller:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -494,20 +551,23 @@ async def get_device_info(device_id: str):
         )
     
     try:
+        import json
+        SessionLocal = get_session_factory()
+        session = SessionLocal()
+        try:
+            row = session.query(Device).filter(Device.device_id == device_id).first()
+            if row and row.metadata_json:
+                return json.loads(row.metadata_json)
+        finally:
+            session.close()
         metadata_path = state.enroller.storage_dir / f"{device_id}_metadata.json"
-        
         if not metadata_path.exists():
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Device not found"
             )
-        
-        import json
         with open(metadata_path, 'r') as f:
-            metadata = json.load(f)
-        
-        return metadata
-        
+            return json.load(f)
     except HTTPException:
         raise
     except Exception as e:
@@ -520,7 +580,7 @@ async def get_device_info(device_id: str):
 
 @app.delete("/devices/{device_id}")
 async def delete_device(device_id: str):
-    """Delete enrolled device"""
+    """Delete enrolled device (from DB and files)"""
     if not state.enroller:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -528,26 +588,36 @@ async def delete_device(device_id: str):
         )
     
     try:
-        # Delete embedding and metadata files
         embedding_path = state.enroller.storage_dir / f"{device_id}_embedding.pt"
         metadata_path = state.enroller.storage_dir / f"{device_id}_metadata.json"
-        
         if not embedding_path.exists():
+            # Check DB in case file was removed but row remains
+            SessionLocal = get_session_factory()
+            session = SessionLocal()
+            try:
+                session.query(Device).filter(Device.device_id == device_id).delete()
+                session.commit()
+            finally:
+                session.close()
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Device not found"
             )
-        
+        SessionLocal = get_session_factory()
+        session = SessionLocal()
+        try:
+            session.query(Device).filter(Device.device_id == device_id).delete()
+            session.commit()
+        finally:
+            session.close()
         embedding_path.unlink()
-        metadata_path.unlink()
-        
+        if metadata_path.exists():
+            metadata_path.unlink()
         logger.info(f"Deleted device: {device_id}")
-        
         return {
             "status": "success",
             "message": f"Device {device_id} deleted successfully"
         }
-        
     except HTTPException:
         raise
     except Exception as e:

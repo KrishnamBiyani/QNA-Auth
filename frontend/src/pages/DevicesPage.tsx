@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { qnaAuthService } from '../services/api'
+import { qnaAuthService, DeviceSummary } from '../services/api'
 import { Loader2, Trash2 } from 'lucide-react'
 
 interface DeviceInfo {
@@ -11,7 +11,7 @@ interface DeviceInfo {
 }
 
 export default function DevicesPage() {
-  const [devices, setDevices] = useState<string[]>([])
+  const [devices, setDevices] = useState<DeviceSummary[]>([])
   const [selectedDevice, setSelectedDevice] = useState<DeviceInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState<string | null>(null)
@@ -49,7 +49,7 @@ export default function DevicesPage() {
     setDeleting(deviceId)
     try {
       await qnaAuthService.deleteDevice(deviceId)
-      setDevices(prev => prev.filter(d => d !== deviceId))
+      setDevices(prev => prev.filter(d => d.device_id !== deviceId))
       if (selectedDevice?.device_id === deviceId) {
         setSelectedDevice(null)
       }
@@ -83,17 +83,20 @@ export default function DevicesPage() {
         ) : (
           <div className="grid md:grid-cols-3 gap-6">
             <div className="md:col-span-1 space-y-3">
-              {devices.map((deviceId) => (
+              {devices.map((d) => (
                 <button
-                  key={deviceId}
-                  onClick={() => loadDeviceInfo(deviceId)}
+                  key={d.device_id}
+                  onClick={() => loadDeviceInfo(d.device_id)}
                   className={`w-full text-left p-4 transition border ${
-                    selectedDevice?.device_id === deviceId
+                    selectedDevice?.device_id === d.device_id
                       ? 'bg-blue-600 border-blue-500'
                       : 'bg-neutral-900/80 backdrop-blur-sm border-neutral-800 hover:bg-neutral-800/80'
                   }`}
                 >
-                  <div className="font-mono text-sm truncate">{deviceId}</div>
+                  <div className="font-medium truncate">{d.device_name?.trim() || d.device_id}</div>
+                  {d.device_name?.trim() && (
+                    <div className="font-mono text-xs text-neutral-400 truncate mt-0.5">{d.device_id}</div>
+                  )}
                 </button>
               ))}
             </div>

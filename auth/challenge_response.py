@@ -6,7 +6,7 @@ Implements secure challenge-response authentication with nonce
 import hashlib
 import secrets
 import hmac
-from typing import Tuple, Dict, Optional
+from typing import Tuple, Dict, Optional, Any
 from datetime import datetime, timedelta
 import torch
 import logging
@@ -21,7 +21,8 @@ class ChallengeResponseProtocol:
     def __init__(
         self,
         nonce_length: int = 32,
-        challenge_expiry_seconds: int = 60
+        challenge_expiry_seconds: int = 60,
+        challenge_store: Optional[Any] = None
     ):
         """
         Initialize challenge-response protocol
@@ -29,13 +30,15 @@ class ChallengeResponseProtocol:
         Args:
             nonce_length: Length of nonce in bytes
             challenge_expiry_seconds: Challenge expiration time
+            challenge_store: Optional store with put/get/delete; if provided, challenges are persisted (e.g. DB)
         """
         self.nonce_length = nonce_length
         self.challenge_expiry = timedelta(seconds=challenge_expiry_seconds)
-        self.active_challenges = {}  # Map challenge_id -> challenge_data
+        self.active_challenges = {}  # Used only when challenge_store is None
+        self.challenge_store = challenge_store
         
         logger.info(f"ChallengeResponseProtocol initialized "
-                   f"(nonce_length={nonce_length}, expiry={challenge_expiry_seconds}s)")
+                   f"(nonce_length={nonce_length}, expiry={challenge_expiry_seconds}s, store={challenge_store is not None})")
     
     def generate_nonce(self) -> str:
         """
@@ -66,13 +69,17 @@ class ChallengeResponseProtocol:
             f"{device_id}_{nonce}_{datetime.now().isoformat()}".encode()
         ).hexdigest()[:16]
         
-        # Store challenge
-        self.active_challenges[challenge_id] = {
+        # Store challenge (DB or in-memory)
+        data = {
             'device_id': device_id,
             'nonce': nonce,
             'created_at': datetime.now(),
             'expires_at': datetime.now() + self.challenge_expiry
         }
+        if self.challenge_store is not None:
+            self.challenge_store.put(challenge_id, data)
+        else:
+            self.active_challenges[challenge_id] = data
         
         logger.info(f"Created challenge {challenge_id} for device {device_id}")
         
@@ -130,15 +137,22 @@ class ChallengeResponseProtocol:
         Returns:
             Tuple of (is_valid, details)
         """
-        # Check if challenge exists
-        if challenge_id not in self.active_challenges:
-            return False, {'error': 'Challenge not found'}
+        # Load challenge (from store or in-memory)
+        if self.challenge_store is not None:
+            challenge_data = self.challenge_store.get(challenge_id)
+            if challenge_data is None:
+                return False, {'error': 'Challenge not found'}
+        else:
+            if challenge_id not in self.active_challenges:
+                return False, {'error': 'Challenge not found'}
+            challenge_data = self.active_challenges[challenge_id]
         
-        challenge_data = self.active_challenges[challenge_id]
-        
-        # Check if challenge expired
+        # Check if challenge expired (and remove from store so it's cleaned up)
         if datetime.now() > challenge_data['expires_at']:
-            del self.active_challenges[challenge_id]
+            if self.challenge_store is not None:
+                self.challenge_store.delete(challenge_id)
+            else:
+                del self.active_challenges[challenge_id]
             return False, {'error': 'Challenge expired'}
         
         # Compute expected response
@@ -151,7 +165,10 @@ class ChallengeResponseProtocol:
         is_valid = hmac.compare_digest(response, expected_response)
         
         # Remove used challenge
-        del self.active_challenges[challenge_id]
+        if self.challenge_store is not None:
+            self.challenge_store.delete(challenge_id)
+        else:
+            del self.active_challenges[challenge_id]
         
         details = {
             'challenge_id': challenge_id,

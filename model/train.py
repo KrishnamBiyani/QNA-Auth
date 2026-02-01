@@ -14,10 +14,27 @@ import logging
 from tqdm import tqdm
 
 from .siamese_model import SiameseNetwork, TripletLoss, ContrastiveLoss
-from preprocessing.features import NoisePreprocessor, FeatureVector
+from preprocessing.features import (
+    FEATURE_VERSION,
+    get_canonical_feature_names,
+    NoisePreprocessor,
+    FeatureVector,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def set_seed(seed: int = 42) -> torch.Generator:
+    """Set random seeds for reproducibility (torch, numpy, dataloader). Returns a generator for DataLoader."""
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    g = torch.Generator()
+    g.manual_seed(seed)
+    logger.info(f"Random seed set to {seed}")
+    return g
 
 
 class TripletDataset(Dataset):
@@ -306,65 +323,68 @@ class ModelTrainer:
         train_loader: DataLoader,
         val_loader: Optional[DataLoader] = None,
         epochs: int = 50,
-        save_dir: str = "./model/checkpoints"
+        save_dir: str = "./model/checkpoints",
+        save_last_n: Optional[int] = None,
     ) -> Dict[str, List[float]]:
         """
-        Train model for multiple epochs
-        
+        Train model for multiple epochs. Saves best model by validation loss; optionally keeps last N checkpoints.
+
         Args:
             train_loader: Training data loader
-            val_loader: Optional validation data loader
+            val_loader: Optional validation data loader (required for best-by-val saving)
             epochs: Number of epochs
             save_dir: Directory to save checkpoints
-            
+            save_last_n: If set, keep only the last N epoch checkpoints (e.g. 3); older ones are removed.
+
         Returns:
             Training history dictionary
         """
         save_path = Path(save_dir)
         save_path.mkdir(parents=True, exist_ok=True)
-        
-        best_val_loss = float('inf')
-        
+
+        best_val_loss = float("inf")
+        saved_epoch_paths: List[Path] = []
+
         for epoch in range(1, epochs + 1):
             # Train
             train_loss = self.train_epoch(train_loader, epoch)
-            self.history['train_loss'].append(train_loss)
-            self.history['learning_rate'].append(
-                self.optimizer.param_groups[0]['lr']
-            )
-            
+            self.history["train_loss"].append(train_loss)
+            self.history["learning_rate"].append(self.optimizer.param_groups[0]["lr"])
+
             logger.info(f"Epoch {epoch}/{epochs} - Train Loss: {train_loss:.4f}")
-            
-            # Validate
+
+            val_loss = None
             if val_loader is not None:
                 val_loss = self.validate(val_loader)
-                self.history['val_loss'].append(val_loss)
+                self.history["val_loss"].append(val_loss)
                 logger.info(f"Epoch {epoch}/{epochs} - Val Loss: {val_loss:.4f}")
-                
-                # Update learning rate
                 self.scheduler.step(val_loss)
-                
-                # Save best model
+
                 if val_loss < best_val_loss:
                     best_val_loss = val_loss
                     checkpoint_path = save_path / "best_model.pt"
                     self.save_checkpoint(checkpoint_path, epoch, val_loss)
                     logger.info(f"Saved best model (val_loss={val_loss:.4f})")
-            
-            # Save periodic checkpoint
+
+            # Periodic checkpoint (last N only if save_last_n is set)
             if epoch % 10 == 0:
-                checkpoint_path = save_path / f"checkpoint_epoch_{epoch}.pt"
+                ckpt_name = f"checkpoint_epoch_{epoch}.pt"
+                checkpoint_path = save_path / ckpt_name
                 self.save_checkpoint(
                     checkpoint_path,
                     epoch,
-                    self.history['val_loss'][-1] if val_loader else train_loss
+                    (val_loss if val_loss is not None else train_loss),
                 )
-        
-        # Save final model
+                saved_epoch_paths.append(checkpoint_path)
+                if save_last_n is not None and len(saved_epoch_paths) > save_last_n:
+                    to_remove = saved_epoch_paths.pop(0)
+                    if to_remove.exists():
+                        to_remove.unlink()
+                        logger.info(f"Removed old checkpoint {to_remove.name}")
+
         final_path = save_path / "final_model.pt"
-        self.save_checkpoint(final_path, epochs, train_loss)
+        self.save_checkpoint(final_path, epochs, self.history["train_loss"][-1])
         logger.info("Training completed!")
-        
         return self.history
     
     def save_checkpoint(
@@ -391,28 +411,34 @@ class ModelTrainer:
         logger.info(f"Loaded checkpoint from epoch {checkpoint['epoch']}")
 
 
-def load_real_dataset(data_dir="./dataset/samples"):
-    """Load and process real dataset from disk"""
+def load_real_dataset(
+    data_dir: str = "./dataset/samples",
+    max_samples: Optional[int] = 20,
+):
+    """Load and process real dataset from disk. Uses canonical feature names for train/serve consistency.
+
+    Args:
+        data_dir: Path to dataset/samples (contains json/ and raw .npy).
+        max_samples: If set, use at most this many samples (for quick demos). None = use all.
+    """
     print(f"Loading dataset from {data_dir}...")
     json_dir = Path(data_dir) / "json"
     if not json_dir.exists():
         print("Dataset directory not found!")
         return {}, 0
-    
+
     preprocessor = NoisePreprocessor(normalize=True)
-    converter = FeatureVector()
-    
+    converter = FeatureVector(get_canonical_feature_names())
+
     features_by_device = {}
     sample_count = 0
-    
+
     json_files = list(json_dir.glob("*.json"))
-    # Limit to 20 samples for speed during demo
-    import random
-    if len(json_files) > 20:
-        print("Subsampling to 20 samples for speed...")
+    if max_samples is not None and len(json_files) > max_samples:
+        import random
         random.shuffle(json_files)
-        json_files = json_files[:20]
-        
+        json_files = json_files[:max_samples]
+        print(f"Subsampling to {max_samples} samples for speed...")
     print(f"Found {len(json_files)} samples.")
     
     if not json_files:
@@ -457,64 +483,78 @@ def load_real_dataset(data_dir="./dataset/samples"):
     return features_by_device, input_dim
 
 
-def main():
-    """Train pipeline with real data"""
+def main(seed: int = 42):
+    """Train pipeline with real data. Uses canonical features and reproducible seeds."""
     print("\n=== Siamese Network Training ===")
-    
-    # Load Real Dataset
-    features_by_device, input_dim = load_real_dataset()
-    
+
+    set_seed(seed)
+
+    # Load Real Dataset (canonical feature names; max_samples=20 for quick demo)
+    features_by_device, input_dim = load_real_dataset(max_samples=20)
+
     if not features_by_device or len(features_by_device) < 2:
         print("!! INSUFFICIENT DATA !!")
         print("Need at least 2 devices with samples to train.")
-        print("Run 'python auto_collect.py' to generate data.")
+        print("Run scripts/collect_data_for_training.py and scripts/ingest_collected_data.py to add data.")
         return
 
     embedding_dim = 128
-    
+
     print(f"Input Feature Dimension: {input_dim}")
     print(f"Devices: {len(features_by_device)}")
-    
-    # Create datasets
-    # Adjust samples_per_epoch based on available data size
+
     total_samples = sum(len(v) for v in features_by_device.values())
     samples_per_epoch = max(100, total_samples * 2)
-    
+
     train_dataset = TripletDataset(features_by_device, samples_per_epoch=samples_per_epoch)
-    
-    # Create data loaders
-    train_loader = DataLoader(train_dataset, batch_size=min(32, samples_per_epoch), shuffle=True)
-    
-    # Create model
+
+    g = torch.Generator()
+    g.manual_seed(seed)
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=min(32, samples_per_epoch),
+        shuffle=True,
+        generator=g,
+        worker_init_fn=lambda wid: np.random.seed(seed + wid) if hasattr(np.random, "seed") else None,
+    )
+
     model = SiameseNetwork(input_dim=input_dim, embedding_dim=embedding_dim)
-    
-    # Create trainer
+
     trainer = ModelTrainer(
         model=model,
-        loss_type='triplet',
-        learning_rate=0.001
+        loss_type="triplet",
+        learning_rate=0.001,
     )
-    
-    # Train
+
     print("\n=== Starting Training Loop ===")
     history = trainer.train(
         train_loader=train_loader,
-        val_loader=None, # storing validation data is tricky with small datasets, skipping for now
+        val_loader=None,
         epochs=10,
-        save_dir="./model/checkpoints"
+        save_dir="./model/checkpoints",
+        save_last_n=3,
     )
     
     print("\n=== Training Completed ===")
     print(f"Final Loss: {history['train_loss'][-1]:.4f}")
-    
-    # Save as best_model for server to pick up
+
+    # Save server-style checkpoint (with feature_names + feature_version) for train/serve consistency
     best_path = Path("model/checkpoints/best_model.pt")
     server_path = Path("server/models/best_model.pt")
-    
-    import shutil
     server_path.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy(best_path, server_path)
-    print(f"Deployed model to {server_path}")
+    if best_path.exists():
+        ckpt = torch.load(best_path, map_location="cpu")
+        server_ckpt = {
+            "model_state_dict": ckpt["model_state_dict"],
+            "embedding_dim": embedding_dim,
+            "input_dim": input_dim,
+            "feature_names": get_canonical_feature_names(),
+            "feature_version": FEATURE_VERSION,
+        }
+        torch.save(server_ckpt, server_path)
+        print(f"Deployed model (with feature pipeline v{FEATURE_VERSION}) to {server_path}")
+    else:
+        print("No best_model.pt found; skipping server deploy.")
 
 
 if __name__ == "__main__":

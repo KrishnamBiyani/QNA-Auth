@@ -12,6 +12,22 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Canonical feature pipeline version and names (same everywhere: train, serve, evaluation)
+FEATURE_VERSION = "1.0"
+
+# Ordered list of feature names from extract_all_features (must match exactly)
+_CANONICAL_FEATURE_NAMES: Optional[list] = None
+
+
+def get_canonical_feature_names() -> list:
+    """Return the canonical ordered feature list. Same for preprocessing, training, and server."""
+    global _CANONICAL_FEATURE_NAMES
+    if _CANONICAL_FEATURE_NAMES is None:
+        preprocessor = NoisePreprocessor(normalize=True)
+        dummy = np.random.RandomState(42).randn(1024)
+        _CANONICAL_FEATURE_NAMES = sorted(preprocessor.extract_all_features(dummy).keys())
+    return _CANONICAL_FEATURE_NAMES
+
 
 class NoisePreprocessor:
     """Preprocessing and feature extraction for noise data"""
@@ -421,34 +437,29 @@ class NoisePreprocessor:
 
 
 class FeatureVector:
-    """Converts features dictionary to fixed-size feature vector"""
-    
+    """Converts features dictionary to fixed-size feature vector. Uses canonical feature list by default for train/serve consistency."""
+
     def __init__(self, feature_names: Optional[list] = None):
         """
-        Initialize feature vector converter
-        
+        Initialize feature vector converter.
+
         Args:
-            feature_names: Ordered list of feature names
+            feature_names: Ordered list of feature names. If None, uses get_canonical_feature_names() so preprocessing, training, and server use the same order.
         """
-        self.feature_names = feature_names
-    
+        self.feature_names = feature_names if feature_names is not None else get_canonical_feature_names()
+
     def to_vector(self, features: Dict[str, Any]) -> np.ndarray:
         """
-        Convert features dictionary to numpy vector
-        
+        Convert features dictionary to numpy vector.
+
         Args:
-            features: Dictionary of features
-            
+            features: Dictionary of features.
+
         Returns:
-            Feature vector as numpy array
+            Feature vector as numpy array (same order as self.feature_names).
         """
-        if self.feature_names is None:
-            # Auto-generate feature names from first call
-            self.feature_names = sorted(features.keys())
-        
-        vector = np.array([features.get(name, 0.0) for name in self.feature_names], 
+        vector = np.array([features.get(name, 0.0) for name in self.feature_names],
                          dtype=np.float32)
-        
         return vector
     
     def from_vector(self, vector: np.ndarray) -> Dict[str, float]:

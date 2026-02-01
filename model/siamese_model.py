@@ -321,21 +321,38 @@ class DeviceEmbedder:
         
         return similarity
     
-    def save_model(self, path: str):
-        """Save model to file"""
-        torch.save({
+    def save_model(
+        self,
+        path: str,
+        feature_names: Optional[list] = None,
+        feature_version: Optional[str] = None,
+    ):
+        """Save model to file. Optionally store feature pipeline metadata for train/serve consistency."""
+        payload = {
             'model_state_dict': self.model.state_dict(),
             'embedding_dim': self.embedding_dim,
-            'input_dim': self.model.embedding_network.input_dim
-        }, path)
+            'input_dim': self.model.embedding_network.input_dim,
+        }
+        if feature_names is not None:
+            payload['feature_names'] = feature_names
+        if feature_version is not None:
+            payload['feature_version'] = feature_version
+        torch.save(payload, path)
         logger.info(f"Model saved to {path}")
-    
-    def load_model(self, path: str):
-        """Load model from file"""
+
+    def load_model(self, path: str) -> dict:
+        """
+        Load model from file.
+
+        Returns:
+            Extra checkpoint dict (e.g. feature_names, feature_version) for caller to use.
+        """
         checkpoint = torch.load(path, map_location=self.device)
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.model.eval()
+        extra = {k: v for k, v in checkpoint.items() if k not in ('model_state_dict',)}
         logger.info(f"Model loaded from {path}")
+        return extra
 
 
 def main():

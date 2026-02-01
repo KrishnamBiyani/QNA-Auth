@@ -2,7 +2,12 @@
 Preprocessing Module Initialization
 """
 
-from .features import NoisePreprocessor, FeatureVector
+from .features import (
+    FEATURE_VERSION,
+    get_canonical_feature_names,
+    NoisePreprocessor,
+    FeatureVector,
+)
 from .utils import (
     sliding_window,
     augment_noise_sample,
@@ -15,6 +20,8 @@ from .utils import (
 )
 
 __all__ = [
+    'FEATURE_VERSION',
+    'get_canonical_feature_names',
     'NoisePreprocessor',
     'FeatureVector',
     'sliding_window',

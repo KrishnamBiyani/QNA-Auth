@@ -43,6 +43,9 @@ ENV/
 *.onnx
 checkpoints/
 
+# Database (SQLite)
+data/
+
 # Data and Models
 dataset/samples/*.npy
 dataset/samples/*.csv

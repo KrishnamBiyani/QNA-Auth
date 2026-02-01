@@ -27,6 +27,7 @@ psutil>=5.9.0
 # Data Management
 pandas>=2.0.0
 matplotlib>=3.7.0
+sqlalchemy>=2.0.0
 
 # Security
 cryptography>=41.0.0

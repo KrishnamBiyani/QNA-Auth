@@ -221,6 +221,12 @@ Pages:
 - `python collect_training_data.py`
   - Enrolls multiple ?devices? via repeated enrollment calls to build up stored embeddings.
 
+### Train on real data and run evaluation
+- `python scripts/train_and_evaluate.py [--data-dir dataset/samples] [--seed 42] [--epochs 20]`
+  - Loads dataset from `dataset/samples` (canonical features, no subsampling).
+  - Reproducible seeds; optional train/val split; saves best by validation loss and last-N checkpoints.
+  - Runs evaluation (ROC, PR, optimal threshold) and deploys server checkpoint with feature pipeline metadata.
+
 ### Start scripts
 - `setup.bat` / `setup.sh`: create venv, install deps, create folders, copy `config.py`
 - `start.bat`: starts backend + frontend, but **contains a hard-coded Python path** (`D:/QNA-Auth/venv/...`). You will likely need to edit it to point to your local `venv`.
@@ -283,7 +289,8 @@ This section explains the ?meaningful? files (source code + scripts). Generated 
 ### `preprocessing/` (feature extraction)
 - `preprocessing/features.py`:
   - `NoisePreprocessor`: statistical features + Shannon entropy + FFT features + autocorrelation + complexity (approx entropy + Hurst exponent).
-  - `FeatureVector`: converts feature dictionaries to stable vectors using sorted keys (auto-initializes feature order on first call).
+  - `FEATURE_VERSION` and `get_canonical_feature_names()`: canonical feature list used everywhere (preprocessing, training, server); saved with the model so serve matches train.
+  - `FeatureVector`: converts feature dicts to fixed vectors; defaults to canonical feature names.
 - `preprocessing/utils.py`:
   - Utility helpers: sliding window, augmentation, pad/truncate, batch processing, SNR, merging multiple sources, etc.
 
@@ -294,7 +301,9 @@ This section explains the ?meaningful? files (source code + scripts). Generated 
   - `DeviceEmbedder`: wraps the model and provides `embed()` + `compute_similarity()`.
 - `model/train.py`:
   - `TripletDataset` and `PairDataset` to generate training tuples/pairs from per-device feature vectors.
-  - `ModelTrainer`: training loop, checkpointing, LR scheduler.
+  - `ModelTrainer`: training loop, best checkpoint by validation loss, optional last-N checkpoints (`save_last_n`).
+  - `set_seed()`: reproducible training (torch, numpy, DataLoader generator).
+  - Canonical feature names and `FEATURE_VERSION` are saved with the deployed model for train/serve consistency.
 - `model/evaluate.py`:
   - `ModelEvaluator`: generates embeddings, computes similarity distributions, finds a threshold, plots ROC/PR curves, and produces a report.
 
@@ -531,6 +540,16 @@ loader = DataLoader(dataset, batch_size=32)
 trainer = ModelTrainer(model, loss_type='triplet')
 trainer.train(loader, epochs=50)
 ```
+
+### Reproducible training
+
+To reproduce results (e.g. for papers or ablations), the training pipeline fixes all random seeds:
+
+- **Torch**: `torch.manual_seed(seed)` and `torch.cuda.manual_seed_all(seed)` if CUDA is used.
+- **NumPy**: `np.random.seed(seed)`.
+- **DataLoader**: a `torch.Generator` with `manual_seed(seed)` is passed so shuffle order is deterministic; with `num_workers > 0`, `worker_init_fn` seeds each worker with `seed + worker_id`.
+
+Default seed is `42`. When you run `python -m model.train` or `scripts/train_and_evaluate.py` with the same data and seed, you should get the same training curves and checkpoint metrics. Document the seed and feature pipeline version (e.g. `FEATURE_VERSION` in `preprocessing/features.py`) when reporting results.
 
 ## ?? Security Considerations
 
