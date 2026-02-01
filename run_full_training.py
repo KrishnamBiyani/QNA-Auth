@@ -25,8 +25,21 @@ def main():
 
     print("\n--- 2. INITIALIZING MODEL ---")
     # Initialize the model structure
-    # MATCHING SERVER CONFIG: Input=31 (features), Output=128 (embedding)
-    model = SiameseNetwork(input_dim=31, embedding_dim=128).to(config.DEVICE)
+    # Detect actual feature dimension by extracting from dummy sample
+    from preprocessing.features import NoisePreprocessor, FeatureVector
+    import numpy as np
+    
+    preprocessor = NoisePreprocessor(normalize=False)
+    converter = FeatureVector()
+    dummy_sample = np.random.randn(1024)
+    dummy_features = preprocessor.extract_all_features(dummy_sample)
+    dummy_vector = converter.to_vector(dummy_features)
+    input_dim = len(dummy_vector)
+    
+    print(f"Detected feature dimension: {input_dim}")
+    
+    # Initialize model with correct dimensions
+    model = SiameseNetwork(input_dim=input_dim, embedding_dim=128).to(config.DEVICE)
     
     print("\n--- 3. TRAINING LOOP (Skipped for Setup) ---")
     print("Skipping actual training loop to generate initial model file.")
@@ -41,7 +54,8 @@ def main():
         'model_state_dict': model.state_dict(),
         'epoch': 0,
         'loss': 0.0,
-        'feature_dim': 128 # Should match input_dim
+        'input_dim': input_dim,
+        'embedding_dim': 128
     }
     torch.save(checkpoint, save_path)
     print(f"Model saved locally to {save_path}")
@@ -52,7 +66,7 @@ def main():
     os.makedirs(server_model_dir, exist_ok=True)
     
     shutil.copy(save_path, server_model_path)
-    print(f"🚀 Model deployed to Server at: {server_model_path}")
+    print(f"Model deployed to Server at: {server_model_path}")
     print("You can now run 'python server/app.py' safely!")
 
 if __name__ == "__main__":

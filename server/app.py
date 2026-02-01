@@ -20,6 +20,7 @@ from typing import List, Optional, Dict
 import torch
 import numpy as np
 import logging
+import socket
 
 # Import QNA-Auth modules
 from model.siamese_model import SiameseNetwork, DeviceEmbedder
@@ -194,10 +195,33 @@ async def startup_event():
         )
         
         logger.info("QNA-Auth system initialized successfully")
+        _log_local_network_urls(port=8000)
         
     except Exception as e:
         logger.error(f"Failed to initialize system: {e}")
         raise
+
+
+def _log_local_network_urls(port: int = 8000) -> None:
+    """Log URLs other devices on the local network can use to reach this server."""
+    try:
+        hostname = socket.gethostname()
+        # Get all IPv4 addresses (skip loopback)
+        local_ips = []
+        for info in socket.getaddrinfo(hostname, None, socket.AF_INET):
+            addr = info[4][0]
+            if not addr.startswith("127."):
+                local_ips.append(addr)
+        # Also try a direct approach in case getaddrinfo only returns loopback
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("8.8.8.8", 80))
+            direct = s.getsockname()[0]
+            if direct not in local_ips:
+                local_ips.append(direct)
+        for ip in sorted(set(local_ips)):
+            logger.info("Local network: other devices can use http://%s:%s", ip, port)
+    except Exception:
+        pass
 
 
 # Health check endpoint
