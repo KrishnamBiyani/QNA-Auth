@@ -58,7 +58,9 @@ class ModelEvaluator:
     def compute_similarity_scores(
         self,
         embeddings_by_device: Dict[str, List[torch.Tensor]],
-        metric: str = 'cosine'
+        metric: str = 'cosine',
+        negative_pairs_per_device_pair: int = 10,
+        seed: int = 42,
     ) -> Tuple[List[float], List[int]]:
         """
         Compute similarity scores and labels for all pairs
@@ -87,6 +89,8 @@ class ModelEvaluator:
                     scores.append(score)
                     labels.append(1)
         
+        rng = np.random.default_rng(seed)
+
         # Negative pairs (different devices)
         for i, device1 in enumerate(device_ids):
             for device2 in device_ids[i+1:]:
@@ -94,10 +98,10 @@ class ModelEvaluator:
                 embeddings2 = embeddings_by_device[device2]
                 
                 # Sample a subset of negative pairs
-                num_samples = min(10, len(embeddings1), len(embeddings2))
+                num_samples = min(negative_pairs_per_device_pair, len(embeddings1), len(embeddings2))
                 for _ in range(num_samples):
-                    idx1 = np.random.randint(len(embeddings1))
-                    idx2 = np.random.randint(len(embeddings2))
+                    idx1 = int(rng.integers(len(embeddings1)))
+                    idx2 = int(rng.integers(len(embeddings2)))
                     
                     score = self.embedder.compute_similarity(
                         embeddings1[idx1],
@@ -110,6 +114,46 @@ class ModelEvaluator:
         logger.info(f"Computed {len(scores)} similarity scores")
         logger.info(f"Positive pairs: {sum(labels)}, Negative pairs: {len(labels) - sum(labels)}")
         
+        return scores, labels
+
+    @staticmethod
+    def compute_similarity_scores_from_vectors(
+        vectors_by_device: Dict[str, List[np.ndarray]],
+        metric: str = "cosine",
+        negative_pairs_per_device_pair: int = 10,
+        seed: int = 42,
+    ) -> Tuple[List[float], List[int]]:
+        """Compute pairwise scores directly from vectors for non-Siamese baselines."""
+        scores: List[float] = []
+        labels: List[int] = []
+        device_ids = list(vectors_by_device.keys())
+        rng = np.random.default_rng(seed)
+
+        def similarity(a: np.ndarray, b: np.ndarray) -> float:
+            if metric == "cosine":
+                na = np.linalg.norm(a) + 1e-8
+                nb = np.linalg.norm(b) + 1e-8
+                return float(np.dot(a, b) / (na * nb))
+            if metric == "euclidean":
+                return -float(np.linalg.norm(a - b))
+            raise ValueError(f"Unsupported metric: {metric}")
+
+        for device_id, vectors in vectors_by_device.items():
+            for i in range(len(vectors)):
+                for j in range(i + 1, len(vectors)):
+                    scores.append(similarity(vectors[i], vectors[j]))
+                    labels.append(1)
+
+        for i, d1 in enumerate(device_ids):
+            for d2 in device_ids[i + 1:]:
+                v1 = vectors_by_device[d1]
+                v2 = vectors_by_device[d2]
+                num = min(negative_pairs_per_device_pair, len(v1), len(v2))
+                for _ in range(num):
+                    idx1 = int(rng.integers(len(v1)))
+                    idx2 = int(rng.integers(len(v2)))
+                    scores.append(similarity(v1[idx1], v2[idx2]))
+                    labels.append(0)
         return scores, labels
     
     def evaluate_threshold(

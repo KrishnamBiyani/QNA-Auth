@@ -1,6 +1,8 @@
 # QNA-Auth (Quantum Noise Assisted Authentication)
 
-QNA-Auth is an experimental **device authentication** system that derives a **device "fingerprint" embedding** from high-entropy noise sources (QRNG / camera sensor noise / microphone noise / system jitter) and uses a Siamese-style embedding model + similarity thresholding to authenticate a device.
+QNA-Auth is an experimental **sensor-based device verification** system. It derives device embeddings from camera/microphone/sensor noise and uses metric learning plus similarity thresholding for verification.
+
+QRNG is treated as **fresh entropy input** for protocol/sampling, not as a standalone source of device identity.
 
 This repository includes:
 - A **FastAPI backend** that exposes enrollment/authentication APIs and persists enrolled device embeddings.
@@ -9,7 +11,23 @@ This repository includes:
 - A **feature extraction pipeline** that converts raw noise arrays into fixed-length feature vectors.
 - A **PyTorch Siamese embedding model** plus training/evaluation utilities.
 
-> Note: This is a capstone-style research project. The security properties are **educational/prototypical** and should be reviewed carefully before any real-world use.
+> Note: This is a capstone-style research project. Security claims are intentionally scoped and evidence-backed only where measurements exist.
+
+## Claim Boundaries (Capstone Scope Lock)
+
+In scope:
+- Sensor-derived verification performance under explicitly defined collection conditions.
+- Comparative evidence across baselines (`raw-feature cosine`, small MLP, Siamese).
+- Test-only metrics (EER, FAR/FRR at selected threshold), attack simulations, and longitudinal drift characterization.
+
+Out of scope:
+- Hardware root-of-trust guarantees (TEE/secure enclave assurances).
+- Formal cryptographic proofs and production hardening claims.
+- Claims that QRNG alone identifies devices.
+
+Protocol direction:
+- Primary narrative: server-side verification from fresh sensor evidence.
+- Challenge-response endpoints remain experimental and must not be presented as equivalent to hardware-backed key authentication.
 
 ---
 
@@ -56,7 +74,7 @@ QNA-Auth/
 
 ## Quick start (recommended)
 
-You can follow the dedicated quickstart at `QUICKSTART.md`, but here is the consolidated version.
+This README is now the canonical quickstart.
 
 ### Prerequisites
 - **Python**: 3.8+ (3.10+ recommended)
@@ -116,7 +134,7 @@ Frontend runs on `http://localhost:3000`
   pip install numpy requests opencv-python sounddevice
   python scripts/collect_data_for_training.py
   ```
-  Then zip the created folder and send it. See `scripts/collect_data_for_training.py` docstring and `docs/DATA_COLLECTION.md` if present.
+  Then zip the created folder and send it. See `docs/DATASET.md` for the full collection workflow.
 - **Ingest** received folders into the project dataset:
   ```bash
   python scripts/ingest_collected_data.py path/to/collection_folder1 [folder2 ...]
@@ -138,12 +156,24 @@ Frontend runs on `http://localhost:3000`
   ```
   Output: metrics and plots under `model/evaluation/` and an ablation table in the console. Use `--ablations-only` to skip full plots.
 
+- Capstone-grade evaluation (leakage-safe splits, baselines, attacks, CIs):
+  ```bash
+  python scripts/run_capstone_evaluation.py --data-dir dataset/samples --seed 42
+  ```
+  Output: versioned run folder under `artifacts/capstone_eval/` with split artifact and `results.json`.
+
+- One-command reproducibility run:
+  ```bash
+  python scripts/reproduce_capstone.py --data-dir dataset/samples --seed 42 --epochs 20
+  ```
+  Output: `artifacts/repro_runs/<run_id>/` with run metadata and evaluation artifacts.
+
 ### Start server
 - From project root:
   ```bash
   python server/app.py
   ```
-  Server uses `config.MODEL_PATH` (default `server/models/best_model.pt`), `config.EMBEDDINGS_DIR`, and `config.DATABASE_URL`. See `config.example.py` and `docs/PROJECT_STATUS.md`.
+  Server uses `config.MODEL_PATH` (default `server/models/best_model.pt`), `config.EMBEDDINGS_DIR`, and `config.DATABASE_URL`. See `config.example.py` and `docs/FUTURE_REFERENCE.md`.
 
 ---
 
@@ -294,7 +324,6 @@ This section explains the ?meaningful? files (source code + scripts). Generated 
 
 ### Root
 - `README.md`: This documentation (project overview + guide).
-- `QUICKSTART.md`: Shorter quickstart instructions.
 - `requirements.txt`: Python dependencies (FastAPI, PyTorch, OpenCV, sounddevice, etc.).
 - `config.example.py`: Example configuration template (copy to `config.py`).
 - `setup.bat`: Windows bootstrap (venv + pip install + folder creation).
@@ -405,278 +434,3 @@ This section explains the ?meaningful? files (source code + scripts). Generated 
 - The backend uses a **database** (SQLite by default) for devices, challenges, and audit logs; embeddings are still stored as `.pt` files in `auth/device_embeddings/`.
 - `server/app.py` loads a model from `config.MODEL_PATH` (default `server/models/best_model.pt`) if it exists; otherwise it runs with random weights.
 - Optional API key and rate limiting are configured via `config.py`; set `API_KEY` to require `X-API-Key` on protected endpoints.
-
-# QNA-Auth - Quantum Noise Assisted Authentication
-
-A novel authentication system that uses quantum noise samples and machine learning to authenticate devices in a secure, non-reproducible way.
-
-## ?? Features
-
-- **Quantum Random Number Generation**: Fetches true quantum noise from ANU QRNG service
-- **Multi-Source Noise Collection**: Camera dark frames, microphone ambient noise, and system sensors
-- **Siamese Neural Network**: Creates unique, non-invertible device embeddings
-- **Challenge-Response Protocol**: Secure authentication with nonce-based verification
-- **FastAPI Backend**: RESTful API for enrollment and authentication
-- **React TypeScript Frontend**: Modern UI for device management
-
-## ??? Project Structure
-
-```
-qna-auth/
-??? noise_collection/          # Noise sampling modules
-?   ??? qrng_api.py           # Quantum RNG client
-?   ??? camera_noise.py       # Camera dark frame capture
-?   ??? mic_noise.py          # Microphone noise capture
-?   ??? sensor_noise.py       # System sensor jitter
-??? dataset/                   # Dataset management
-?   ??? builder.py            # Dataset builder
-?   ??? samples/              # Stored samples
-??? preprocessing/             # Feature extraction
-?   ??? features.py           # Statistical & FFT features
-?   ??? utils.py              # Preprocessing utilities
-??? model/                     # ML models
-?   ??? siamese_model.py      # Siamese network architecture
-?   ??? train.py              # Training script
-?   ??? evaluate.py           # Model evaluation
-??? auth/                      # Authentication modules
-?   ??? enrollment.py         # Device enrollment
-?   ??? authentication.py     # Authentication logic
-?   ??? challenge_response.py # Challenge-response protocol
-??? server/                    # FastAPI backend
-?   ??? app.py               # Main application
-?   ??? routes.py            # Additional routes
-??? frontend/                  # React TypeScript UI
-    ??? src/
-    ?   ??? pages/           # Page components
-    ?   ??? services/        # API service
-    ?   ??? App.tsx          # Main app
-    ??? package.json
-
-```
-
-## ?? Getting Started
-
-### Prerequisites
-
-- Python 3.8+
-- Node.js 18+ (for frontend)
-- Webcam (optional, for camera noise)
-- Microphone (optional, for audio noise)
-
-### Installation
-
-1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd QNA-Auth
-```
-
-2. **Install Python dependencies**
-```bash
-pip install -r requirements.txt
-```
-
-3. **Install frontend dependencies**
-```bash
-cd frontend
-npm install
-```
-
-### Running the Application
-
-1. **Start the backend server**
-```bash
-python server/app.py
-```
-The API will be available at `http://localhost:8000`
-
-2. **Start the frontend (in a new terminal)**
-```bash
-cd frontend
-npm run dev
-```
-The UI will be available at `http://localhost:3000`
-
-## ?? Usage
-
-### 1. Enroll a Device
-
-Navigate to the Enroll page and:
-- Choose noise sources (QRNG, camera, microphone)
-- Set number of samples (50-100 recommended)
-- Click "Enroll Device"
-- Save the generated device ID
-
-### 2. Authenticate a Device
-
-Navigate to the Authenticate page and:
-- Select an enrolled device
-- Choose the same noise sources used during enrollment
-- Click "Authenticate"
-- View authentication result and similarity score
-
-### 3. Manage Devices
-
-Navigate to the Devices page to:
-- View all enrolled devices
-- See device metadata
-- Delete devices
-
-## ?? API Endpoints
-
-- `GET /health` - Health check
-- `POST /enroll` - Enroll a new device
-- `POST /authenticate` - Authenticate a device
-- `POST /challenge` - Create authentication challenge
-- `POST /verify` - Verify challenge response
-- `GET /devices` - List enrolled devices
-- `GET /devices/{id}` - Get device details
-- `DELETE /devices/{id}` - Delete device
-
-## ?? Testing Individual Modules
-
-Each module can be tested independently:
-
-```bash
-# Test quantum noise collection
-python -m noise_collection.qrng_api
-
-# Test camera noise collection
-python -m noise_collection.camera_noise
-
-# Test microphone noise collection
-python -m noise_collection.mic_noise
-
-# Test preprocessing
-python -m preprocessing.features
-
-# Test model
-python -m model.siamese_model
-
-# Test enrollment
-python -m auth.enrollment
-
-# Test authentication
-python -m auth.authentication
-```
-
-## ?? Training the Model
-
-To train the Siamese network with your own data:
-
-1. Collect data from multiple devices:
-```python
-from dataset.builder import DatasetBuilder
-from noise_collection import QRNGClient
-
-builder = DatasetBuilder()
-qrng = QRNGClient()
-
-# Collect samples for each device
-for device_id in device_ids:
-    samples = qrng.fetch_multiple_samples(num_samples=50)
-    builder.add_batch(device_id, 'qrng', samples)
-```
-
-2. Train the model:
-```python
-from model.train import ModelTrainer, TripletDataset
-from model.siamese_model import SiameseNetwork
-import torch
-
-# Create model
-model = SiameseNetwork(input_dim=50, embedding_dim=128)
-
-# Create dataset
-dataset = TripletDataset(features_by_device, samples_per_epoch=1000)
-loader = DataLoader(dataset, batch_size=32)
-
-# Train
-trainer = ModelTrainer(model, loss_type='triplet')
-trainer.train(loader, epochs=50)
-```
-
-### Reproducible training
-
-To reproduce results (e.g. for papers or ablations), the training pipeline fixes all random seeds:
-
-- **Torch**: `torch.manual_seed(seed)` and `torch.cuda.manual_seed_all(seed)` if CUDA is used.
-- **NumPy**: `np.random.seed(seed)`.
-- **DataLoader**: a `torch.Generator` with `manual_seed(seed)` is passed so shuffle order is deterministic; with `num_workers > 0`, `worker_init_fn` seeds each worker with `seed + worker_id`.
-
-Default seed is `42`. When you run `python -m model.train` or `scripts/train_and_evaluate.py` with the same data and seed, you should get the same training curves and checkpoint metrics. Document the seed and feature pipeline version (e.g. `FEATURE_VERSION` in `preprocessing/features.py`) when reporting results.
-
-## ?? Security Considerations
-
-- **Quantum Randomness**: Uses ANU QRNG for true quantum random numbers
-- **Non-Invertible Embeddings**: Embeddings cannot be reversed to recover original noise
-- **Challenge-Response**: Prevents replay attacks with time-limited nonces
-- **Threshold-Based**: Configurable similarity threshold for authentication
-- **Multi-Factor**: Combines multiple noise sources for robustness
-
-## ?? Configuration
-
-Copy `config.example.py` to `config.py` and adjust settings:
-
-```python
-# Authentication threshold
-AUTH_CONFIG = {
-    "similarity_threshold": 0.85,  # Adjust based on requirements
-    "similarity_metric": "cosine",
-}
-
-# Model architecture
-MODEL_CONFIG = {
-    "input_dim": 50,
-    "embedding_dim": 128,
-    "hidden_dims": [256, 256, 128]
-}
-```
-
-## ?? Architecture
-
-### Noise Collection
-- **QRNG**: Fetches quantum random bits from ANU quantum service
-- **Camera**: Captures sensor noise from dark frames
-- **Microphone**: Records ambient noise and self-noise
-- **Sensors**: Collects timing jitter and system noise
-
-### Feature Extraction
-- Statistical features (mean, std, skewness, kurtosis)
-- FFT-based frequency features
-- Entropy calculations
-- Autocorrelation analysis
-
-### Machine Learning
-- Siamese network with shared weights
-- Triplet loss or contrastive loss
-- L2-normalized embeddings
-- Cosine similarity for verification
-
-### Authentication
-- Multi-sample collection for robustness
-- Embedding aggregation (mean/median)
-- Challenge-response protocol
-- Configurable threshold
-
-## ?? Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## ?? License
-
-This project is licensed under the MIT License.
-
-## ?? Acknowledgments
-
-- ANU Quantum Random Numbers: https://qrng.anu.edu.au/
-- PyTorch team for the deep learning framework
-- FastAPI for the modern web framework
-
-## ?? Contact
-
-For questions or support, please open an issue on GitHub.
-
----
-
-**Built with quantum randomness and machine learning** ???

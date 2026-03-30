@@ -10,6 +10,7 @@ from typing import Tuple, Dict, Optional, Any
 from datetime import datetime, timedelta
 import torch
 import logging
+import config
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -207,7 +208,7 @@ class SecureAuthenticationFlow:
     def __init__(
         self,
         protocol: ChallengeResponseProtocol,
-        similarity_threshold: float = 0.85
+        similarity_threshold: float = float(getattr(config, "SIMILARITY_THRESHOLD", 0.85))
     ):
         """
         Initialize secure authentication flow

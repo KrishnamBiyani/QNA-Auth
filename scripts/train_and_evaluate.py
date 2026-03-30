@@ -26,15 +26,17 @@ import torch
 import numpy as np
 from torch.utils.data import DataLoader
 
-from model.train import (
-    set_seed,
-    load_real_dataset,
-    TripletDataset,
-    ModelTrainer,
-)
+from model.train import set_seed, TripletDataset, ModelTrainer
 from model.siamese_model import SiameseNetwork, DeviceEmbedder
 from model.evaluate import ModelEvaluator
 from preprocessing.features import FEATURE_VERSION, get_canonical_feature_names
+from scripts.experiment_utils import (
+    load_sample_records,
+    split_by_device,
+    assert_no_leakage,
+    save_split_artifacts,
+    features_from_split,
+)
 
 
 def main():
@@ -50,30 +52,24 @@ def main():
     data_dir = args.data_dir or str(ROOT / "dataset" / "samples")
     set_seed(args.seed)
 
-    # Load full dataset (no subsampling)
-    features_by_device, input_dim = load_real_dataset(data_dir=data_dir, max_samples=None)
+    records = load_sample_records(Path(data_dir))
+    splits = split_by_device(records, seed=args.seed, val_ratio=args.val_ratio, test_ratio=0.2)
+    assert_no_leakage(splits)
+    split_dir = ROOT / "artifacts" / "splits"
+    split_path = save_split_artifacts(splits, split_dir, split_name=f"train_eval_seed_{args.seed}")
+    feat_splits = features_from_split(splits, normalize=True)
+    train_by_device = feat_splits["train"]
+    val_by_device = feat_splits["val"]
+    test_by_device = feat_splits["test"]
+    input_dim = len(next(iter(train_by_device.values()))[0]) if train_by_device else 0
 
-    if not features_by_device or len(features_by_device) < 2:
+    if not train_by_device or len(train_by_device) < 2:
         print("Need at least 2 devices with samples. Run scripts/collect_data_for_training.py then scripts/ingest_collected_data.py")
         return 1
 
-    n_devices = len(features_by_device)
-    total_samples = sum(len(v) for v in features_by_device.values())
+    n_devices = len(train_by_device)
+    total_samples = sum(len(v) for v in train_by_device.values())
     print(f"Devices: {n_devices}, Total samples: {total_samples}, Input dim: {input_dim}")
-
-    # Optional train/val split per device (deterministic by seed)
-    rng = np.random.default_rng(args.seed)
-    train_by_device = {}
-    val_by_device = {}
-    for dev_id, vecs in features_by_device.items():
-        n = len(vecs)
-        idx = rng.permutation(n)
-        n_val = max(0, int(n * args.val_ratio)) if args.val_ratio > 0 else 0
-        train_idx = idx[n_val:]
-        val_idx = idx[:n_val]
-        train_by_device[dev_id] = [vecs[i] for i in train_idx]
-        if n_val > 0:
-            val_by_device[dev_id] = [vecs[i] for i in val_idx]
 
     samples_per_epoch = max(100, total_samples * 2)
     train_dataset = TripletDataset(train_by_device, samples_per_epoch=samples_per_epoch)
@@ -118,7 +114,7 @@ def main():
         save_last_n=save_last_n,
     )
 
-    # Evaluation on full features_by_device (or train_only if you prefer)
+    # Evaluation on held-out test split only.
     best_pt = ROOT / "model" / "checkpoints" / "best_model.pt"
     if not best_pt.exists():
         best_pt = ROOT / "model" / "checkpoints" / "final_model.pt"
@@ -133,7 +129,9 @@ def main():
 
     evaluator = ModelEvaluator(embedder)
     eval_dir = str(ROOT / args.eval_dir)
-    report = evaluator.generate_report(features_by_device, save_dir=eval_dir)
+    report = evaluator.generate_report(test_by_device, save_dir=eval_dir)
+    report["split_artifact"] = str(split_path)
+    report["evaluation_scope"] = "test_only"
     print("Evaluation report:", report)
 
     # Deploy server checkpoint with feature pipeline metadata

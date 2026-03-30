@@ -236,6 +236,7 @@ def collect_and_save(
     device_name: str,
     sources: list[str],
     num_samples: int,
+    session_id: str | None = None,
     create_zip: bool = False,
 ) -> Path:
     device_id = hashlib.sha256(
@@ -278,6 +279,7 @@ def collect_and_save(
     manifest = {
         "device_id": device_id,
         "device_name": device_name,
+        "session_id": session_id or f"session_{datetime.now(timezone.utc).strftime('%Y%m%d')}",
         "sources": list(collected.keys()),
         "num_samples_per_source": num_samples,
         "actual_counts": collected,
@@ -333,6 +335,12 @@ def main():
         action="store_true",
         help="Create a .zip of the output folder for easy sharing",
     )
+    parser.add_argument(
+        "--session-id",
+        type=str,
+        default=None,
+        help="Optional session identifier, e.g. week_01 or day_20260331.",
+    )
     args = parser.parse_args()
 
     name = args.name
@@ -382,6 +390,7 @@ def main():
             device_name=name,
             sources=sources,
             num_samples=num_samples,
+            session_id=args.session_id,
             create_zip=args.zip,
         )
     except RuntimeError as e:

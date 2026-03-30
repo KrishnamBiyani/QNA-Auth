@@ -19,6 +19,7 @@ import json
 import sys
 import zipfile
 from pathlib import Path
+from datetime import datetime, timezone
 
 import numpy as np
 
@@ -28,8 +29,8 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 
-def load_collection_folder(folder: Path) -> tuple[str, str | None, dict[str, list[np.ndarray]]]:
-    """Load manifest and all samples from a collection folder. Returns (device_id, device_name, {source: [samples]})."""
+def load_collection_folder(folder: Path) -> tuple[str, str | None, dict[str, list[np.ndarray]], dict]:
+    """Load collection folder and return (device_id, device_name, samples_by_source, ingestion_metadata)."""
     folder = Path(folder).resolve()
     manifest_path = folder / "manifest.json"
     if not manifest_path.exists():
@@ -61,7 +62,16 @@ def load_collection_folder(folder: Path) -> tuple[str, str | None, dict[str, lis
         samples_by_source[source] = samples
     if not samples_by_source:
         raise ValueError(f"No sample subdirs (qrng/camera/microphone) with .npy files in {folder}")
-    return device_id, device_name, samples_by_source
+    created_at = manifest.get("created_at")
+    session_id = manifest.get("session_id") or folder.name
+    ingestion_metadata = {
+        "session_id": session_id,
+        "collection_created_at": created_at,
+        "collection_folder": folder.name,
+        "ingested_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "collector_script_version": manifest.get("script_version", "unknown"),
+    }
+    return device_id, device_name, samples_by_source, ingestion_metadata
 
 
 def ingest_folders(folders: list[Path], dataset_dir: Path | None = None) -> None:
@@ -85,15 +95,27 @@ def ingest_folders(folders: list[Path], dataset_dir: Path | None = None) -> None
             print(f"Skipping (not a directory): {path}")
             continue
         try:
-            device_id, device_name, samples_by_source = load_collection_folder(path)
+            device_id, device_name, samples_by_source, ingestion_metadata = load_collection_folder(path)
             print(f"Ingesting {path.name} -> device_id={device_id}, name={device_name}, sources={list(samples_by_source)}")
             for source, samples in samples_by_source.items():
-                builder.add_batch(device_id=device_id, noise_source=source, samples=samples)
+                builder.add_batch(
+                    device_id=device_id,
+                    noise_source=source,
+                    samples=samples,
+                    extra_metadata=ingestion_metadata,
+                )
             print(f"  Added {sum(len(s) for s in samples_by_source.values())} samples.")
         except Exception as e:
             print(f"  Error ingesting {path}: {e}")
             continue
     print(f"Dataset written to {dataset_dir}")
+    # Generate/update canonical manifest + quality gate report after ingestion.
+    try:
+        from scripts.build_dataset_manifest import build_manifest_and_quality
+        manifest = build_manifest_and_quality(dataset_dir=dataset_dir)
+        print(f"Dataset manifest updated: {manifest}")
+    except Exception as e:
+        print(f"Warning: failed to build dataset manifest: {e}")
 
 
 def main():

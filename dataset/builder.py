@@ -64,7 +64,8 @@ class DatasetBuilder:
         device_id: str,
         noise_source: str,
         raw_noise_sample: np.ndarray,
-        processed_features: Optional[Dict[str, Any]] = None
+        processed_features: Optional[Dict[str, Any]] = None,
+        extra_metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Create a labeled sample entry
@@ -74,6 +75,7 @@ class DatasetBuilder:
             noise_source: Source of noise (qrng, camera, microphone, sensor)
             raw_noise_sample: Raw noise array
             processed_features: Optional pre-computed features
+            extra_metadata: Optional metadata (session_id, environment tags, etc.)
             
         Returns:
             Dictionary containing sample metadata
@@ -116,6 +118,9 @@ class DatasetBuilder:
         # Add processed features if provided
         if processed_features:
             sample_data['processed_features'] = processed_features
+        if extra_metadata:
+            # Keep flexible metadata for later split/evaluation tooling.
+            sample_data.update(extra_metadata)
         
         return sample_data
     
@@ -145,7 +150,8 @@ class DatasetBuilder:
         device_id: str,
         noise_source: str,
         samples: List[np.ndarray],
-        features_list: Optional[List[Dict[str, Any]]] = None
+        features_list: Optional[List[Dict[str, Any]]] = None,
+        extra_metadata: Optional[Dict[str, Any]] = None,
     ) -> List[str]:
         """
         Add multiple samples in batch
@@ -155,6 +161,7 @@ class DatasetBuilder:
             noise_source: Noise source type
             samples: List of noise arrays
             features_list: Optional list of feature dictionaries
+            extra_metadata: Optional metadata copied onto each sample entry
             
         Returns:
             List of created sample IDs
@@ -169,7 +176,8 @@ class DatasetBuilder:
                 device_id=device_id,
                 noise_source=noise_source,
                 raw_noise_sample=sample,
-                processed_features=features
+                processed_features=features,
+                extra_metadata=extra_metadata,
             )
             self.add_sample(sample_data)
             sample_ids.append(sample_data['sample_id'])

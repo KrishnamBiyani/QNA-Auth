@@ -9,6 +9,7 @@ import json
 from typing import Optional, Dict, Tuple, List
 import logging
 from datetime import datetime
+import config
 
 from model.siamese_model import DeviceEmbedder
 from preprocessing.features import NoisePreprocessor, FeatureVector
@@ -28,7 +29,7 @@ class DeviceAuthenticator:
         preprocessor: NoisePreprocessor,
         feature_converter: FeatureVector,
         enroller: DeviceEnroller,
-        threshold: float = 0.85,
+        threshold: float = float(getattr(config, "SIMILARITY_THRESHOLD", 0.85)),
         metric: str = 'cosine'
     ):
         """

@@ -74,7 +74,7 @@ export const qnaAuthService = {
     return response.data
   },
 
-  // Challenge-Response
+  // Challenge-Response (experimental research endpoint; not primary capstone auth narrative)
   async createChallenge(deviceId: string) {
     const response = await api.post('challenge', { device_id: deviceId })
     return response.data

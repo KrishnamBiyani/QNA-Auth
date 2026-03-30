@@ -50,16 +50,12 @@ app = FastAPI(
     version="1.0.0"
 )
 
-@app.get("/")
-async def root():
-    return {"status": "online", "message": "QNA-Auth Server is running"}
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=config.CORS_CONFIG.get("allow_origins", ["http://localhost:3000"]),
+    allow_credentials=config.CORS_CONFIG.get("allow_credentials", True),
+    allow_methods=config.CORS_CONFIG.get("allow_methods", ["*"]),
+    allow_headers=config.CORS_CONFIG.get("allow_headers", ["*"]),
 )
 
 # Global state (in production, use proper dependency injection)
@@ -146,8 +142,8 @@ async def startup_event():
     
     try:
         # Initialize preprocessor first to determine feature dimension
-        # DISABLE normalization to preserve amplitude/loudness differences between sensors
-        state.preprocessor = NoisePreprocessor(normalize=False)
+        # Use one canonical preprocessing mode from config for train/eval/runtime consistency.
+        state.preprocessor = NoisePreprocessor(normalize=bool(getattr(config, "PREPROCESSING_NORMALIZE", True)))
         # Use canonical feature list so train/serve use same feature order (overridden below if checkpoint has feature_names)
         state.feature_converter = FeatureVector(get_canonical_feature_names())
         
@@ -198,7 +194,7 @@ async def startup_event():
             preprocessor=state.preprocessor,
             feature_converter=state.feature_converter,
             enroller=state.enroller,
-            threshold=0.70
+            threshold=float(getattr(config, "SIMILARITY_THRESHOLD", config.AUTH_CONFIG.get("similarity_threshold", 0.85)))
         )
         
         # Initialize challenge-response protocol (DB-backed store)
@@ -211,7 +207,7 @@ async def startup_event():
         
         state.auth_flow = SecureAuthenticationFlow(
             protocol=state.challenge_protocol,
-            similarity_threshold=0.85
+            similarity_threshold=float(getattr(config, "SIMILARITY_THRESHOLD", config.AUTH_CONFIG.get("similarity_threshold", 0.85)))
         )
         
         logger.info("QNA-Auth system initialized successfully")

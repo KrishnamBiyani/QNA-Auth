@@ -2,6 +2,11 @@
 
 This document spells out **what data you need**, **how much**, **how to store it**, and **how it connects to training and evaluation** so the project can support a research-level capstone.
 
+Current implementation note:
+- Canonical manifest builder: `python scripts/build_dataset_manifest.py --dataset-dir dataset/samples`
+- Canonical output: `dataset/samples/manifest.v1.json`
+- Ingestion now records `session_id`, `collection_created_at`, and `collection_folder` per sample.
+
 ---
 
 ## 1. What the Dataset Is
@@ -158,3 +163,49 @@ So: **one versioned dataset** → **one training run** → **one evaluation scri
 - [ ] README in `dataset/` describing how to collect and how to run the script that builds `processed/` from raw.
 
 Once this is in place, you can plug the dataset into the **evaluation script** (FAR/FRR/EER, threshold sweep, ablations) and into the **report** (“We use dataset v1: N devices, M samples, split by device…”).
+
+---
+
+## 10. Participant Collection Guide (Merged)
+
+Use this when participants collect data and send it back for training.
+
+### Requirements
+- Python 3.8+ and pip
+- Internet for QRNG (optional if collecting only camera/mic)
+- Webcam and microphone (optional)
+
+### Participant steps
+1. Clone repo and enter it:
+   ```bash
+   git clone <repository-url>
+   cd QNA-Auth
+   ```
+2. Install deps:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Run collection:
+   ```bash
+   python scripts/collect_data_for_training.py
+   ```
+4. Or run with explicit options:
+   ```bash
+   python scripts/collect_data_for_training.py --name "Alice Laptop" --sources qrng,camera,microphone --num-samples 50 --session-id week_01 --zip
+   ```
+5. Send generated folder/zip to project owner.
+
+### Useful options
+- `--name`: participant/device display name
+- `--sources`: `qrng,camera,microphone`
+- `--num-samples`: per-source sample count (10-200 practical range)
+- `--session-id`: optional session label for longitudinal analysis
+- `--zip`: creates shareable archive
+
+### Owner ingest step
+Merge one or many participant folders/zips:
+```bash
+python scripts/ingest_collected_data.py path/to/folder1 path/to/folder2.zip
+```
+
+This updates `dataset/samples/` and refreshes `manifest.v1.json`.

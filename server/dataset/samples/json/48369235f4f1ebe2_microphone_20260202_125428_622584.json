@@ -1,0 +1,13 @@
+{
+  "sample_id": "48369235f4f1ebe2_microphone_20260202_125428_622584",
+  "device_id": "48369235f4f1ebe2",
+  "timestamp": "2026-02-02T12:54:28.622584",
+  "noise_source": "microphone",
+  "sample_length": 24000,
+  "mean": 5.5563544645356914e-06,
+  "std": 0.09675151638487539,
+  "min": -0.5516350865364075,
+  "max": 0.5260549783706665,
+  "entropy": 6.419038633667498,
+  "raw_data_path": "48369235f4f1ebe2_microphone_20260202_125428_622584_raw.npy"
+}

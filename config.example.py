@@ -26,6 +26,9 @@ AUTH_CONFIG = {
     "max_auth_attempts": 3
 }
 
+# Canonical threshold used across train/eval/server runtime.
+SIMILARITY_THRESHOLD = AUTH_CONFIG["similarity_threshold"]
+
 # Challenge-Response Configuration
 CHALLENGE_CONFIG = {
     "nonce_length": 32,
@@ -59,6 +62,9 @@ PREPROCESSING_CONFIG = {
     "fft_sample_rate": 1.0,
     "entropy_bins": 256
 }
+
+# Canonical preprocessing mode used across train/eval/server runtime.
+PREPROCESSING_NORMALIZE = PREPROCESSING_CONFIG["normalize"]
 
 # Storage Configuration
 STORAGE_CONFIG = {
