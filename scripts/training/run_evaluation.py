@@ -39,13 +39,14 @@ def load_features_for_eval(
     data_dir: Path,
     source_filter: str | None = None,
     max_samples: int | None = None,
+    fast_features: bool = False,
 ):
     """Load features by device from dataset/samples. Optionally filter by noise_source for ablations."""
     json_dir = data_dir / "json"
     if not json_dir.exists():
         return {}, 0
 
-    preprocessor = NoisePreprocessor(normalize=True)
+    preprocessor = NoisePreprocessor(normalize=True, fast_mode=fast_features)
     converter = FeatureVector(get_canonical_feature_names())
     features_by_device = {}
     sample_count = 0
@@ -137,6 +138,7 @@ def main():
     p.add_argument("--output-dir", type=Path, default=None, help="Output dir (default: model/evaluation)")
     p.add_argument("--ablations-only", action="store_true", help="Only run ablation table by source")
     p.add_argument("--max-samples", type=int, default=None, help="Cap samples per run (for quick runs)")
+    p.add_argument("--fast-features", action="store_true", help="Skip expensive complexity features for quick threshold tuning")
     args = p.parse_args()
 
     try:
@@ -171,10 +173,15 @@ def main():
     print(f"  Feature version: {ckpt.get('feature_version', '?')}")
 
     # Ablations: by source
-    sources = [("combined", None), ("qrng", "qrng"), ("camera", "camera"), ("microphone", "microphone")]
+    sources = [("combined", None), ("camera", "camera"), ("microphone", "microphone")]
     table_rows = []
     for label, source_filter in sources:
-        features_by_device, _ = load_features_for_eval(data_dir, source_filter=source_filter, max_samples=args.max_samples)
+        features_by_device, _ = load_features_for_eval(
+            data_dir,
+            source_filter=source_filter,
+            max_samples=args.max_samples,
+            fast_features=args.fast_features
+        )
         if not features_by_device:
             table_rows.append((label, {"error": "No data"}))
             continue
@@ -196,7 +203,12 @@ def main():
 
     # Full run with plots (unless ablations-only)
     if not args.ablations_only:
-        features_by_device, _ = load_features_for_eval(data_dir, source_filter=None, max_samples=args.max_samples)
+        features_by_device, _ = load_features_for_eval(
+            data_dir,
+            source_filter=None,
+            max_samples=args.max_samples,
+            fast_features=args.fast_features
+        )
         if features_by_device and len(features_by_device) >= 2:
             full = run_one_eval(embedder, features_by_device, output_dir, tag="full")
             print("\nFull evaluation (all sources):")

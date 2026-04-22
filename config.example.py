@@ -1,5 +1,7 @@
-# QNA-Auth Configuration
+# Noise-Based Device Verification Configuration
 # Copy this file to config.py and adjust values
+
+import os
 
 # Model Configuration
 MODEL_CONFIG = {
@@ -21,13 +23,24 @@ TRAINING_CONFIG = {
 
 # Authentication Configuration
 AUTH_CONFIG = {
-    "similarity_threshold": 0.85,
+    "similarity_threshold": 0.97,
     "similarity_metric": "cosine",  # or "euclidean"
     "max_auth_attempts": 3
 }
 
-# Canonical threshold used across train/eval/server runtime.
-SIMILARITY_THRESHOLD = AUTH_CONFIG["similarity_threshold"]
+AUTH_CONFIDENCE_STRONG = 0.97
+AUTH_CONFIDENCE_UNCERTAIN = 0.92
+SIMILARITY_THRESHOLD = AUTH_CONFIDENCE_STRONG
+AUTH_PROFILE_GUARD_Z = 6.0
+AUTH_PROFILE_GUARD_MIN_DELTA = 0.02
+AUTH_IDENTIFICATION_MARGIN = 0.02
+AUTH_DRIFT_EMA_ALPHA = 0.2
+AUTH_DRIFT_UPDATE_ENABLED = True
+AUTH_DRIFT_MIN_STRONG_MATCHES = 2
+AUTH_SOURCE_WEIGHTS = {
+    "camera": 0.7,
+    "microphone": 0.3,
+}
 
 # Challenge-Response Configuration
 CHALLENGE_CONFIG = {
@@ -35,14 +48,13 @@ CHALLENGE_CONFIG = {
     "challenge_expiry_seconds": 60,
     "anti_replay_window_seconds": 300
 }
+CHALLENGE_SERVER_SECRET = os.environ.get(
+    "QNA_AUTH_SERVER_SECRET",
+    "dev-only-qna-auth-server-secret-change-me",
+)
 
 # Noise Collection Configuration
 NOISE_CONFIG = {
-    "qrng": {
-        "api_url": "https://qrng.anu.edu.au/API/jsonI.php",
-        "sample_size": 1024,
-        "num_samples": 50
-    },
     "camera": {
         "camera_index": 0,
         "exposure_time": 0.1,

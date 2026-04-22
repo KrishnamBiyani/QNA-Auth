@@ -32,7 +32,7 @@ def get_canonical_feature_names() -> list:
 class NoisePreprocessor:
     """Preprocessing and feature extraction for noise data"""
     
-    def __init__(self, normalize: bool = True):
+    def __init__(self, normalize: bool = True, fast_mode: bool = False):
         """
         Initialize preprocessor
         
@@ -40,6 +40,7 @@ class NoisePreprocessor:
             normalize: Whether to normalize features
         """
         self.normalize = normalize
+        self.fast_mode = fast_mode
     
     def apply_bandpass_filter(
         self,
@@ -287,6 +288,12 @@ class NoisePreprocessor:
         zero_crossings = np.sum(np.diff(np.sign(data)) != 0)
         features['zero_crossing_rate'] = float(zero_crossings / len(data))
         
+        if self.fast_mode:
+            # Keep complexity features lightweight for live demos.
+            features['approx_entropy'] = 0.0
+            features['hurst_exponent'] = 0.5
+            return features
+
         # For large arrays, downsample before computing expensive features
         # Approximate entropy and Hurst exponent have O(n²) complexity
         if len(data) > 200:

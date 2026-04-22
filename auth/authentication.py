@@ -1,19 +1,18 @@
 """
-Device Authentication Module
-Authenticates devices using noise samples and embeddings
+Device authentication for noise-based device verification.
 """
 
-import torch
-import numpy as np
-import json
-from typing import Optional, Dict, Tuple, List
 import logging
 from datetime import datetime
-import config
+from typing import Dict, List, Optional, Tuple
 
+import numpy as np
+import torch
+
+import config
 from model.siamese_model import DeviceEmbedder
-from preprocessing.features import NoisePreprocessor, FeatureVector
-from noise_collection import QRNGClient, CameraNoiseCollector, MicrophoneNoiseCollector
+from noise_collection import CameraNoiseCollector, MicrophoneNoiseCollector
+from preprocessing.features import FeatureVector, NoisePreprocessor
 from .enrollment import DeviceEnroller
 
 logging.basicConfig(level=logging.INFO)
@@ -21,483 +20,469 @@ logger = logging.getLogger(__name__)
 
 
 class DeviceAuthenticator:
-    """Handles device authentication"""
-    
+    """Authenticates devices by weighted multi-source template comparison."""
+
     def __init__(
         self,
         embedder: DeviceEmbedder,
         preprocessor: NoisePreprocessor,
         feature_converter: FeatureVector,
         enroller: DeviceEnroller,
-        threshold: float = float(getattr(config, "SIMILARITY_THRESHOLD", 0.85)),
-        metric: str = 'cosine'
+        threshold: float = float(getattr(config, "SIMILARITY_THRESHOLD", 0.97)),
+        metric: str = "cosine",
     ):
-        """
-        Initialize device authenticator
-        
-        Args:
-            embedder: Trained DeviceEmbedder
-            preprocessor: Noise preprocessor
-            feature_converter: Feature vector converter
-            enroller: DeviceEnroller for loading stored embeddings
-            threshold: Authentication threshold
-            metric: Similarity metric ('cosine' or 'euclidean')
-        """
         self.embedder = embedder
         self.preprocessor = preprocessor
         self.feature_converter = feature_converter
         self.enroller = enroller
         self.threshold = threshold
         self.metric = metric
-        
-        logger.info(f"DeviceAuthenticator initialized (threshold={threshold}, metric={metric})")
-    
+        self.profile_guard_z = float(getattr(config, "AUTH_PROFILE_GUARD_Z", 6.0))
+        self.profile_guard_min_delta = float(getattr(config, "AUTH_PROFILE_GUARD_MIN_DELTA", 0.02))
+        self.identification_margin = float(getattr(config, "AUTH_IDENTIFICATION_MARGIN", 0.02))
+        self.strong_accept_threshold = float(getattr(config, "AUTH_CONFIDENCE_STRONG", 0.97))
+        self.uncertain_threshold = float(getattr(config, "AUTH_CONFIDENCE_UNCERTAIN", 0.92))
+        self.drift_update_enabled = bool(getattr(config, "AUTH_DRIFT_UPDATE_ENABLED", True))
+        logger.info(
+            "DeviceAuthenticator initialized (strong=%s, uncertain=%s, metric=%s)",
+            self.strong_accept_threshold,
+            self.uncertain_threshold,
+            metric,
+        )
+
+    def _load_device_metadata(self, device_id: str) -> Dict:
+        return self.enroller.load_device_metadata(device_id)
+
+    def _validate_source_profile(
+        self,
+        metadata: Dict,
+        samples_by_source: Dict[str, List[np.ndarray]],
+    ) -> Tuple[bool, str, Dict[str, Dict[str, float]]]:
+        source_profiles = metadata.get("source_profiles") or {}
+        runtime_profiles: Dict[str, Dict[str, float]] = {}
+        if not samples_by_source:
+            return False, "No runtime samples provided", runtime_profiles
+
+        for source, samples in samples_by_source.items():
+            if not samples:
+                continue
+
+            current_rms = [float(np.sqrt(np.mean(np.asarray(sample) ** 2))) for sample in samples]
+            current_mean = float(np.mean(current_rms))
+            current_std = float(np.std(current_rms))
+            runtime_profiles[source] = {
+                "rms_mean": current_mean,
+                "rms_std": current_std,
+            }
+
+            profile = source_profiles.get(source)
+            if not profile:
+                continue
+
+            enrolled_mean = float(profile.get("rms_mean", 0.0))
+            enrolled_std = float(profile.get("rms_std", 0.0))
+            allowed_delta = max(
+                self.profile_guard_min_delta,
+                self.profile_guard_z * max(enrolled_std, 1e-6),
+            )
+            delta = abs(current_mean - enrolled_mean)
+            if delta > allowed_delta:
+                message = (
+                    f"RMS mismatch for source={source}: "
+                    f"enrolled={enrolled_mean:.6f}, current={current_mean:.6f}, "
+                    f"delta={delta:.6f}, allowed={allowed_delta:.6f}"
+                )
+                logger.warning(message)
+                return False, message, runtime_profiles
+
+        return True, "Profile validation passed", runtime_profiles
+
+    def _classify_similarity(self, similarity: float) -> Tuple[str, str]:
+        if similarity >= self.strong_accept_threshold:
+            return "strong_accept", "accept"
+        if similarity >= self.uncertain_threshold:
+            return "uncertain", "collect_more_samples_or_fallback_auth"
+        return "reject", "reject"
+
+    def _compute_identification_margin(
+        self,
+        claimed_device_id: str,
+        auth_embedding: torch.Tensor,
+    ) -> Tuple[Optional[float], Optional[float], Optional[str]]:
+        claimed_similarity = None
+        best_other_similarity = None
+        best_other_device_id = None
+
+        for candidate_id in self.enroller.list_enrolled_devices():
+            candidate_embedding = self.enroller.load_device_embedding(candidate_id)
+            if candidate_embedding is None:
+                continue
+            similarity = self.embedder.compute_similarity(
+                auth_embedding,
+                candidate_embedding,
+                metric=self.metric,
+            )
+            if candidate_id == claimed_device_id:
+                claimed_similarity = similarity
+            elif best_other_similarity is None or similarity > best_other_similarity:
+                best_other_similarity = similarity
+                best_other_device_id = candidate_id
+
+        return claimed_similarity, best_other_similarity, best_other_device_id
+
     def collect_authentication_sample(
         self,
-        source: str = 'qrng',
-        num_samples: int = 5
+        source: str = "camera",
+        num_samples: int = 1,
     ) -> Optional[np.ndarray]:
-        """
-        Collect fresh noise sample for authentication
-        
-        Args:
-            source: Noise source to use
-            num_samples: Number of samples to collect
-            
-        Returns:
-            Noise array or None if collection failed
-        """
         try:
-            if source == 'qrng':
-                qrng_client = QRNGClient()
-                samples = qrng_client.fetch_multiple_samples(
-                    num_samples=num_samples,
-                    sample_size=1024
-                )
-                if samples:
-                    # Concatenate or average samples
-                    return np.mean(np.array(samples), axis=0)
-            
-            elif source == 'camera':
+            if source == "camera":
                 camera_collector = CameraNoiseCollector(camera_index=0)
                 if camera_collector.initialize_camera():
-                    frame = camera_collector.capture_dark_frame(exposure_time=0.2)
+                    frames = camera_collector.capture_multiple_frames(
+                        num_frames=num_samples,
+                        exposure_time=0.1,
+                    )
                     camera_collector.release()
-                    if frame is not None:
-                        return camera_collector.extract_noise_features(frame)
-            
-            elif source == 'microphone':
+                    extracted = [
+                        camera_collector.extract_noise_features(frame)
+                        for frame in frames
+                        if frame is not None
+                    ]
+                    if extracted:
+                        return extracted[0]
+
+            if source == "microphone":
                 mic_collector = MicrophoneNoiseCollector(sample_rate=44100)
-                audio = mic_collector.capture_ambient_noise(duration=1.0)
-                return audio
-            
-        except Exception as e:
-            logger.error(f"Failed to collect authentication sample from {source}: {e}")
-        
+                return mic_collector.capture_ambient_noise(duration=1.0)
+        except Exception as exc:
+            logger.error("Failed to collect authentication sample from %s: %s", source, exc)
+
+        if source == "qrng":
+            logger.warning("QRNG is no longer part of the authentication feature pipeline")
         return None
-    
+
+    def _build_auth_profile(
+        self,
+        samples_by_source: Dict[str, List[np.ndarray]],
+    ) -> Optional[Dict]:
+        features_by_source = self.enroller.process_noise_to_features_by_source(samples_by_source)
+        if not features_by_source:
+            return None
+
+        source_embeddings = self.enroller.create_source_embeddings(features_by_source)
+        if not source_embeddings:
+            return None
+
+        combined_embedding = self.enroller.combine_source_embeddings(source_embeddings)
+        _, _, source_profiles = self._validate_source_profile({}, samples_by_source)
+        return {
+            "combined_embedding": combined_embedding,
+            "source_embeddings": source_embeddings,
+            "source_profiles": source_profiles,
+            "sources": list(source_embeddings.keys()),
+        }
+
     def generate_authentication_embedding(
         self,
-        noise_samples: list
+        noise_samples: list,
     ) -> Optional[torch.Tensor]:
-        """
-        Generate embedding from fresh noise samples
-        
-        Args:
-            noise_samples: List of noise arrays
-            
-        Returns:
-            Authentication embedding or None
-        """
-        try:
-            feature_vectors = []
-            
-            for sample in noise_samples:
-                # --- SILENCE DETECTION ---
-                # Check for absolute silence (all zeros) or near silence
-                amplitude = np.max(np.abs(sample))
-                rms = np.sqrt(np.mean(sample**2))
-                logger.info(f"DEBUG: Sample Stats - Max Amp: {amplitude:.6f}, RMS: {rms:.6f}")
-                
-                if rms < 0.000001:  # Threshold for digital silence/near silence
-                    logger.error("CRITICAL: Detected SILENCE in audio sample. Rejecting.")
-                    raise ValueError("Audio sample is silent (RMS < 0.000001). Check microphone inputs.")
-
-                # Extract features
-                features = self.preprocessor.extract_all_features(sample)
-                logger.info(f"DEBUG: Features Snapshot: Mean={features['mean']:.4f}, Std={features['std']:.4f}, SpectralEntropy={features['spectral_entropy']:.4f}, ShannonEntropy={features.get('shannon_entropy', 0):.4f}")
-
-                # Convert to vector
-                feature_vector = self.feature_converter.to_vector(features)
-                logger.info(f"DEBUG: Feature Vector (First 5): {feature_vector[:5]}")
-                feature_vectors.append(feature_vector)
-            
-            # Use explicit self.feature_converter.feature_names to ensure we know what we are looking at
-            if self.feature_converter.feature_names:
-                 logger.info(f"DEBUG: Feature Names: {self.feature_converter.feature_names[:10]}...")
-
-            # Generate embeddings
-            embeddings = []
-            for fv in feature_vectors:
-                fv_tensor = torch.from_numpy(fv).float()
-                embedding = self.embedder.embed(fv_tensor)
-                
-                # --- DEBUG: Print Raw Embedding ---
-                logger.info(f"DEBUG: Raw Embedding Preview (First 10): {embedding.detach().numpy()[:10]}")
-                # ----------------------------------
-
-                embeddings.append(embedding)
-            
-            # Average embeddings
-            auth_embedding = torch.mean(torch.stack(embeddings), dim=0)
-            
-            # Normalize
-            auth_embedding = torch.nn.functional.normalize(auth_embedding, p=2, dim=0)
-            
-            return auth_embedding
-            
-        except Exception as e:
-            logger.error(f"Failed to generate authentication embedding: {e}")
+        combined = self.generate_authentication_profile({"combined": [np.asarray(sample) for sample in noise_samples]})
+        if combined is None:
             return None
-    
+        return combined["combined_embedding"]
+
+    def generate_authentication_profile(
+        self,
+        samples_by_source: Dict[str, List[np.ndarray]],
+    ) -> Optional[Dict]:
+        try:
+            normalized_samples: Dict[str, List[np.ndarray]] = {}
+            for source, samples in samples_by_source.items():
+                normalized_samples[source] = []
+                for sample in samples:
+                    arr = np.asarray(sample, dtype=np.float32)
+                    if arr.size == 0:
+                        continue
+                    if source == "microphone":
+                        rms = float(np.sqrt(np.mean(arr ** 2)))
+                        if rms < 1e-6:
+                            raise ValueError("Audio sample is silent; microphone capture is invalid.")
+                    normalized_samples[source].append(arr)
+            return self._build_auth_profile(normalized_samples)
+        except Exception as exc:
+            logger.error("Failed to generate authentication profile: %s", exc)
+            return None
+
     def verify_device(
         self,
         device_id: str,
-        auth_embedding: torch.Tensor
+        auth_profile: Dict,
     ) -> Tuple[bool, float, Dict]:
-        """
-        Verify device by comparing embeddings
-        
-        Args:
-            device_id: Device identifier to verify
-            auth_embedding: Fresh authentication embedding
-            
-        Returns:
-            Tuple of (is_authenticated, similarity_score, details)
-        """
-        # Load stored device embedding
-        stored_embedding = self.enroller.load_device_embedding(device_id)
-        
-        if stored_embedding is None:
-            return False, 0.0, {'error': 'Device not enrolled'}
-        
-        # --- DEBUG: Compare Embeddings ---
-        logger.info(f"DEBUG: Auth Embedding (First 10): {auth_embedding.detach().cpu().numpy()[:10]}")
-        logger.info(f"DEBUG: Stored Embedding (First 10): {stored_embedding.detach().cpu().numpy()[:10]}")
-        # ---------------------------------
+        stored_record = self.enroller.load_device_record(device_id)
+        if stored_record is None:
+            return False, 0.0, {"error": "Device not enrolled"}
 
-        # Compute similarity
-        similarity = self.embedder.compute_similarity(
-            auth_embedding,
-            stored_embedding,
-            metric=self.metric
+        metadata = self._load_device_metadata(device_id)
+        source_weights = self.enroller.get_effective_weights(auth_profile.get("sources", []))
+        weighted_scores: List[Tuple[str, float, float]] = []
+
+        stored_sources = stored_record.get("source_embeddings", {})
+        auth_sources = auth_profile.get("source_embeddings", {})
+        common_sources = [source for source in auth_sources.keys() if source in stored_sources]
+
+        if common_sources:
+            for source in common_sources:
+                similarity = self.embedder.compute_similarity(
+                    auth_sources[source],
+                    stored_sources[source],
+                    metric=self.metric,
+                )
+                weighted_scores.append((source, similarity, float(source_weights.get(source, 0.0))))
+            total_weight = sum(weight for _, _, weight in weighted_scores) or 1.0
+            similarity = sum(score * weight for _, score, weight in weighted_scores) / total_weight
+        else:
+            similarity = self.embedder.compute_similarity(
+                auth_profile["combined_embedding"],
+                stored_record["combined_embedding"],
+                metric=self.metric,
+            )
+
+        band, recommended_action = self._classify_similarity(similarity)
+        claimed_similarity, best_other_similarity, best_other_device_id = self._compute_identification_margin(
+            claimed_device_id=device_id,
+            auth_embedding=auth_profile["combined_embedding"],
         )
-        
-        # Make decision
-        is_authenticated = similarity >= self.threshold
-        
+        observed_margin = None
+        margin_ok = True
+        if claimed_similarity is not None and best_other_similarity is not None:
+            observed_margin = claimed_similarity - best_other_similarity
+            margin_ok = observed_margin >= self.identification_margin
+
+        is_authenticated = band == "strong_accept" and margin_ok
         details = {
-            'device_id': device_id,
-            'similarity': similarity,
-            'threshold': self.threshold,
-            'metric': self.metric,
-            'timestamp': datetime.now().isoformat(),
-            'authenticated': is_authenticated
+            "device_id": device_id,
+            "similarity": similarity,
+            "confidence_band": band,
+            "recommended_action": recommended_action,
+            "metric": self.metric,
+            "strong_accept_threshold": self.strong_accept_threshold,
+            "uncertain_threshold": self.uncertain_threshold,
+            "required_margin": self.identification_margin,
+            "observed_margin": observed_margin,
+            "best_other_similarity": best_other_similarity,
+            "best_other_device_id": best_other_device_id,
+            "margin_check_passed": margin_ok,
+            "per_source_similarity": {
+                source: {
+                    "similarity": score,
+                    "weight": weight,
+                }
+                for source, score, weight in weighted_scores
+            },
+            "authenticated": is_authenticated,
+            "timestamp": datetime.now().isoformat(),
         }
-        
-        logger.info(f"Verification: device={device_id}, similarity={similarity:.4f}, "
-                   f"authenticated={is_authenticated}")
-        
         return is_authenticated, similarity, details
-    
+
+    def _normalize_client_samples(
+        self,
+        sources: List[str],
+        client_samples: Dict[str, List[List[float]]],
+    ) -> Dict[str, List[np.ndarray]]:
+        samples_by_source: Dict[str, List[np.ndarray]] = {}
+        for source, samples_list in client_samples.items():
+            if source not in sources:
+                continue
+            samples_by_source[source] = [np.asarray(sample, dtype=np.float32) for sample in samples_list]
+        return samples_by_source
+
     def authenticate(
         self,
         device_id: str,
-        sources: list = ['qrng'],
+        sources: list = ["camera", "microphone"],
         num_samples_per_source: int = 5,
-        client_samples: Optional[Dict[str, List[List[float]]]] = None
+        client_samples: Optional[Dict[str, List[List[float]]]] = None,
     ) -> Tuple[bool, Dict]:
-        """
-        Complete authentication flow
-        
-        Args:
-            device_id: Device identifier to authenticate
-            sources: List of noise sources to use
-            num_samples_per_source: Number of samples per source
-            client_samples: Optional raw noise samples provided by client
-            
-        Returns:
-            Tuple of (is_authenticated, details_dict)
-        """
-        logger.info(f"Starting authentication for device: {device_id}")
-        
-        # --- SOURCE MISMATCH CHECK ---
-        try:
-            metadata_path = self.enroller.storage_dir / f"{device_id}_metadata.json"
-            if metadata_path.exists():
-                with open(metadata_path, 'r') as f:
-                    metadata = json.load(f)
-                
-                enrolled_sources = set(metadata.get('sources', []))
-                requested_sources = set(sources)
-                
-                # Check if we are trying to use a source that wasn't enrolled
-                # e.g. Trying to use Camera when we only enrolled Microphone
-                invalid_sources = requested_sources - enrolled_sources
-                
-                # Special case: Ignore 'qrng' in mismatch check if it wasn't explicitly requested 
-                # but might be default. But here 'sources' IS what is requested.
-                
-                if invalid_sources:
-                    error_msg = f"Security Alert: Source Mismatch! Device enrolled with {list(enrolled_sources)}, but authentication requested {list(requested_sources)}."
-                    logger.warning(error_msg)
-                    return False, {'error': error_msg, 'details': 'Invalid Hardware Source'}
-        except Exception as e:
-            logger.error(f"Metadata verification failed: {e}")
-            # We continue cautiously or fail? Let's fail secure.
-            # return False, {'error': 'Metadata verification failed'}
-            pass 
+        logger.info("Starting authentication for device: %s", device_id)
+        metadata = self._load_device_metadata(device_id)
 
-        # Collect noise samples
-        noise_samples = []
-        
+        enrolled_sources = set(metadata.get("sources", []))
+        requested_sources = set(sources)
+        invalid_sources = requested_sources - enrolled_sources
+        if invalid_sources:
+            error_msg = (
+                f"Source mismatch: enrolled with {sorted(enrolled_sources)}, "
+                f"requested {sorted(requested_sources)}."
+            )
+            return False, {"error": error_msg}
+
+        samples_by_source: Dict[str, List[np.ndarray]] = {}
         if client_samples:
-            logger.info("============== DEBUG: CLIENT SAMPLES RECEIVED ==============")
-            logger.info(f"Sources preset in client_samples: {list(client_samples.keys())}")
-            for src, samples in client_samples.items():
-                logger.info(f"Source: {src}, Count: {len(samples)}")
-                if samples and len(samples) > 0:
-                    arr = np.array(samples[0])
-                    logger.info(f"Sample 0 Stats - Shape: {arr.shape}, Mean: {np.mean(arr):.4f}, Std: {np.std(arr):.4f}")
-            logger.info("==========================================================")
-
-            logger.info(f"Using client-provided samples for authentication. Sources: {list(client_samples.keys())}")
-            for source, samples_list in client_samples.items():
-                if source in sources:
-                    for s in samples_list:
-                        noise_samples.append(np.array(s))
+            samples_by_source = self._normalize_client_samples(sources, client_samples)
         else:
-            logger.warning("============== DEBUG: NO CLIENT SAMPLES ==============")
-            logger.warning("FALLING BACK TO SERVER LOCAL HARDWARE")
-            logger.warning("====================================================")
             for source in sources:
-                logger.info(f"Collecting samples from {source}...")
+                samples_by_source[source] = []
                 for _ in range(num_samples_per_source):
                     sample = self.collect_authentication_sample(source, num_samples=1)
                     if sample is not None:
-                        noise_samples.append(sample)
-        
-        if not noise_samples:
-            return False, {'error': 'Failed to collect noise samples'}
-        
-        logger.info(f"Collected {len(noise_samples)} noise samples")
-        
-        # Generate authentication embedding
-        auth_embedding = self.generate_authentication_embedding(noise_samples)
-        
-        if auth_embedding is None:
-            return False, {'error': 'Failed to generate authentication embedding'}
+                        samples_by_source[source].append(sample)
 
-        # DEBUG: Print the first few values of the embedding to check for "Silence/Constant" issues
-        log_embed = auth_embedding.detach().cpu().numpy().flatten()[:8]
-        logger.info(f"DEBUG: Auth Embedding First 8 Values: {log_embed}")
-        
-        # Verify device
-        is_authenticated, similarity, details = self.verify_device(
-            device_id,
-            auth_embedding
-        )
-        
-        details['num_samples_collected'] = len(noise_samples)
-        details['sources_used'] = sources
-        
+        sample_count = sum(len(samples) for samples in samples_by_source.values())
+        if sample_count == 0:
+            return False, {"error": "Failed to collect noise samples"}
+
+        profile_ok, profile_reason, runtime_profiles = self._validate_source_profile(metadata, samples_by_source)
+        if not profile_ok:
+            return False, {
+                "error": "Authentication sample profile mismatch",
+                "details": profile_reason,
+                "sources_used": sources,
+                "runtime_profiles": runtime_profiles,
+            }
+
+        auth_profile = self.generate_authentication_profile(samples_by_source)
+        if auth_profile is None:
+            return False, {"error": "Failed to generate authentication profile"}
+
+        auth_profile["source_profiles"] = runtime_profiles
+        is_authenticated, similarity, details = self.verify_device(device_id, auth_profile)
+        details["num_samples_collected"] = sample_count
+        details["sources_used"] = sources
+        details["runtime_profiles"] = runtime_profiles
+        details["match_semantics"] = "high-confidence device matching"
+
+        if (
+            is_authenticated
+            and details.get("confidence_band") == "strong_accept"
+            and self.drift_update_enabled
+        ):
+            updated_metadata = self.enroller.update_device_template(
+                device_id=device_id,
+                auth_profile=auth_profile,
+                similarity=similarity,
+            )
+            details["rolling_reenrollment_applied"] = bool(updated_metadata.get("drift_update_applied", False))
+            details["drift_model"] = updated_metadata.get("drift_model", {})
+        else:
+            details["rolling_reenrollment_applied"] = False
+
         return is_authenticated, details
-    
+
     def identify_device(
         self,
         auth_embedding: torch.Tensor,
-        top_k: int = 5
+        top_k: int = 5,
     ) -> list:
-        """
-        Identify device by finding closest matches (1:N matching)
-        
-        Args:
-            auth_embedding: Authentication embedding
-            top_k: Number of top matches to return
-            
-        Returns:
-            List of (device_id, similarity_score) tuples
-        """
         enrolled_devices = self.enroller.list_enrolled_devices()
-        
-        if not enrolled_devices:
-            logger.warning("No enrolled devices found")
-            return []
-        
-        # Compute similarities with all enrolled devices
         similarities = []
-        
         for device_id in enrolled_devices:
             stored_embedding = self.enroller.load_device_embedding(device_id)
-            if stored_embedding is not None:
-                similarity = self.embedder.compute_similarity(
-                    auth_embedding,
-                    stored_embedding,
-                    metric=self.metric
-                )
-                similarities.append((device_id, similarity))
-        
-        # Sort by similarity (descending)
-        similarities.sort(key=lambda x: x[1], reverse=True)
-        
-        # Return top-k
-        top_matches = similarities[:top_k]
-        
-        logger.info(f"Identification: top match = {top_matches[0][0]} "
-                   f"(similarity={top_matches[0][1]:.4f})")
-        
-        return top_matches
+            if stored_embedding is None:
+                continue
+            similarity = self.embedder.compute_similarity(
+                auth_embedding,
+                stored_embedding,
+                metric=self.metric,
+            )
+            similarities.append((device_id, similarity))
+
+        similarities.sort(key=lambda item: item[1], reverse=True)
+        return similarities[:top_k]
 
 
 class AuthenticationSession:
-    """Manages an authentication session with retry logic"""
-    
-    def __init__(
-        self,
-        authenticator: DeviceAuthenticator,
-        max_attempts: int = 3
-    ):
-        """
-        Initialize authentication session
-        
-        Args:
-            authenticator: DeviceAuthenticator instance
-            max_attempts: Maximum authentication attempts
-        """
+    """Manages authentication attempts with retry logic."""
+
+    def __init__(self, authenticator: DeviceAuthenticator, max_attempts: int = 3):
         self.authenticator = authenticator
         self.max_attempts = max_attempts
         self.attempts = 0
         self.session_log = []
-        
+
     def attempt_authentication(
         self,
         device_id: str,
-        sources: list = ['qrng']
+        sources: list = ["camera", "microphone"],
     ) -> Tuple[bool, Dict]:
-        """
-        Attempt authentication with retry logic
-        
-        Args:
-            device_id: Device identifier
-            sources: Noise sources to use
-            
-        Returns:
-            Tuple of (is_authenticated, session_details)
-        """
         self.attempts += 1
-        
         if self.attempts > self.max_attempts:
             return False, {
-                'error': 'Maximum authentication attempts exceeded',
-                'attempts': self.attempts,
-                'session_log': self.session_log
+                "error": "Maximum authentication attempts exceeded",
+                "attempts": self.attempts,
+                "session_log": self.session_log,
             }
-        
-        # Authenticate
-        is_authenticated, details = self.authenticator.authenticate(
-            device_id,
-            sources=sources
+
+        is_authenticated, details = self.authenticator.authenticate(device_id, sources=sources)
+        self.session_log.append(
+            {
+                "attempt": self.attempts,
+                "timestamp": datetime.now().isoformat(),
+                "authenticated": is_authenticated,
+                "details": details,
+            }
         )
-        
-        # Log attempt
-        attempt_log = {
-            'attempt': self.attempts,
-            'timestamp': datetime.now().isoformat(),
-            'authenticated': is_authenticated,
-            'details': details
-        }
-        self.session_log.append(attempt_log)
-        
+
         if is_authenticated:
-            details['session_log'] = self.session_log
+            details["session_log"] = self.session_log
             return True, details
-        
-        # Retry logic
+
         if self.attempts < self.max_attempts:
-            logger.info(f"Authentication failed. Attempt {self.attempts}/{self.max_attempts}")
-            return False, {'retry_available': True, 'attempts': self.attempts}
-        else:
-            logger.warning("Maximum authentication attempts reached")
             return False, {
-                'error': 'Authentication failed after maximum attempts',
-                'session_log': self.session_log
+                "retry_available": True,
+                "attempts": self.attempts,
+                "details": details,
             }
+        return False, {
+            "error": "Authentication failed after maximum attempts",
+            "session_log": self.session_log,
+        }
 
 
 def main():
-    """Test authentication module"""
     print("\n=== Device Authentication Test ===")
-    
-    # Create mock components
     from model.siamese_model import SiameseNetwork
-    
+
     input_dim = 50
     embedding_dim = 128
-    
-    # Create model and embedder
     model = SiameseNetwork(input_dim=input_dim, embedding_dim=embedding_dim)
     embedder = DeviceEmbedder(input_dim=input_dim, embedding_dim=embedding_dim)
     embedder.model = model
-    
-    # Create preprocessor and feature converter
+
     preprocessor = NoisePreprocessor(normalize=True)
     feature_converter = FeatureVector()
-    
-    # Create enroller
     enroller = DeviceEnroller(
         embedder=embedder,
         preprocessor=preprocessor,
         feature_converter=feature_converter,
-        storage_dir="./auth/test_embeddings"
+        storage_dir="./auth/test_embeddings",
     )
-    
-    # Create authenticator
+
     authenticator = DeviceAuthenticator(
         embedder=embedder,
         preprocessor=preprocessor,
         feature_converter=feature_converter,
         enroller=enroller,
-        threshold=0.8
+        threshold=0.97,
     )
-    
-    print("\n=== Simulating Device Enrollment ===")
-    # Simulate enrolling a device
-    simulated_noise_enroll = {
-        'qrng': [np.random.rand(1024) for _ in range(10)]
+
+    simulated_enroll = {
+        "camera": [np.random.rand(1024) for _ in range(5)],
+        "microphone": [np.random.rand(1024) for _ in range(5)],
     }
-    feature_vectors = enroller.process_noise_to_features(simulated_noise_enroll)
-    device_embedding = enroller.create_device_embedding(feature_vectors)
-    test_device_id = enroller.generate_device_id("TestDevice")
-    enroller.save_device_embedding(test_device_id, device_embedding)
-    print(f"Enrolled device: {test_device_id}")
-    
-    print("\n=== Simulating Authentication ===")
-    # Simulate authentication with similar noise (should succeed)
-    simulated_noise_auth = [np.random.rand(1024) for _ in range(5)]
-    auth_embedding = authenticator.generate_authentication_embedding(simulated_noise_auth)
-    
-    if auth_embedding is not None:
-        is_auth, similarity, details = authenticator.verify_device(test_device_id, auth_embedding)
-        print(f"Authentication result: {is_auth}")
-        print(f"Similarity: {similarity:.4f}")
-        print(f"Details: {details}")
-    
-    print("\n=== Testing Authentication Session ===")
-    session = AuthenticationSession(authenticator, max_attempts=3)
-    # This will likely fail with random noise, but demonstrates the API
-    is_auth, session_details = session.attempt_authentication(test_device_id, sources=['qrng'])
-    print(f"Session authenticated: {is_auth}")
-    print(f"Session attempts: {session.attempts}")
+    features = enroller.process_noise_to_features_by_source(simulated_enroll)
+    source_embeddings = enroller.create_source_embeddings(features)
+    enroller.save_device_embedding(
+        "test_device",
+        {
+            "combined_embedding": enroller.combine_source_embeddings(source_embeddings),
+            "source_embeddings": source_embeddings,
+        },
+        metadata={"sources": ["camera", "microphone"]},
+    )
+
+    profile = authenticator.generate_authentication_profile(simulated_enroll)
+    print(authenticator.verify_device("test_device", profile))
 
 
 if __name__ == "__main__":

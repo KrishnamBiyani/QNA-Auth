@@ -9,7 +9,7 @@ import { Loader2, CheckCircle, XCircle } from "lucide-react";
 export default function AuthenticatePage() {
   const [devices, setDevices] = useState<DeviceSummary[]>([]);
   const [selectedDevice, setSelectedDevice] = useState("");
-  const [sources, setSources] = useState<string[]>(["qrng"]);
+  const [sources, setSources] = useState<string[]>(["camera", "microphone"]);
   // Default to TRUE if we are not on localhost (i.e. we are on a mobile/remote device)
   const isRemote =
     window.location.hostname !== "localhost" &&
@@ -243,12 +243,6 @@ export default function AuthenticatePage() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <SourceCheckbox
-                  label="Quantum RNG"
-                  value="qrng"
-                  checked={sources.includes("qrng")}
-                  onChange={handleSourceToggle}
-                />
-                <SourceCheckbox
                   label="Camera"
                   value="camera"
                   checked={sources.includes("camera")}
@@ -310,8 +304,13 @@ export default function AuthenticatePage() {
               </p>
               {result.details?.similarity && (
                 <p>
-                  <strong>Similarity:</strong>{" "}
+                  <strong>Match Similarity:</strong>{" "}
                   {(result.details.similarity * 100).toFixed(2)}%
+                </p>
+              )}
+              {result.details?.confidence_band && (
+                <p>
+                  <strong>Confidence Band:</strong> {String(result.details.confidence_band)}
                 </p>
               )}
             </div>
@@ -327,7 +326,7 @@ export default function AuthenticatePage() {
               </h3>
             </div>
             <p className="text-sm text-neutral-300 mt-1">
-              Similarity: {(typeof result.similarity === "number" ? result.similarity : 0).toFixed(2)} (threshold 0.85). Try again with the same noise sources used at enrollment.
+              Match similarity: {(typeof result.similarity === "number" ? result.similarity : 0).toFixed(2)}. If the result is uncertain, collect more samples or use fallback auth.
             </p>
           </div>
         )}
@@ -378,7 +377,7 @@ function ChallengeResponseSection({ devices, selectedDevice }: { devices: Device
       {expand && (
         <div className="mt-3 p-4 bg-neutral-800/50 border border-neutral-700 rounded text-sm">
           <p className="text-neutral-400 mb-3">
-            Get a one-time challenge (nonce) for this device. Verification requires computing a response from the stored embedding and nonce (e.g. via API or secure element).
+            Get a one-time nonce for server-hardened verification. The server binds the live feature template to the nonce with an HKDF-derived MAC; the template is treated as a feature, not a credential.
           </p>
           <button
             type="button"

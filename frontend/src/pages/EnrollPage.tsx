@@ -13,7 +13,7 @@ import { Loader2, CheckCircle, XCircle } from "lucide-react";
 export default function EnrollPage() {
   const [deviceName, setDeviceName] = useState("");
   const [numSamples, setNumSamples] = useState(50);
-  const [sources, setSources] = useState<string[]>(["qrng"]);
+  const [sources, setSources] = useState<string[]>(["camera", "microphone"]);
   // Default to TRUE if we are not on localhost (i.e. we are on a mobile/remote device)
   const isRemote =
     window.location.hostname !== "localhost" &&
@@ -176,12 +176,6 @@ export default function EnrollPage() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <SourceCheckbox
-                  label="Quantum RNG"
-                  value="qrng"
-                  checked={sources.includes("qrng")}
-                  onChange={handleSourceToggle}
-                />
-                <SourceCheckbox
                   label="Camera"
                   value="camera"
                   checked={sources.includes("camera")}
@@ -282,6 +276,9 @@ export default function EnrollPage() {
                 {(result.metadata as { sources?: string[] })?.sources?.join(
                   ", ",
                 ) || sources.join(", ")}
+              </p>
+              <p>
+                <strong>Mode:</strong> feature template enrollment for later device matching
               </p>
             </div>
           </div>

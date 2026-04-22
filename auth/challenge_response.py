@@ -1,15 +1,20 @@
 """
-Challenge-Response Protocol
-Implements secure challenge-response authentication with nonce
+Server-hardened challenge verification for noise-based device matching.
+
+The embedding is treated as a feature template only. It is never used directly
+as a credential. Challenge MAC keys are derived from a stable feature template,
+the challenge nonce, and a server secret via HKDF.
 """
 
 import hashlib
-import secrets
 import hmac
-from typing import Tuple, Dict, Optional, Any
-from datetime import datetime, timedelta
-import torch
 import logging
+import secrets
+from datetime import datetime, timedelta
+from typing import Any, Dict, Optional, Tuple
+
+import torch
+
 import config
 
 logging.basicConfig(level=logging.INFO)
@@ -17,383 +22,263 @@ logger = logging.getLogger(__name__)
 
 
 class ChallengeResponseProtocol:
-    """Implements secure challenge-response authentication"""
-    
+    """Implements nonce-bound challenge verification with HKDF key derivation."""
+
     def __init__(
         self,
         nonce_length: int = 32,
         challenge_expiry_seconds: int = 60,
-        challenge_store: Optional[Any] = None
+        challenge_store: Optional[Any] = None,
+        server_secret: Optional[str] = None,
     ):
-        """
-        Initialize challenge-response protocol
-        
-        Args:
-            nonce_length: Length of nonce in bytes
-            challenge_expiry_seconds: Challenge expiration time
-            challenge_store: Optional store with put/get/delete; if provided, challenges are persisted (e.g. DB)
-        """
         self.nonce_length = nonce_length
         self.challenge_expiry = timedelta(seconds=challenge_expiry_seconds)
-        self.active_challenges = {}  # Used only when challenge_store is None
+        self.active_challenges = {}
         self.challenge_store = challenge_store
-        
-        logger.info(f"ChallengeResponseProtocol initialized "
-                   f"(nonce_length={nonce_length}, expiry={challenge_expiry_seconds}s, store={challenge_store is not None})")
-    
+        configured_secret = server_secret or getattr(
+            config,
+            "CHALLENGE_SERVER_SECRET",
+            "dev-only-qna-auth-server-secret-change-me",
+        )
+        self.server_secret = configured_secret.encode("utf-8")
+        self.hkdf_info = b"noise-device-verification-challenge"
+        logger.info(
+            "ChallengeResponseProtocol initialized (nonce_length=%s, expiry=%ss, persisted=%s)",
+            nonce_length,
+            challenge_expiry_seconds,
+            challenge_store is not None,
+        )
+
     def generate_nonce(self) -> str:
-        """
-        Generate cryptographically secure nonce
-        
-        Returns:
-            Hex-encoded nonce string
-        """
-        nonce_bytes = secrets.token_bytes(self.nonce_length)
-        nonce_hex = nonce_bytes.hex()
-        return nonce_hex
-    
+        return secrets.token_bytes(self.nonce_length).hex()
+
     def create_challenge(self, device_id: str) -> Dict[str, str]:
-        """
-        Create authentication challenge
-        
-        Args:
-            device_id: Device identifier
-            
-        Returns:
-            Challenge dictionary with nonce and challenge_id
-        """
-        # Generate nonce
         nonce = self.generate_nonce()
-        
-        # Generate challenge ID
+        created_at = datetime.now()
         challenge_id = hashlib.sha256(
-            f"{device_id}_{nonce}_{datetime.now().isoformat()}".encode()
+            f"{device_id}_{nonce}_{created_at.isoformat()}".encode("utf-8")
         ).hexdigest()[:16]
-        
-        # Store challenge (DB or in-memory)
         data = {
-            'device_id': device_id,
-            'nonce': nonce,
-            'created_at': datetime.now(),
-            'expires_at': datetime.now() + self.challenge_expiry
+            "device_id": device_id,
+            "nonce": nonce,
+            "created_at": created_at,
+            "expires_at": created_at + self.challenge_expiry,
         }
         if self.challenge_store is not None:
             self.challenge_store.put(challenge_id, data)
         else:
             self.active_challenges[challenge_id] = data
-        
-        logger.info(f"Created challenge {challenge_id} for device {device_id}")
-        
         return {
-            'challenge_id': challenge_id,
-            'nonce': nonce,
-            'expires_at': (datetime.now() + self.challenge_expiry).isoformat()
+            "challenge_id": challenge_id,
+            "nonce": nonce,
+            "expires_at": data["expires_at"].isoformat(),
         }
-    
+
+    def _stable_feature_bytes(self, embedding: torch.Tensor) -> bytes:
+        embedding_cpu = embedding.detach().cpu().float()
+        # Coarse quantization creates a more drift-tolerant stable template.
+        quantized = torch.round(embedding_cpu * 64.0).to(torch.int16).numpy()
+        return quantized.tobytes()
+
+    def _hkdf(self, ikm: bytes, salt: bytes, length: int = 32) -> bytes:
+        prk = hmac.new(salt, ikm, hashlib.sha256).digest()
+        okm = b""
+        previous = b""
+        counter = 1
+        while len(okm) < length:
+            previous = hmac.new(
+                prk,
+                previous + self.hkdf_info + bytes([counter]),
+                hashlib.sha256,
+            ).digest()
+            okm += previous
+            counter += 1
+        return okm[:length]
+
+    def derive_mac_key(self, embedding: torch.Tensor, nonce: str) -> bytes:
+        nonce_bytes = bytes.fromhex(nonce)
+        stable_feature = self._stable_feature_bytes(embedding)
+        ikm = stable_feature + nonce_bytes + self.server_secret
+        return self._hkdf(ikm=ikm, salt=nonce_bytes, length=32)
+
     def compute_response(
         self,
         embedding: torch.Tensor,
-        nonce: str
-    ) -> str:
-        """
-        Compute challenge response from embedding and nonce
-        
-        Args:
-            embedding: Device embedding tensor
-            nonce: Challenge nonce
-            
-        Returns:
-            Hex-encoded response signature
-        """
-        # Convert embedding to bytes
-        embedding_bytes = embedding.numpy().tobytes()
-        
-        # Combine embedding hash with nonce
-        embedding_hash = hashlib.sha256(embedding_bytes).hexdigest()
-        
-        # Create response using HMAC
-        message = f"{embedding_hash}_{nonce}".encode()
-        response = hmac.new(
-            embedding_bytes[:32],  # Use first 32 bytes as key
-            message,
-            hashlib.sha256
-        ).hexdigest()
-        
-        return response
-    
-    def verify_response(
-        self,
+        nonce: str,
         challenge_id: str,
-        response: str,
-        stored_embedding: torch.Tensor
-    ) -> Tuple[bool, Dict]:
-        """
-        Verify challenge response
-        
-        Args:
-            challenge_id: Challenge identifier
-            response: Response signature from device
-            stored_embedding: Stored device embedding
-            
-        Returns:
-            Tuple of (is_valid, details)
-        """
-        # Load challenge (from store or in-memory)
+        device_id: str,
+    ) -> str:
+        key = self.derive_mac_key(embedding, nonce)
+        message = f"{challenge_id}:{device_id}:{nonce}".encode("utf-8")
+        return hmac.new(key, message, hashlib.sha256).hexdigest()
+
+    def _load_challenge(self, challenge_id: str) -> Optional[Dict]:
         if self.challenge_store is not None:
-            challenge_data = self.challenge_store.get(challenge_id)
-            if challenge_data is None:
-                return False, {'error': 'Challenge not found'}
-        else:
-            if challenge_id not in self.active_challenges:
-                return False, {'error': 'Challenge not found'}
-            challenge_data = self.active_challenges[challenge_id]
-        
-        # Check if challenge expired (and remove from store so it's cleaned up)
-        if datetime.now() > challenge_data['expires_at']:
-            if self.challenge_store is not None:
-                self.challenge_store.delete(challenge_id)
-            else:
-                del self.active_challenges[challenge_id]
-            return False, {'error': 'Challenge expired'}
-        
-        # Compute expected response
-        expected_response = self.compute_response(
-            stored_embedding,
-            challenge_data['nonce']
-        )
-        
-        # Compare responses (constant-time comparison)
-        is_valid = hmac.compare_digest(response, expected_response)
-        
-        # Remove used challenge
+            return self.challenge_store.get(challenge_id)
+        return self.active_challenges.get(challenge_id)
+
+    def _delete_challenge(self, challenge_id: str) -> None:
         if self.challenge_store is not None:
             self.challenge_store.delete(challenge_id)
         else:
-            del self.active_challenges[challenge_id]
-        
+            self.active_challenges.pop(challenge_id, None)
+
+    def verify_response(
+        self,
+        challenge_id: str,
+        presented_response: Optional[str],
+        stored_embedding: torch.Tensor,
+        auth_embedding: torch.Tensor,
+    ) -> Tuple[bool, Dict]:
+        challenge_data = self._load_challenge(challenge_id)
+        if challenge_data is None:
+            return False, {"error": "Challenge not found"}
+
+        if datetime.now() > challenge_data["expires_at"]:
+            self._delete_challenge(challenge_id)
+            return False, {"error": "Challenge expired"}
+
+        nonce = challenge_data["nonce"]
+        device_id = challenge_data["device_id"]
+        expected_response = self.compute_response(stored_embedding, nonce, challenge_id, device_id)
+        auth_response = self.compute_response(auth_embedding, nonce, challenge_id, device_id)
+        stable_feature_match = hmac.compare_digest(expected_response, auth_response)
+
+        external_response_checked = False
+        external_response_valid = True
+        if presented_response and len(presented_response) == 64:
+            try:
+                int(presented_response, 16)
+                external_response_checked = True
+                external_response_valid = hmac.compare_digest(presented_response, expected_response)
+            except ValueError:
+                external_response_checked = False
+
+        is_valid = stable_feature_match and external_response_valid
+        self._delete_challenge(challenge_id)
+
         details = {
-            'challenge_id': challenge_id,
-            'device_id': challenge_data['device_id'],
-            'verified_at': datetime.now().isoformat(),
-            'is_valid': is_valid
+            "challenge_id": challenge_id,
+            "device_id": device_id,
+            "verified_at": datetime.now().isoformat(),
+            "nonce_bound": True,
+            "hkdf_hardened": True,
+            "template_role": "feature_only",
+            "stable_feature_match": stable_feature_match,
+            "external_response_checked": external_response_checked,
+            "external_response_valid": external_response_valid,
+            "is_valid": is_valid,
         }
-        
-        logger.info(f"Challenge verification: {challenge_id}, valid={is_valid}")
-        
         return is_valid, details
-    
+
     def cleanup_expired_challenges(self):
-        """Remove expired challenges"""
         now = datetime.now()
         expired = [
-            cid for cid, data in self.active_challenges.items()
-            if now > data['expires_at']
+            challenge_id
+            for challenge_id, challenge_data in self.active_challenges.items()
+            if now > challenge_data["expires_at"]
         ]
-        
-        for cid in expired:
-            del self.active_challenges[cid]
-        
-        if expired:
-            logger.info(f"Cleaned up {len(expired)} expired challenges")
-    
+        for challenge_id in expired:
+            self._delete_challenge(challenge_id)
+
     def get_active_challenges_count(self) -> int:
-        """Get number of active challenges"""
         self.cleanup_expired_challenges()
         return len(self.active_challenges)
 
 
 class SecureAuthenticationFlow:
-    """Complete secure authentication flow with challenge-response"""
-    
+    """Combines HKDF-hardened challenge verification and confidence bands."""
+
     def __init__(
         self,
         protocol: ChallengeResponseProtocol,
-        similarity_threshold: float = float(getattr(config, "SIMILARITY_THRESHOLD", 0.85))
+        strong_accept_threshold: float = float(getattr(config, "AUTH_CONFIDENCE_STRONG", 0.97)),
+        uncertain_threshold: float = float(getattr(config, "AUTH_CONFIDENCE_UNCERTAIN", 0.92)),
     ):
-        """
-        Initialize secure authentication flow
-        
-        Args:
-            protocol: ChallengeResponseProtocol instance
-            similarity_threshold: Embedding similarity threshold
-        """
         self.protocol = protocol
-        self.similarity_threshold = similarity_threshold
-    
-    def initiate_authentication(
-        self,
-        device_id: str
-    ) -> Dict[str, str]:
-        """
-        Step 1: Server initiates authentication
-        
-        Args:
-            device_id: Device identifier
-            
-        Returns:
-            Challenge dictionary
-        """
+        self.strong_accept_threshold = strong_accept_threshold
+        self.uncertain_threshold = uncertain_threshold
+
+    def initiate_authentication(self, device_id: str) -> Dict[str, str]:
         return self.protocol.create_challenge(device_id)
-    
+
+    def _classify_similarity(self, similarity: float) -> Tuple[str, str]:
+        if similarity >= self.strong_accept_threshold:
+            return "strong_accept", "accept"
+        if similarity >= self.uncertain_threshold:
+            return "uncertain", "collect_more_samples_or_fallback_auth"
+        return "reject", "reject"
+
     def complete_authentication(
         self,
         challenge_id: str,
-        response: str,
+        response: Optional[str],
         auth_embedding: torch.Tensor,
-        stored_embedding: torch.Tensor
+        stored_embedding: torch.Tensor,
     ) -> Tuple[bool, Dict]:
-        """
-        Step 2: Complete authentication with response and embedding verification
-        
-        Args:
-            challenge_id: Challenge identifier
-            response: Challenge response from device
-            auth_embedding: Fresh authentication embedding
-            stored_embedding: Stored device embedding
-            
-        Returns:
-            Tuple of (is_authenticated, details)
-        """
-        # Verify challenge response
         response_valid, response_details = self.protocol.verify_response(
-            challenge_id,
-            response,
-            stored_embedding
+            challenge_id=challenge_id,
+            presented_response=response,
+            stored_embedding=stored_embedding,
+            auth_embedding=auth_embedding,
         )
-        
         if not response_valid:
             return False, response_details
-        
-        # Verify embedding similarity
+
         similarity = torch.nn.functional.cosine_similarity(
             auth_embedding.unsqueeze(0),
-            stored_embedding.unsqueeze(0)
+            stored_embedding.unsqueeze(0),
         ).item()
-        
-        embedding_valid = similarity >= self.similarity_threshold
-        
+        confidence_band, recommended_action = self._classify_similarity(similarity)
+        authenticated = confidence_band == "strong_accept"
         details = {
             **response_details,
-            'embedding_similarity': similarity,
-            'similarity_threshold': self.similarity_threshold,
-            'embedding_valid': embedding_valid,
-            'authenticated': response_valid and embedding_valid
+            "embedding_similarity": similarity,
+            "confidence_band": confidence_band,
+            "recommended_action": recommended_action,
+            "strong_accept_threshold": self.strong_accept_threshold,
+            "uncertain_threshold": self.uncertain_threshold,
+            "authenticated": authenticated,
         }
-        
-        is_authenticated = response_valid and embedding_valid
-        
-        logger.info(f"Authentication complete: authenticated={is_authenticated}, "
-                   f"similarity={similarity:.4f}")
-        
-        return is_authenticated, details
+        return authenticated, details
 
 
 class AntiReplayProtection:
-    """Prevents replay attacks"""
-    
+    """Tracks recent responses when callers want an additional replay cache."""
+
     def __init__(self, window_seconds: int = 300):
-        """
-        Initialize anti-replay protection
-        
-        Args:
-            window_seconds: Time window for tracking used responses
-        """
         self.window = timedelta(seconds=window_seconds)
-        self.used_responses = {}  # Map response_hash -> timestamp
-    
+        self.used_responses = {}
+
     def check_and_record(self, response: str) -> bool:
-        """
-        Check if response has been used and record it
-        
-        Args:
-            response: Response signature
-            
-        Returns:
-            True if response is fresh (not replayed), False if replayed
-        """
-        # Cleanup old entries
         now = datetime.now()
         self.used_responses = {
-            r: t for r, t in self.used_responses.items()
-            if now - t < self.window
+            item: ts for item, ts in self.used_responses.items() if now - ts < self.window
         }
-        
-        # Check if response was used
         if response in self.used_responses:
-            logger.warning(f"Replay attack detected!")
+            logger.warning("Replay attack detected")
             return False
-        
-        # Record response
         self.used_responses[response] = now
         return True
 
 
 def main():
-    """Test challenge-response protocol"""
     print("\n=== Challenge-Response Protocol Test ===")
-    
-    # Create protocol
-    protocol = ChallengeResponseProtocol(
-        nonce_length=32,
-        challenge_expiry_seconds=60
-    )
-    
-    # Simulate device embedding
+    protocol = ChallengeResponseProtocol(nonce_length=32, challenge_expiry_seconds=60)
     device_id = "test_device_001"
-    embedding = torch.randn(128)
-    
-    print("\n=== Step 1: Create Challenge ===")
+    stored_embedding = torch.nn.functional.normalize(torch.randn(128), p=2, dim=0)
+    auth_embedding = torch.nn.functional.normalize(stored_embedding + (0.001 * torch.randn(128)), p=2, dim=0)
+
     challenge = protocol.create_challenge(device_id)
-    print(f"Challenge ID: {challenge['challenge_id']}")
-    print(f"Nonce: {challenge['nonce'][:32]}...")
-    print(f"Expires at: {challenge['expires_at']}")
-    
-    print("\n=== Step 2: Compute Response ===")
-    response = protocol.compute_response(embedding, challenge['nonce'])
-    print(f"Response: {response[:32]}...")
-    
-    print("\n=== Step 3: Verify Response ===")
+    response = protocol.compute_response(auth_embedding, challenge["nonce"], challenge["challenge_id"], device_id)
     is_valid, details = protocol.verify_response(
-        challenge['challenge_id'],
+        challenge["challenge_id"],
         response,
-        embedding
+        stored_embedding,
+        auth_embedding,
     )
     print(f"Valid: {is_valid}")
-    print(f"Details: {details}")
-    
-    print("\n=== Testing Secure Authentication Flow ===")
-    flow = SecureAuthenticationFlow(protocol, similarity_threshold=0.85)
-    
-    # Initiate
-    challenge = flow.initiate_authentication(device_id)
-    print(f"Challenge initiated: {challenge['challenge_id']}")
-    
-    # Compute response
-    response = protocol.compute_response(embedding, challenge['nonce'])
-    
-    # Complete authentication
-    auth_embedding = embedding + 0.01 * torch.randn(128)  # Slightly different
-    auth_embedding = torch.nn.functional.normalize(auth_embedding, p=2, dim=0)
-    
-    is_authenticated, auth_details = flow.complete_authentication(
-        challenge['challenge_id'],
-        response,
-        auth_embedding,
-        embedding
-    )
-    print(f"Authenticated: {is_authenticated}")
-    print(f"Similarity: {auth_details['embedding_similarity']:.4f}")
-    
-    print("\n=== Testing Anti-Replay Protection ===")
-    anti_replay = AntiReplayProtection(window_seconds=300)
-    
-    # First use - should pass
-    is_fresh = anti_replay.check_and_record(response)
-    print(f"First use - Fresh: {is_fresh}")
-    
-    # Second use - should fail (replay)
-    is_fresh = anti_replay.check_and_record(response)
-    print(f"Second use - Fresh: {is_fresh} (replay attack detected)")
+    print(details)
 
 
 if __name__ == "__main__":

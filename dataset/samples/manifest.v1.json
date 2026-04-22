@@ -1,14 +1,14 @@
 {
   "manifest_version": "v1",
-  "created_at": "2026-04-14T18:07:08.365694Z",
-  "dataset_dir": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples",
-  "dataset_fingerprint": "aba12a6b9dd0e38fcd1c3d30267fd29c1306b1b7664a0a3fb7d8afe892179016",
+  "created_at": "2026-04-22T12:29:55.657778Z",
+  "dataset_dir": "dataset\\samples",
+  "dataset_fingerprint": "72fac138cbaa28b9b47dccaf3cb4e421e52c1aa62f4184cab819b074e3f1dc06",
   "counts": {
-    "total_samples": 2600,
-    "unique_devices": 39,
+    "total_samples": 2780,
+    "unique_devices": 43,
     "sources": {
-      "microphone": 1360,
-      "camera": 1240
+      "microphone": 1450,
+      "camera": 1330
     },
     "missing_raw_files": 0,
     "malformed_json": 0
@@ -53,6 +53,16 @@
         "qna_auth_collection_Synthetic_17_20260412_210149"
       ]
     },
+    "1b5faf380eed2312": {
+      "samples": 100,
+      "sources": [
+        "camera",
+        "microphone"
+      ],
+      "sessions": [
+        "unknown_session"
+      ]
+    },
     "1febc91d0b46399a": {
       "samples": 80,
       "sources": [
@@ -91,6 +101,16 @@
         "unknown_session"
       ]
     },
+    "304a798cdc7e5d45": {
+      "samples": 20,
+      "sources": [
+        "camera",
+        "microphone"
+      ],
+      "sessions": [
+        "unknown_session"
+      ]
+    },
     "4074de8ebfac6840": {
       "samples": 80,
       "sources": [
@@ -119,6 +139,26 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_06_20260412_210149"
+      ]
+    },
+    "5b0e6f8077e79e3c": {
+      "samples": 20,
+      "sources": [
+        "camera",
+        "microphone"
+      ],
+      "sessions": [
+        "unknown_session"
+      ]
+    },
+    "5c2d4095f4304a1f": {
+      "samples": 40,
+      "sources": [
+        "camera",
+        "microphone"
+      ],
+      "sessions": [
+        "unknown_session"
       ]
     },
     "6449519725346549": {

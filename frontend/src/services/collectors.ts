@@ -94,8 +94,6 @@ export class MicNoiseCollector {
     private audioContext: AudioContext | null = null;
     private stream: MediaStream | null = null;
     private source: MediaStreamAudioSourceNode | null = null;
-    private processor: ScriptProcessorNode | null = null;
-    private gainNode: GainNode | null = null;
 
     async initialize() {
         try {

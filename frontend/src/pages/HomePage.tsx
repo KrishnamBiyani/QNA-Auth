@@ -8,7 +8,7 @@ export default function HomePage() {
           QNA-Auth
         </h1>
         <p className="text-neutral-400 max-w-lg mx-auto text-center mb-12">
-          Quantum Noise Assisted Authentication System
+          Noise-based device verification from camera and microphone fingerprints
         </p>
         
         <div className="flex justify-center gap-4">

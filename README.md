@@ -1,94 +1,101 @@
 # QNA-Auth
 
-QNA-Auth is a capstone project for device verification using noise signals (QRNG, camera, microphone) and a Siamese embedding model.
+QNA-Auth is a capstone prototype for **noise-based device verification** using camera and microphone sensor fingerprints plus learned embeddings.
+The current framing is deliberate:
+- embeddings are **biometric-like templates used only for similarity**
+- similarity is **not identity proof**
+- the system produces **high-confidence device matching**, not cryptographic identity
+## Current Model
 
-This README is the practical runbook: what is actively used, what is legacy, and exactly what to run.
+The runtime now uses:
+- per-source embeddings for `camera` and `microphone`
+- weighted fusion at decision time with `camera=0.7`, `microphone=0.3`
+- confidence bands instead of a single binary threshold
+- rolling re-enrollment with EMA drift updates after strong matches
+- nonce-bound HKDF hardening for `/challenge` -> `/verify`
 
-## What Is Used vs Old
+Confidence bands:
+- `>= 0.97`: strong accept
+- `0.92 - 0.97`: uncertain, collect more samples or use fallback auth
+- `< 0.92`: reject
 
-### Actively used (current flow)
-- Backend API: `server/app.py`
-- Core auth logic: `auth/`, `noise_collection/`, `preprocessing/`, `model/`
-- Dataset pipeline: `scripts/data/collect_data_for_training.py` -> `scripts/data/ingest_collected_data.py` -> `dataset/samples/`
-- Training/eval: `scripts/training/train_and_evaluate.py`, `scripts/training/run_evaluation.py`, `scripts/training/run_capstone_evaluation.py`
-- Frontend: `frontend/`
+Challenge hardening:
+- the embedding is never used directly as a credential
+- a stable feature template is derived from the live embedding
+- the MAC key is derived with `HKDF(template || nonce || server_secret)`
+- the nonce prevents replay and the server secret hardens against offline spoofing
 
-### Legacy or generated artifacts (not source of truth)
-- `qna_auth_collection_*` folders (participant/raw export dumps)
-- `qna_auth_test_collection/` (old generated sample folder)
-- `server/dataset/samples/` (old checked-in generated data; pipeline uses `dataset/samples/`)
-- `scripts/tempCodeRunnerFile.py` (editor temp file)
+Stability note:
+- "stable" here means stable enough for repeated similarity matching after quantization and aggregation, not perfectly invariant
+- the remaining stability question is empirical: reviewers may ask for cross-session variance, environmental sensitivity, and confidence-band behavior
+- if you have evaluation plots or session-separated score distributions, present those as evidence rather than claiming full invariance
 
-Generated artifacts are now ignored in `.gitignore`.
+Drift update policy:
+- rolling re-enrollment is gated to the `strong_accept` band only
+- EMA updates are intended for gradual sensor drift, not for expanding identity claims
+- a conservative deployment can require multiple strong accepts before applying an update to reduce gradual poisoning risk
 
----
+## Attacker Model
 
-## 1) Prerequisites
+This project explicitly models:
+- replayed samples: blocked by nonce-bound single-use challenge flow
+- naive synthetic noise: expected to fail because matching depends on higher-dimensional structure, not just simple summary statistics
+- adaptive or learned mimicry: could get closer and should be treated as a real residual risk
+- same device in a different environment: may produce borderline results and fall into the uncertain band
 
-- Python `3.10+` recommended
-- Node.js `18+` (for frontend)
-- Optional hardware: webcam, microphone
-- Optional GPU/CUDA for faster training
+## Quick Setup
 
----
-
-## 2) One-Time Setup
-
-From project root:
+1. Create and activate a virtual environment.
 
 ```bash
 python -m venv .venv
 ```
 
-Activate virtual environment:
-
-```bash
-# Windows PowerShell
-.venv\Scripts\Activate.ps1
-
-# Windows CMD
-.venv\Scripts\activate.bat
-
-# macOS/Linux
-source .venv/bin/activate
-```
-
-Install Python dependencies:
+2. Install dependencies.
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Create local config:
+3. Create config.
 
 ```bash
+# Windows
 copy config.example.py config.py
-```
 
-On macOS/Linux:
-
-```bash
+# macOS/Linux
 cp config.example.py config.py
 ```
 
----
-
-## 3) Run Backend + Frontend
-
-### Backend
+4. Set a real server secret before review/demo use.
 
 ```bash
-python server/app.py
+# PowerShell
+$env:QNA_AUTH_SERVER_SECRET="replace-with-a-random-secret"
 ```
 
-Backend URLs:
-- API root: `http://localhost:8000`
-- Swagger docs: `http://localhost:8000/docs`
-- Health: `http://localhost:8000/health`
+## Recommended Demo Config
 
-### Frontend
+Set these in `config.py`:
+- `DEMO_MODE = True`
+- `DEMO_ALLOWED_SOURCES = ["camera", "microphone"]`
+- `DEMO_ENROLL_NUM_SAMPLES = 10`
+- `DEMO_AUTH_NUM_SAMPLES = 5`
+- `PREPROCESSING_FAST_MODE = True`
+- `AUTH_CONFIDENCE_STRONG = 0.97`
+- `AUTH_CONFIDENCE_UNCERTAIN = 0.92`
+- `AUTH_IDENTIFICATION_MARGIN = 0.02`
+- `AUTH_SOURCE_WEIGHTS = {"camera": 0.7, "microphone": 0.3}`
 
-In a second terminal:
+## Run
+
+Backend:
+
+```bash
+python -m uvicorn server.app:app --host 0.0.0.0 --port 8000
+```
+
+Frontend:
 
 ```bash
 cd frontend
@@ -96,86 +103,22 @@ npm install
 npm run dev
 ```
 
-Frontend URL:
-- `http://localhost:3000`
+Useful URLs:
+- `http://localhost:8000`
+- `http://localhost:8000/docs`
+- `http://localhost:8000/health`
 
----
+## API
 
-## 4) End-to-End Data + Model Workflow
+- `POST /enroll`
+- `POST /authenticate`
+- `POST /challenge`
+- `POST /verify`
+- `GET /devices`
+- `GET /devices/{device_id}`
+- `DELETE /devices/{device_id}`
 
-Use this sequence when building real data and training a better model.
-
-### Step A: Collect participant data
-
-Participants run:
-
-```bash
-python scripts/data/collect_data_for_training.py --name "Alice Laptop" --sources qrng,camera,microphone --num-samples 50 --zip
-```
-
-This creates:
-- `qna_auth_collection_<name>_<timestamp>/`
-- Optional zip archive if `--zip` is used
-
-### Step B: Ingest collected folders/zips
-
-Project owner runs:
-
-```bash
-python scripts/data/ingest_collected_data.py path/to/folder1 path/to/folder2.zip
-```
-
-This merges into `dataset/samples/` and updates dataset manifest metadata.
-
-### Step C: Train model
-
-```bash
-python scripts/training/train_and_evaluate.py --data-dir dataset/samples --epochs 20 --seed 42
-```
-
-### Step D: Run evaluation
-
-Quick evaluation:
-
-```bash
-python scripts/training/run_evaluation.py --data-dir dataset/samples --model-path server/models/best_model.pt
-```
-
-Capstone evaluation:
-
-```bash
-python scripts/training/run_capstone_evaluation.py --data-dir dataset/samples --seed 42
-```
-
-Reproducibility run:
-
-```bash
-python scripts/training/reproduce_capstone.py --data-dir dataset/samples --seed 42 --epochs 20
-```
-
----
-
-## 5) API Endpoints You Actually Use
-
-- `GET /health` - service + DB status
-- `POST /enroll` - enroll a device embedding
-- `POST /authenticate` - verify a device against stored embedding
-- `POST /challenge` and `POST /verify` - challenge/response flow
-- `GET /devices` - list enrolled devices
-- `GET /devices/{device_id}` - fetch metadata
-- `DELETE /devices/{device_id}` - remove enrolled device
-
-Example enroll payload:
-
-```json
-{
-  "device_name": "my-laptop",
-  "num_samples": 50,
-  "sources": ["qrng", "camera", "microphone"]
-}
-```
-
-Example authenticate payload:
+Example auth payload:
 
 ```json
 {
@@ -185,101 +128,33 @@ Example authenticate payload:
 }
 ```
 
----
+## Evaluation and Review
 
-## 6) Important Paths
-
-- `dataset/samples/` - canonical training dataset
-- `auth/device_embeddings/` - enrolled device embeddings + metadata
-- `server/models/` - deployed model checkpoint for backend runtime
-- `artifacts/` - evaluation/repro outputs
-
----
-
-## 6.1) Script Organization (New)
-
-- `scripts/data/` - participant collection, ingestion, and dataset manifest scripts
-  - `scripts/data/collect_data_for_training.py`
-  - `scripts/data/ingest_collected_data.py`
-  - `scripts/data/build_dataset_manifest.py`
-  - `scripts/data/analyze_longitudinal.py`
-- `scripts/training/` - training and evaluation runners
-  - `scripts/training/train_and_evaluate.py`
-  - `scripts/training/run_evaluation.py`
-  - `scripts/training/run_capstone_evaluation.py`
-  - `scripts/training/reproduce_capstone.py`
-- `scripts/db/` - database setup and maintenance scripts
-  - `scripts/db/init_db.py`
-  - `scripts/db/check_db.py`
-  - `scripts/db/backfill_db_from_files.py`
-- `scripts/diagnostics/` - manual verification/debug scripts
-  - `scripts/diagnostics/test_hardware.py`
-  - `scripts/diagnostics/test_collection.py`
-  - `scripts/diagnostics/test_enrollment.py`
-  - `scripts/diagnostics/test_cross_device.py`
-  - `scripts/diagnostics/test_robustness.py`
-  - `scripts/diagnostics/reproduce_issue.py`
-  - `scripts/diagnostics/verify_cuda.py`
-- `scripts/legacy/` - older demo/bootstrap scripts kept for reference
-  - `scripts/legacy/collect_training_data.py`
-  - `scripts/legacy/auto_collect.py`
-  - `scripts/legacy/run_full_training.py`
-- `scripts/reporting/` - report generation helpers
-  - `scripts/reporting/generate_report.py`
-- `docs/reports/` - generated report artifacts
-  - `docs/reports/QNA_Auth_Project_Report.docx`
-- `scripts/README.md` - command index for all script groups
-
----
-
-## 7) Project Cleanup Policy
-
-Keep Git focused on source code and reproducible scripts.
-
-Do not commit:
-- Raw collection exports (`qna_auth_collection_*`)
-- Generated data dumps in temp/legacy folders
-- Temporary editor files
-- Local secrets (`config.py`, API keys, `.env`)
-
-If old generated folders already exist locally, you can remove them safely once ingested:
+Pre-demo reliability check:
 
 ```bash
-# PowerShell example
-Remove-Item -Recurse -Force qna_auth_collection_* -ErrorAction SilentlyContinue
+python scripts/diagnostics/demo_preflight.py --base-url http://127.0.0.1:8000
 ```
 
----
+Reviewer-safe brief:
 
-## 8) Troubleshooting
+```bash
+python scripts/reporting/generate_review_brief.py
+```
 
-- Camera/mic issues:
-  - Run `python scripts/diagnostics/test_hardware.py`
-  - Check OS permissions and device locks
-- QRNG failures:
-  - Check internet
-  - Expect rate limits/timeouts
-  - Set `QRNG_API_KEY` if needed
-- Poor authentication quality:
-  - Increase enrollment samples
-  - Use multiple sources
-  - Retrain model and tune threshold
+Important paths:
+- `auth/device_embeddings/` - stored template bundles and metadata
+- `artifacts/` - evaluation outputs and review material
+- `docs/DEMO_RUNBOOK.md` - live demo guide
 
----
+## Claim Boundaries
 
-## 9) Suggested Daily Workflow
+This system is not:
+- a spoof-proof system
+- a quantum-based identity system
+- a replacement for cryptographic credentials
 
-1. Pull latest changes
-2. Run backend + frontend
-3. Collect or ingest new data
-4. Retrain/evaluate if dataset changed
-5. Keep generated artifacts out of git
-6. Commit only source/docs/scripts changes
-
----
-
-## 10) Notes
-
-- `server/routes.py` exists as a placeholder and is not the active API entrypoint.
-- Runtime model loading is controlled by `config.MODEL_PATH`.
-- Similarity threshold is controlled by `config.SIMILARITY_THRESHOLD`.
+This system is:
+- a multi-source sensor noise fingerprinting prototype
+- a learned similarity system with statistical decision rules
+- a security-aware capstone with optional challenge hardening

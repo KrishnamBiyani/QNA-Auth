@@ -37,9 +37,10 @@ export interface AuthenticationResponse {
   authenticated: boolean
   device_id: string
   similarity?: number
-  details?: {
-    similarity: number
-    threshold: number
+  details?: Record<string, unknown> & {
+    similarity?: number
+    confidence_band?: string
+    recommended_action?: string
   }
   message?: string
 }
@@ -74,13 +75,13 @@ export const qnaAuthService = {
     return response.data
   },
 
-  // Challenge-Response (experimental research endpoint; not primary capstone auth narrative)
+  // Challenge hardening (research endpoint; secondary to the main matching flow)
   async createChallenge(deviceId: string) {
     const response = await api.post('challenge', { device_id: deviceId })
     return response.data
   },
 
-  async verifyChallenge(challengeId: string, response: string, deviceId: string, noiseSamples: number[][]) {
+  async verifyChallenge(challengeId: string, response: string | undefined, deviceId: string, noiseSamples: number[][]) {
     const res = await api.post('verify', {
       challenge_id: challengeId,
       response: response,

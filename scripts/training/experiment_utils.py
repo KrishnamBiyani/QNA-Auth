@@ -22,7 +22,12 @@ class SampleRecord:
     timestamp: str
 
 
-def load_sample_records(data_dir: Path, source_filter: str | None = None) -> List[SampleRecord]:
+def load_sample_records(
+    data_dir: Path,
+    source_filter: str | None = None,
+    max_records: int | None = None,
+    seed: int = 42,
+) -> List[SampleRecord]:
     records: List[SampleRecord] = []
     json_dir = data_dir / "json"
     for jf in sorted(json_dir.glob("*.json")):
@@ -50,6 +55,10 @@ def load_sample_records(data_dir: Path, source_filter: str | None = None) -> Lis
             )
         except Exception:
             continue
+    if max_records is not None and len(records) > max_records:
+        rng = np.random.default_rng(seed)
+        idx = rng.choice(len(records), size=max_records, replace=False)
+        records = [records[int(i)] for i in idx]
     return records
 
 
@@ -146,9 +155,13 @@ def save_split_artifacts(splits: Dict[str, List[SampleRecord]], output_dir: Path
     return path
 
 
-def features_from_split(splits: Dict[str, List[SampleRecord]], normalize: bool = True) -> Dict[str, Dict[str, List[np.ndarray]]]:
+def features_from_split(
+    splits: Dict[str, List[SampleRecord]],
+    normalize: bool = True,
+    fast_features: bool = False
+) -> Dict[str, Dict[str, List[np.ndarray]]]:
     split_feature_map: Dict[str, Dict[str, List[np.ndarray]]] = {}
-    preprocessor = NoisePreprocessor(normalize=normalize)
+    preprocessor = NoisePreprocessor(normalize=normalize, fast_mode=fast_features)
     converter = FeatureVector(get_canonical_feature_names())
     for split_name, recs in splits.items():
         by_device: Dict[str, List[np.ndarray]] = {}

@@ -6,6 +6,7 @@ Current implementation note:
 - Canonical manifest builder: `python scripts/data/build_dataset_manifest.py --dataset-dir dataset/samples`
 - Canonical output: `dataset/samples/manifest.v1.json`
 - Ingestion now records `session_id`, `collection_created_at`, and `collection_folder` per sample.
+- Runtime authentication now uses `camera` and `microphone` only; older `qrng` references in this document are historical dataset options, not the active verification pipeline.
 
 ---
 

@@ -9,7 +9,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 # --- Content Definitions (Expanded) ---
 
-PROJECT_TITLE = "QNA-AUTH: QUANTUM NOISE ASSISTED AUTHENTICATION"
+PROJECT_TITLE = "QNA-AUTH: NOISE-BASED DEVICE VERIFICATION"
 
 ABSTRACT_TEXT = (
     "The proliferation of Internet of Things (IoT) devices and mobile computing has exposed significant "
@@ -17,22 +17,21 @@ ABSTRACT_TEXT = (
     "cryptographic keys, are susceptible to theft, phishing, and replay attacks. Furthermore, standard "
     "biometrics (fingerprint, facial recognition) rely on immutable physical traits that, once compromised, "
     "cannot be reset. To address these critical security gaps, this project proposes QNA-Auth "
-    "(Quantum Noise Assisted Authentication), a novel framework that derives non-invertible device "
-    "fingerprints from high-entropy physical noise sources.\n\n"
-    "QNA-Auth shifts the paradigm from 'what you know' to 'what your hardware is' by leveraging transient, "
-    "stochastic physical properties. The system aggregates entropy from three distinct sources: quantum "
-    "vacuum fluctuations (via QRNG APIs), thermal sensor noise from camera sensors (Dark Frames), and "
-    "electromagnetic/ambient noise from microphones. A robust preprocessing pipeline extracts statistical, "
+    "as a noise-based device verification framework that derives biometric-like device templates "
+    "from physical noise sources.\n\n"
+    "QNA-Auth shifts the paradigm toward high-confidence device matching by leveraging transient, "
+    "stochastic physical properties. The system aggregates thermal sensor noise from camera sensors "
+    "(Dark Frames) and electromagnetic/ambient noise from microphones. A robust preprocessing pipeline extracts statistical, "
     "spectral (FFT), and complexity-based features from this raw noise. These features are then mapped into "
     "a high-dimensional embedding space using a Siamese Neural Network trained via contrastive learning. "
     "This deep learning approach ensures that noise samples from the same device cluster tightly together, "
     "while samples from different devices are separated by a distinct margin.\n\n"
     "The system is implemented as a full-stack prototype utilizing Python (FastAPI) for the backend, "
     "PyTorch for the machine learning engine, and React for the client interface. Crucially, the system "
-    "implements a Challenge-Response Protocol using cryptographic nonces to prevent replay attacks, ensuring "
+    "implements nonce-bound HKDF hardening to reduce replay risk and ensure "
     "that every authentication attempt requires fresh, live noise data. This project demonstrates that "
-    "commodity hardware can be uniquely identified without specialized chips, offering a scalable, "
-    "privacy-preserving primitive for next-generation device security."
+    "commodity hardware can support device matching without specialized chips, offering a defensible "
+    "capstone prototype."
 )
 
 CHAPTERS = [

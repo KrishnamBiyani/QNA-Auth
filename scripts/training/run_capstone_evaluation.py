@@ -112,8 +112,10 @@ def main() -> int:
     parser.add_argument("--split-policy", choices=["device", "session"], default="device")
     parser.add_argument("--train-sessions", type=str, default="")
     parser.add_argument("--test-sessions", type=str, default="")
-    parser.add_argument("--source-filter", type=str, default=None, help="qrng|camera|microphone|None")
+    parser.add_argument("--source-filter", type=str, default=None, help="camera|microphone|None")
     parser.add_argument("--min-devices", type=int, default=2)
+    parser.add_argument("--max-records", type=int, default=None, help="Cap total records for quick review runs")
+    parser.add_argument("--fast-features", action="store_true", help="Skip expensive complexity features")
     args = parser.parse_args()
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
@@ -137,7 +139,12 @@ def main() -> int:
     except Exception:
         pass
 
-    records = load_sample_records(args.data_dir, source_filter=args.source_filter)
+    records = load_sample_records(
+        args.data_dir,
+        source_filter=args.source_filter,
+        max_records=args.max_records,
+        seed=args.seed
+    )
     if len({r.device_id for r in records}) < args.min_devices:
         print("Need at least 2 devices for evaluation.")
         return 1
@@ -153,7 +160,7 @@ def main() -> int:
     assert_no_leakage(splits)
     split_path = save_split_artifacts(splits, run_dir, split_name=split_name)
 
-    feat_splits = features_from_split(splits, normalize=True)
+    feat_splits = features_from_split(splits, normalize=True, fast_features=args.fast_features)
     train_feats = feat_splits["train"]
     test_feats = feat_splits["test"]
     if len(test_feats) < 2:
@@ -200,6 +207,8 @@ def main() -> int:
             "seed": args.seed,
             "split_policy": args.split_policy,
             "source_filter": args.source_filter,
+            "max_records": args.max_records,
+            "fast_features": args.fast_features,
             "model_path": str(args.model_path),
             "data_dir": str(args.data_dir),
         },

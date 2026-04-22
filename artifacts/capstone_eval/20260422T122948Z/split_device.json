@@ -1,0 +1,336 @@
+{
+  "split_name": "device",
+  "counts": {
+    "train": 22,
+    "val": 10,
+    "test": 8
+  },
+  "splits": {
+    "train": [
+      {
+        "sample_id": "e4ff83e44c4eded1_microphone_20260414_233642_307325",
+        "device_id": "e4ff83e44c4eded1",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_18_20260412_210149",
+        "raw_path": "dataset\\samples\\e4ff83e44c4eded1_microphone_20260414_233642_307325_raw.npy",
+        "timestamp": "2026-04-14T23:36:42.307325"
+      },
+      {
+        "sample_id": "1b5faf380eed2312_microphone_20260419_222930_477686",
+        "device_id": "1b5faf380eed2312",
+        "source": "microphone",
+        "session_id": "unknown_session",
+        "raw_path": "dataset\\samples\\1b5faf380eed2312_microphone_20260419_222930_477686_raw.npy",
+        "timestamp": "2026-04-19T22:29:30.477686"
+      },
+      {
+        "sample_id": "304a798cdc7e5d45_microphone_20260419_224732_843925",
+        "device_id": "304a798cdc7e5d45",
+        "source": "microphone",
+        "session_id": "unknown_session",
+        "raw_path": "dataset\\samples\\304a798cdc7e5d45_microphone_20260419_224732_843925_raw.npy",
+        "timestamp": "2026-04-19T22:47:32.843925"
+      },
+      {
+        "sample_id": "19562771bed1a637_microphone_20260413_023328_718818",
+        "device_id": "19562771bed1a637",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_17_20260412_210149",
+        "raw_path": "dataset\\samples\\19562771bed1a637_microphone_20260413_023328_718818_raw.npy",
+        "timestamp": "2026-04-13T02:33:28.718818"
+      },
+      {
+        "sample_id": "f27243e9b1a90fda_microphone_20260413_023331_012345",
+        "device_id": "f27243e9b1a90fda",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_21_20260412_210149",
+        "raw_path": "dataset\\samples\\f27243e9b1a90fda_microphone_20260413_023331_012345_raw.npy",
+        "timestamp": "2026-04-13T02:33:31.012345"
+      },
+      {
+        "sample_id": "f528475cab68374a_microphone_20260414_233630_891700",
+        "device_id": "f528475cab68374a",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_01_20260412_210149",
+        "raw_path": "dataset\\samples\\f528475cab68374a_microphone_20260414_233630_891700_raw.npy",
+        "timestamp": "2026-04-14T23:36:30.891700"
+      },
+      {
+        "sample_id": "1b5faf380eed2312_microphone_20260419_222930_464092",
+        "device_id": "1b5faf380eed2312",
+        "source": "microphone",
+        "session_id": "unknown_session",
+        "raw_path": "dataset\\samples\\1b5faf380eed2312_microphone_20260419_222930_464092_raw.npy",
+        "timestamp": "2026-04-19T22:29:30.464092"
+      },
+      {
+        "sample_id": "b2a4dd15b98155d3_microphone_20260413_023326_183750",
+        "device_id": "b2a4dd15b98155d3",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_13_20260412_210149",
+        "raw_path": "dataset\\samples\\b2a4dd15b98155d3_microphone_20260413_023326_183750_raw.npy",
+        "timestamp": "2026-04-13T02:33:26.183750"
+      },
+      {
+        "sample_id": "19562771bed1a637_microphone_20260414_233641_685887",
+        "device_id": "19562771bed1a637",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_17_20260412_210149",
+        "raw_path": "dataset\\samples\\19562771bed1a637_microphone_20260414_233641_685887_raw.npy",
+        "timestamp": "2026-04-14T23:36:41.685887"
+      },
+      {
+        "sample_id": "1febc91d0b46399a_microphone_20260413_023321_355458",
+        "device_id": "1febc91d0b46399a",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_05_20260412_210149",
+        "raw_path": "dataset\\samples\\1febc91d0b46399a_microphone_20260413_023321_355458_raw.npy",
+        "timestamp": "2026-04-13T02:33:21.355458"
+      },
+      {
+        "sample_id": "c0743ef082690146_microphone_20260413_023323_233888",
+        "device_id": "c0743ef082690146",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_08_20260412_210149",
+        "raw_path": "dataset\\samples\\c0743ef082690146_microphone_20260413_023323_233888_raw.npy",
+        "timestamp": "2026-04-13T02:33:23.233888"
+      },
+      {
+        "sample_id": "8426409298dc087e_microphone_20260414_233636_666731",
+        "device_id": "8426409298dc087e",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_10_20260412_210149",
+        "raw_path": "dataset\\samples\\8426409298dc087e_microphone_20260414_233636_666731_raw.npy",
+        "timestamp": "2026-04-14T23:36:36.666731"
+      },
+      {
+        "sample_id": "8968838b7a0400a7_microphone_20260201_175538_347022",
+        "device_id": "8968838b7a0400a7",
+        "source": "microphone",
+        "session_id": "unknown_session",
+        "raw_path": "dataset\\samples\\8968838b7a0400a7_microphone_20260201_175538_347022_raw.npy",
+        "timestamp": "2026-02-01T17:55:38.347022"
+      },
+      {
+        "sample_id": "a9df06840c8a5ba3_microphone_20260413_023327_855562",
+        "device_id": "a9df06840c8a5ba3",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_16_20260412_210149",
+        "raw_path": "dataset\\samples\\a9df06840c8a5ba3_microphone_20260413_023327_855562_raw.npy",
+        "timestamp": "2026-04-13T02:33:27.855562"
+      },
+      {
+        "sample_id": "2b1644efe576e916_microphone_20260201_172755_494327",
+        "device_id": "2b1644efe576e916",
+        "source": "microphone",
+        "session_id": "unknown_session",
+        "raw_path": "dataset\\samples\\2b1644efe576e916_microphone_20260201_172755_494327_raw.npy",
+        "timestamp": "2026-02-01T17:27:55.494327"
+      },
+      {
+        "sample_id": "dd76aa95fdb7c27f_microphone_20260413_023333_826087",
+        "device_id": "dd76aa95fdb7c27f",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_25_20260412_210149",
+        "raw_path": "dataset\\samples\\dd76aa95fdb7c27f_microphone_20260413_023333_826087_raw.npy",
+        "timestamp": "2026-04-13T02:33:33.826087"
+      },
+      {
+        "sample_id": "47679033b49b4ef6_microphone_20260414_233634_211777",
+        "device_id": "47679033b49b4ef6",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_06_20260412_210149",
+        "raw_path": "dataset\\samples\\47679033b49b4ef6_microphone_20260414_233634_211777_raw.npy",
+        "timestamp": "2026-04-14T23:36:34.211777"
+      },
+      {
+        "sample_id": "dd76aa95fdb7c27f_microphone_20260413_023333_823090",
+        "device_id": "dd76aa95fdb7c27f",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_25_20260412_210149",
+        "raw_path": "dataset\\samples\\dd76aa95fdb7c27f_microphone_20260413_023333_823090_raw.npy",
+        "timestamp": "2026-04-13T02:33:33.823090"
+      },
+      {
+        "sample_id": "b2a4dd15b98155d3_microphone_20260414_233638_878222",
+        "device_id": "b2a4dd15b98155d3",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_13_20260412_210149",
+        "raw_path": "dataset\\samples\\b2a4dd15b98155d3_microphone_20260414_233638_878222_raw.npy",
+        "timestamp": "2026-04-14T23:36:38.878222"
+      },
+      {
+        "sample_id": "c0743ef082690146_microphone_20260413_023323_272944",
+        "device_id": "c0743ef082690146",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_08_20260412_210149",
+        "raw_path": "dataset\\samples\\c0743ef082690146_microphone_20260413_023323_272944_raw.npy",
+        "timestamp": "2026-04-13T02:33:23.272944"
+      },
+      {
+        "sample_id": "71cebd49ee376c19_microphone_20260413_023318_336444",
+        "device_id": "71cebd49ee376c19",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Omkar_20260413_011817",
+        "raw_path": "dataset\\samples\\71cebd49ee376c19_microphone_20260413_023318_336444_raw.npy",
+        "timestamp": "2026-04-13T02:33:18.336444"
+      },
+      {
+        "sample_id": "19562771bed1a637_microphone_20260414_233641_671871",
+        "device_id": "19562771bed1a637",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_17_20260412_210149",
+        "raw_path": "dataset\\samples\\19562771bed1a637_microphone_20260414_233641_671871_raw.npy",
+        "timestamp": "2026-04-14T23:36:41.671871"
+      }
+    ],
+    "val": [
+      {
+        "sample_id": "eabc431f8a364d39_microphone_20260201_221310_556946",
+        "device_id": "eabc431f8a364d39",
+        "source": "microphone",
+        "session_id": "unknown_session",
+        "raw_path": "dataset\\samples\\eabc431f8a364d39_microphone_20260201_221310_556946_raw.npy",
+        "timestamp": "2026-02-01T22:13:10.556946"
+      },
+      {
+        "sample_id": "7a90c62e29ee2fbf_microphone_20260201_215432_169514",
+        "device_id": "7a90c62e29ee2fbf",
+        "source": "microphone",
+        "session_id": "unknown_session",
+        "raw_path": "dataset\\samples\\7a90c62e29ee2fbf_microphone_20260201_215432_169514_raw.npy",
+        "timestamp": "2026-02-01T21:54:32.169514"
+      },
+      {
+        "sample_id": "7a90c62e29ee2fbf_microphone_20260201_215432_138906",
+        "device_id": "7a90c62e29ee2fbf",
+        "source": "microphone",
+        "session_id": "unknown_session",
+        "raw_path": "dataset\\samples\\7a90c62e29ee2fbf_microphone_20260201_215432_138906_raw.npy",
+        "timestamp": "2026-02-01T21:54:32.138906"
+      },
+      {
+        "sample_id": "f5b8fffbe3d0b1e5_microphone_20260414_233642_886562",
+        "device_id": "f5b8fffbe3d0b1e5",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_19_20260412_210149",
+        "raw_path": "dataset\\samples\\f5b8fffbe3d0b1e5_microphone_20260414_233642_886562_raw.npy",
+        "timestamp": "2026-04-14T23:36:42.886562"
+      },
+      {
+        "sample_id": "72305d30d606014e_microphone_20260413_023322_683198",
+        "device_id": "72305d30d606014e",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_07_20260412_210149",
+        "raw_path": "dataset\\samples\\72305d30d606014e_microphone_20260413_023322_683198_raw.npy",
+        "timestamp": "2026-04-13T02:33:22.683198"
+      },
+      {
+        "sample_id": "72305d30d606014e_microphone_20260414_233634_887153",
+        "device_id": "72305d30d606014e",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_07_20260412_210149",
+        "raw_path": "dataset\\samples\\72305d30d606014e_microphone_20260414_233634_887153_raw.npy",
+        "timestamp": "2026-04-14T23:36:34.887153"
+      },
+      {
+        "sample_id": "da99c10c138772a6_microphone_20260414_233632_571954",
+        "device_id": "da99c10c138772a6",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_04_20260412_210149",
+        "raw_path": "dataset\\samples\\da99c10c138772a6_microphone_20260414_233632_571954_raw.npy",
+        "timestamp": "2026-04-14T23:36:32.571954"
+      },
+      {
+        "sample_id": "ccf7b73d52729d1a_microphone_20260413_023320_008468",
+        "device_id": "ccf7b73d52729d1a",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_03_20260412_210149",
+        "raw_path": "dataset\\samples\\ccf7b73d52729d1a_microphone_20260413_023320_008468_raw.npy",
+        "timestamp": "2026-04-13T02:33:20.008468"
+      },
+      {
+        "sample_id": "da99c10c138772a6_microphone_20260413_023320_512324",
+        "device_id": "da99c10c138772a6",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_04_20260412_210149",
+        "raw_path": "dataset\\samples\\da99c10c138772a6_microphone_20260413_023320_512324_raw.npy",
+        "timestamp": "2026-04-13T02:33:20.512324"
+      },
+      {
+        "sample_id": "72305d30d606014e_microphone_20260414_233634_940677",
+        "device_id": "72305d30d606014e",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_07_20260412_210149",
+        "raw_path": "dataset\\samples\\72305d30d606014e_microphone_20260414_233634_940677_raw.npy",
+        "timestamp": "2026-04-14T23:36:34.940677"
+      }
+    ],
+    "test": [
+      {
+        "sample_id": "c1af859f31ed20d8_microphone_20260414_233637_661125",
+        "device_id": "c1af859f31ed20d8",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_11_20260412_210149",
+        "raw_path": "dataset\\samples\\c1af859f31ed20d8_microphone_20260414_233637_661125_raw.npy",
+        "timestamp": "2026-04-14T23:36:37.661125"
+      },
+      {
+        "sample_id": "4074de8ebfac6840_microphone_20260414_233646_226549",
+        "device_id": "4074de8ebfac6840",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_24_20260412_210149",
+        "raw_path": "dataset\\samples\\4074de8ebfac6840_microphone_20260414_233646_226549_raw.npy",
+        "timestamp": "2026-04-14T23:36:46.226549"
+      },
+      {
+        "sample_id": "e5c58a6be643c772_microphone_20260413_023335_421486",
+        "device_id": "e5c58a6be643c772",
+        "source": "microphone",
+        "session_id": "session_20260412",
+        "raw_path": "dataset\\samples\\e5c58a6be643c772_microphone_20260413_023335_421486_raw.npy",
+        "timestamp": "2026-04-13T02:33:35.421486"
+      },
+      {
+        "sample_id": "ca879b2cd53ec351_microphone_20260414_233643_523811",
+        "device_id": "ca879b2cd53ec351",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_20_20260412_210149",
+        "raw_path": "dataset\\samples\\ca879b2cd53ec351_microphone_20260414_233643_523811_raw.npy",
+        "timestamp": "2026-04-14T23:36:43.523811"
+      },
+      {
+        "sample_id": "e96d07cb8a3a393c_microphone_20260413_023323_793663",
+        "device_id": "e96d07cb8a3a393c",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_09_20260412_210149",
+        "raw_path": "dataset\\samples\\e96d07cb8a3a393c_microphone_20260413_023323_793663_raw.npy",
+        "timestamp": "2026-04-13T02:33:23.793663"
+      },
+      {
+        "sample_id": "e5c58a6be643c772_microphone_20260413_023335_412492",
+        "device_id": "e5c58a6be643c772",
+        "source": "microphone",
+        "session_id": "session_20260412",
+        "raw_path": "dataset\\samples\\e5c58a6be643c772_microphone_20260413_023335_412492_raw.npy",
+        "timestamp": "2026-04-13T02:33:35.412492"
+      },
+      {
+        "sample_id": "e5c58a6be643c772_microphone_20260414_233649_477722",
+        "device_id": "e5c58a6be643c772",
+        "source": "microphone",
+        "session_id": "session_20260412",
+        "raw_path": "dataset\\samples\\e5c58a6be643c772_microphone_20260414_233649_477722_raw.npy",
+        "timestamp": "2026-04-14T23:36:49.477722"
+      },
+      {
+        "sample_id": "676d8a6fa1ae1a40_microphone_20260413_023326_728770",
+        "device_id": "676d8a6fa1ae1a40",
+        "source": "microphone",
+        "session_id": "qna_auth_collection_Synthetic_14_20260412_210149",
+        "raw_path": "dataset\\samples\\676d8a6fa1ae1a40_microphone_20260413_023326_728770_raw.npy",
+        "timestamp": "2026-04-13T02:33:26.728770"
+      }
+    ]
+  }
+}
