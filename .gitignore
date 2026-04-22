@@ -53,9 +53,6 @@ dataset/samples/json/
 dataset/training_data/
 auth/device_embeddings/
 auth/test_embeddings/
-model/checkpoints/
-model/test_checkpoints/
-model/evaluation/
 
 # Logs
 *.log
