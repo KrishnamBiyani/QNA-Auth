@@ -48,7 +48,8 @@ class TripletDataset(Dataset):
     def __init__(
         self,
         features_by_device: Dict[str, List[np.ndarray]],
-        samples_per_epoch: int = 1000
+        samples_per_epoch: int = 1000,
+        hard_negative_k: int = 4,
     ):
         """
         Initialize triplet dataset
@@ -76,6 +77,7 @@ class TripletDataset(Dataset):
             for device_id in self.device_ids
         }
         self.samples_per_epoch = samples_per_epoch
+        self.hard_negative_k = max(1, int(hard_negative_k))
         if len(self.device_ids) < 2:
             raise ValueError("TripletDataset requires at least 2 devices")
         
@@ -99,15 +101,29 @@ class TripletDataset(Dataset):
         
         # Select anchor and positive from same device
         anchor_idx = np.random.randint(0, n_anchor)
-        positive_idx = np.random.randint(0, n_anchor)
+        if n_anchor > 1:
+            positive_idx = np.random.randint(0, n_anchor - 1)
+            if positive_idx >= anchor_idx:
+                positive_idx += 1
+        else:
+            positive_idx = anchor_idx
         anchor = anchor_features[anchor_idx]
         positive = anchor_features[positive_idx]
-        
-        # Select negative from different device
-        negative_device = np.random.choice(self.negative_candidates[anchor_device])
-        negative_features = self.features_by_device[negative_device]
-        negative_idx = np.random.randint(0, self.num_samples_by_device[negative_device])
-        negative = negative_features[negative_idx]
+
+        # Select a moderately hard negative by sampling a few candidates and taking the closest one.
+        candidate_negatives: List[torch.Tensor] = []
+        for _ in range(self.hard_negative_k):
+            negative_device = np.random.choice(self.negative_candidates[anchor_device])
+            negative_features = self.features_by_device[negative_device]
+            negative_idx = np.random.randint(0, self.num_samples_by_device[negative_device])
+            candidate_negatives.append(negative_features[negative_idx])
+
+        if len(candidate_negatives) == 1:
+            negative = candidate_negatives[0]
+        else:
+            stacked = torch.stack(candidate_negatives)
+            distances = torch.norm(stacked - anchor.unsqueeze(0), dim=1)
+            negative = stacked[int(torch.argmin(distances).item())]
 
         return anchor, positive, negative
 

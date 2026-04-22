@@ -55,18 +55,18 @@ def run_training(
 
 def main() -> int:
     # Microphone has enough data to support a longer run.
-    rc = run_training(source="microphone", epochs=30, target_far=0.10, fast_features=False)
+    rc = run_training(source="microphone", epochs=36, target_far=0.10, fast_features=False)
     if rc != 0:
         return rc
 
-    # Camera data is much smaller; keep the run conservative and faster.
+    # Camera data is much smaller; prefer speed over expensive feature extraction.
     rc = run_training(
         source="camera",
-        epochs=24,
+        epochs=18,
         target_far=0.15,
-        fast_features=False,
+        fast_features=True,
         augment_camera_train=True,
-        camera_aug_copies=5,
+        camera_aug_copies=2,
     )
     return rc
 
