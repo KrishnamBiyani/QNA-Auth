@@ -14,6 +14,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import os
 import random
@@ -71,6 +72,13 @@ def apply_feature_standardization(
             for vec in vectors
         ]
     return transformed
+
+
+def seed_worker(worker_id: int, base_seed: int) -> None:
+    worker_seed = base_seed + worker_id
+    np.random.seed(worker_seed)
+    random.seed(worker_seed)
+    torch.manual_seed(worker_seed)
 
 
 def main():
@@ -139,19 +147,14 @@ def main():
     samples_per_epoch = args.samples_per_epoch if args.samples_per_epoch > 0 else max(400, total_samples * 6)
     train_dataset = TripletDataset(train_by_device, samples_per_epoch=samples_per_epoch)
 
-    def _seed_worker(worker_id: int) -> None:
-        worker_seed = args.seed + worker_id
-        np.random.seed(worker_seed)
-        random.seed(worker_seed)
-        torch.manual_seed(worker_seed)
-
     g = torch.Generator()
     g.manual_seed(args.seed)
+    worker_init = functools.partial(seed_worker, base_seed=args.seed)
     train_loader_kwargs = {
         "batch_size": min(args.batch_size, samples_per_epoch),
         "shuffle": True,
         "generator": g,
-        "worker_init_fn": _seed_worker,
+        "worker_init_fn": worker_init,
         "num_workers": max(0, args.num_workers),
         "pin_memory": torch.cuda.is_available(),
     }
@@ -173,7 +176,7 @@ def main():
             "batch_size": min(args.batch_size, val_samples),
             "shuffle": False,
             "generator": g_val,
-            "worker_init_fn": _seed_worker,
+            "worker_init_fn": worker_init,
             "num_workers": max(0, args.num_workers),
             "pin_memory": torch.cuda.is_available(),
         }
