@@ -4,8 +4,8 @@ Model Evaluation and Testing
 
 import torch
 import numpy as np
-from sklearn.metrics import roc_curve, auc, precision_recall_curve
-from typing import Dict, List, Tuple
+from sklearn.metrics import auc, precision_recall_curve, roc_curve
+from typing import Any, Dict, List, Tuple
 import matplotlib.pyplot as plt
 from pathlib import Path
 import logging
@@ -203,6 +203,38 @@ class ModelEvaluator:
         }
         
         return metrics
+
+    def find_threshold_for_target_far(
+        self,
+        scores: List[float],
+        labels: List[int],
+        target_far: float,
+        n_thresholds: int = 200,
+    ) -> Tuple[float, Dict[str, float]]:
+        """
+        Find the highest threshold whose FAR is at or below the requested target.
+        Falls back to the threshold with the smallest FAR gap if no threshold satisfies it.
+        """
+        thresholds = np.linspace(min(scores), max(scores), n_thresholds)
+        candidates: List[Tuple[float, Dict[str, float]]] = []
+        best_fallback: Tuple[float, Dict[str, float]] | None = None
+        best_gap = float("inf")
+
+        for threshold in thresholds:
+            metrics = self.evaluate_threshold(scores, labels, float(threshold))
+            gap = abs(metrics["far"] - target_far)
+            if gap < best_gap:
+                best_gap = gap
+                best_fallback = (float(threshold), metrics)
+            if metrics["far"] <= target_far:
+                candidates.append((float(threshold), metrics))
+
+        if candidates:
+            threshold, metrics = max(candidates, key=lambda item: item[0])
+            return threshold, metrics
+        if best_fallback is None:
+            raise ValueError("Unable to compute target FAR threshold")
+        return best_fallback
     
     def find_optimal_threshold(
         self,
@@ -289,6 +321,9 @@ class ModelEvaluator:
             labels: Ground truth labels
             save_path: Path to save plot
         """
+        if len(set(labels)) < 2:
+            logger.warning("Skipping ROC curve: need both positive and negative labels")
+            return
         fpr, tpr, thresholds = roc_curve(labels, scores)
         roc_auc = auc(fpr, tpr)
         
@@ -324,6 +359,9 @@ class ModelEvaluator:
             labels: Ground truth labels
             save_path: Path to save plot
         """
+        if len(set(labels)) < 2:
+            logger.warning("Skipping PR curve: need both positive and negative labels")
+            return
         precision, recall, thresholds = precision_recall_curve(labels, scores)
         
         plt.figure(figsize=(8, 6))
@@ -344,8 +382,9 @@ class ModelEvaluator:
     def generate_report(
         self,
         features_by_device: Dict[str, List[np.ndarray]],
-        save_dir: str = "./model/evaluation"
-    ) -> Dict[str, any]:
+        save_dir: str = "./model/evaluation",
+        target_far: float = 0.10,
+    ) -> Dict[str, Any]:
         """
         Generate comprehensive evaluation report
         
@@ -366,12 +405,18 @@ class ModelEvaluator:
         # Compute similarity scores
         logger.info("Computing similarity scores...")
         scores, labels = self.compute_similarity_scores(embeddings_by_device)
+        if not scores or len(set(labels)) < 2:
+            raise ValueError("Evaluation requires both genuine and impostor pairs")
         
         # Find optimal threshold
         logger.info("Finding optimal threshold...")
         optimal_threshold, optimal_metrics = self.find_optimal_threshold(
             scores, labels, metric='f1_score'
         )
+        target_far_threshold, target_far_metrics = self.find_threshold_for_target_far(
+            scores, labels, target_far=target_far
+        )
+        eer, eer_threshold = self.compute_eer(scores, labels)
         
         # Plot curves
         logger.info("Plotting ROC curve...")
@@ -385,7 +430,12 @@ class ModelEvaluator:
             'num_devices': len(features_by_device),
             'total_samples': sum(len(f) for f in features_by_device.values()),
             'optimal_threshold': optimal_threshold,
-            'metrics': optimal_metrics
+            'metrics': optimal_metrics,
+            'target_far': target_far,
+            'target_far_threshold': target_far_threshold,
+            'target_far_metrics': target_far_metrics,
+            'eer': eer,
+            'eer_threshold': eer_threshold,
         }
         
         logger.info("\n=== Evaluation Report ===")
@@ -398,6 +448,13 @@ class ModelEvaluator:
         logger.info(f"F1 Score: {optimal_metrics['f1_score']:.4f}")
         logger.info(f"FAR: {optimal_metrics['far']:.4f}")
         logger.info(f"FRR: {optimal_metrics['frr']:.4f}")
+        logger.info(
+            "Target FAR %.3f threshold %.4f => FAR %.4f, FRR %.4f",
+            target_far,
+            target_far_threshold,
+            target_far_metrics["far"],
+            target_far_metrics["frr"],
+        )
         
         return report
 

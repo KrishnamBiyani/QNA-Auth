@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Tuple, Any
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 from sklearn.neural_network import MLPRegressor
@@ -100,8 +100,11 @@ def split_by_device(
     rng.shuffle(device_ids)
 
     n = len(device_ids)
-    n_test = max(1, int(round(n * test_ratio)))
-    n_val = max(1, int(round(n * val_ratio))) if n >= 3 else 0
+    n_test = max(2 if n >= 4 else 1, int(round(n * test_ratio)))
+    n_test = min(n_test, max(1, n - 2)) if n >= 3 else min(n_test, n)
+    n_val = max(1, int(round(n * val_ratio))) if n >= 5 and val_ratio > 0 else 0
+    if n - n_test - n_val < 2:
+        n_val = max(0, n - n_test - 2)
     test_devices = set(device_ids[:n_test])
     val_devices = set(device_ids[n_test:n_test + n_val])
     train_devices = set(device_ids[n_test + n_val:])
@@ -170,17 +173,65 @@ def save_split_artifacts(splits: Dict[str, List[SampleRecord]], output_dir: Path
 def features_from_split(
     splits: Dict[str, List[SampleRecord]],
     normalize: bool = True,
-    fast_features: bool = False
+    fast_features: bool = False,
+    augment_camera_train: bool = False,
+    camera_aug_copies: int = 3,
+    seed: int = 42,
 ) -> Dict[str, Dict[str, List[np.ndarray]]]:
     split_feature_map: Dict[str, Dict[str, List[np.ndarray]]] = {}
     preprocessor = NoisePreprocessor(normalize=normalize, fast_mode=fast_features)
     converter = FeatureVector(get_canonical_feature_names())
+    rng = np.random.default_rng(seed)
+
+    def augment_camera_sample(raw: np.ndarray) -> List[np.ndarray]:
+        variants: List[np.ndarray] = []
+        base = np.asarray(raw, dtype=np.float32).reshape(-1)
+        if base.size < 8:
+            return variants
+
+        for _ in range(max(0, camera_aug_copies)):
+            arr = base.copy()
+
+            # Mild gain / offset jitter.
+            gain = float(rng.uniform(0.92, 1.08))
+            offset = float(rng.normal(0.0, 0.02 * (np.std(arr) + 1e-6)))
+            arr = (arr * gain) + offset
+
+            # Small additive sensor-like noise.
+            arr = arr + rng.normal(0.0, 0.01 * (np.std(arr) + 1e-6), size=arr.shape).astype(np.float32)
+
+            # Mild blur / smoothing to mimic tiny exposure or denoise variation.
+            if arr.size >= 5 and rng.random() < 0.7:
+                kernel = np.array([1.0, 2.0, 3.0, 2.0, 1.0], dtype=np.float32)
+                kernel = kernel / kernel.sum()
+                arr = np.convolve(arr, kernel, mode="same").astype(np.float32)
+
+            # Slight circular shift to avoid exact alignment dependence.
+            if arr.size >= 16 and rng.random() < 0.8:
+                shift = int(rng.integers(-max(1, arr.size // 64), max(2, arr.size // 64 + 1)))
+                arr = np.roll(arr, shift)
+
+            # Random partial masking to mimic hot/dead regions or crop loss.
+            if arr.size >= 32 and rng.random() < 0.5:
+                width = max(4, arr.size // 40)
+                start = int(rng.integers(0, max(1, arr.size - width)))
+                arr[start:start + width] *= float(rng.uniform(0.7, 1.0))
+
+            variants.append(np.nan_to_num(arr, nan=0.0, posinf=0.0, neginf=0.0).astype(np.float32))
+
+        return variants
+
     for split_name, recs in splits.items():
         by_device: Dict[str, List[np.ndarray]] = {}
         for r in recs:
             raw = np.load(r.raw_path)
             vec = converter.to_vector(preprocessor.extract_all_features(raw))
             by_device.setdefault(r.device_id, []).append(vec)
+
+            if split_name == "train" and augment_camera_train and r.source == "camera":
+                for aug_raw in augment_camera_sample(raw):
+                    aug_vec = converter.to_vector(preprocessor.extract_all_features(aug_raw))
+                    by_device.setdefault(r.device_id, []).append(aug_vec)
         split_feature_map[split_name] = by_device
     return split_feature_map
 

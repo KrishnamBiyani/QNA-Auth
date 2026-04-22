@@ -28,6 +28,7 @@ class DeviceAuthenticator:
         preprocessor: NoisePreprocessor,
         feature_converter: FeatureVector,
         enroller: DeviceEnroller,
+        source_embedders: Optional[Dict[str, DeviceEmbedder]] = None,
         threshold: float = float(getattr(config, "SIMILARITY_THRESHOLD", 0.97)),
         metric: str = "cosine",
     ):
@@ -35,6 +36,7 @@ class DeviceAuthenticator:
         self.preprocessor = preprocessor
         self.feature_converter = feature_converter
         self.enroller = enroller
+        self.source_embedders = source_embedders or {}
         self.threshold = threshold
         self.metric = metric
         self.profile_guard_z = float(getattr(config, "AUTH_PROFILE_GUARD_Z", 6.0))
@@ -49,6 +51,13 @@ class DeviceAuthenticator:
             self.uncertain_threshold,
             metric,
         )
+
+    def _get_similarity_embedder(self, source: Optional[str] = None) -> DeviceEmbedder:
+        if source is not None and source in self.source_embedders:
+            return self.source_embedders[source]
+        if source is not None and source in getattr(self.enroller, "source_embedders", {}):
+            return self.enroller.source_embedders[source]
+        return self.embedder
 
     def _load_device_metadata(self, device_id: str) -> Dict:
         return self.enroller.load_device_metadata(device_id)
@@ -233,7 +242,7 @@ class DeviceAuthenticator:
 
         if common_sources:
             for source in common_sources:
-                similarity = self.embedder.compute_similarity(
+                similarity = self._get_similarity_embedder(source).compute_similarity(
                     auth_sources[source],
                     stored_sources[source],
                     metric=self.metric,

@@ -65,6 +65,8 @@ class AppState:
     embedder: Optional[DeviceEmbedder] = None
     preprocessor: Optional[NoisePreprocessor] = None
     feature_converter: Optional[FeatureVector] = None
+    source_embedders: Dict[str, DeviceEmbedder] = {}
+    source_feature_converters: Dict[str, FeatureVector] = {}
     enroller: Optional[DeviceEnroller] = None
     authenticator: Optional[DeviceAuthenticator] = None
     challenge_protocol: Optional[ChallengeResponseProtocol] = None
@@ -255,46 +257,91 @@ async def startup_event():
     logger.info("Initializing QNA-Auth system...")
     
     try:
-        # Initialize preprocessor first to determine feature dimension
-        # Use one canonical preprocessing mode from config for train/eval/runtime consistency.
-        state.preprocessor = NoisePreprocessor(
-            normalize=bool(getattr(config, "PREPROCESSING_NORMALIZE", True)),
-            fast_mode=bool(getattr(config, "PREPROCESSING_FAST_MODE", False))
-        )
-        # Use canonical feature list so train/serve use same feature order (overridden below if checkpoint has feature_names)
-        state.feature_converter = FeatureVector(get_canonical_feature_names())
-        
-        # Extract features from a dummy sample to get the actual feature dimension
-        dummy_sample = np.random.randn(1024)
-        dummy_features = state.preprocessor.extract_all_features(dummy_sample)
-        dummy_vector = state.feature_converter.to_vector(dummy_features)
-        input_dim = len(dummy_vector)
-        
-        logger.info(f"Detected feature dimension: {input_dim}")
-        
-        embedding_dim = 128
-        
-        # Create embedder (this creates and initializes the model on device).
-        # Backward compatibility: some config.py versions do not define DEVICE.
         runtime_device = getattr(config, "DEVICE", "cuda" if torch.cuda.is_available() else "cpu")
-        state.embedder = DeviceEmbedder(
-            input_dim=input_dim,
-            embedding_dim=embedding_dim,
-            device=runtime_device,
-        )
-        
-        # Load model if checkpoint exists; use feature_names from checkpoint for train/serve consistency.
-        model_path_value = getattr(config, "MODEL_PATH", config.MODEL_CONFIG.get("model_path"))
-        model_path = Path(model_path_value)
-        
-        if model_path.exists():
-            extra = state.embedder.load_model(str(model_path))
-            if extra.get("feature_names") is not None:
-                state.feature_converter = FeatureVector(extra["feature_names"])
-                logger.info(f"Using feature list from checkpoint (version={extra.get('feature_version', '?')})")
-            logger.info(f"Loaded trained model from {model_path}")
+        state.source_embedders = {}
+        state.source_feature_converters = {}
+
+        source_model_paths = getattr(config, "SOURCE_MODEL_PATHS", {}) or {}
+        loaded_metas: Dict[str, Dict[str, object]] = {}
+        for source, raw_path in source_model_paths.items():
+            model_path = Path(raw_path)
+            if not model_path.exists():
+                continue
+            checkpoint_meta = torch.load(model_path, map_location=runtime_device)
+            converter = FeatureVector(
+                checkpoint_meta.get("feature_names", get_canonical_feature_names()),
+                feature_mean=checkpoint_meta.get("feature_mean"),
+                feature_scale=checkpoint_meta.get("feature_scale"),
+            )
+            input_dim = int(checkpoint_meta.get("input_dim", len(converter.feature_names)))
+            embedding_dim = int(checkpoint_meta.get("embedding_dim", 128))
+            embedder = DeviceEmbedder(
+                input_dim=input_dim,
+                embedding_dim=embedding_dim,
+                device=runtime_device,
+            )
+            embedder.load_model(str(model_path))
+            state.source_embedders[source] = embedder
+            state.source_feature_converters[source] = converter
+            loaded_metas[source] = checkpoint_meta
+            logger.info("Loaded source-specific model for %s from %s", source, model_path)
+
+        checkpoint_meta: Dict[str, object] = {}
+        if loaded_metas:
+            # Reuse the first loaded source model as the default shared embedder.
+            default_source = sorted(loaded_metas.keys())[0]
+            checkpoint_meta = loaded_metas[default_source]
+            state.embedder = state.source_embedders[default_source]
+            state.feature_converter = state.source_feature_converters[default_source]
         else:
-            logger.warning(f"No trained model found at {model_path}, using random initialization")
+            model_path_value = getattr(config, "MODEL_PATH", config.MODEL_CONFIG.get("model_path"))
+            model_path = Path(model_path_value)
+            if model_path.exists():
+                checkpoint_meta = torch.load(model_path, map_location=runtime_device)
+            normalize = bool(checkpoint_meta.get("preprocessing_normalize", getattr(config, "PREPROCESSING_NORMALIZE", True)))
+            fast_mode = bool(checkpoint_meta.get("preprocessing_fast_mode", getattr(config, "PREPROCESSING_FAST_MODE", False)))
+            state.preprocessor = NoisePreprocessor(normalize=normalize, fast_mode=fast_mode)
+            state.feature_converter = FeatureVector(
+                checkpoint_meta.get("feature_names", get_canonical_feature_names()),
+                feature_mean=checkpoint_meta.get("feature_mean"),
+                feature_scale=checkpoint_meta.get("feature_scale"),
+            )
+
+            if "input_dim" in checkpoint_meta:
+                input_dim = int(checkpoint_meta["input_dim"])
+            else:
+                dummy_sample = np.random.randn(1024)
+                dummy_features = state.preprocessor.extract_all_features(dummy_sample)
+                dummy_vector = state.feature_converter.to_vector(dummy_features)
+                input_dim = len(dummy_vector)
+            embedding_dim = int(checkpoint_meta.get("embedding_dim", 128))
+            logger.info("Detected feature dimension: %s", input_dim)
+
+            state.embedder = DeviceEmbedder(
+                input_dim=input_dim,
+                embedding_dim=embedding_dim,
+                device=runtime_device,
+            )
+
+            if model_path.exists():
+                extra = state.embedder.load_model(str(model_path))
+                if extra.get("feature_names") is not None:
+                    state.feature_converter = FeatureVector(
+                        extra["feature_names"],
+                        feature_mean=extra.get("feature_mean"),
+                        feature_scale=extra.get("feature_scale"),
+                    )
+                    logger.info(f"Using feature list from checkpoint (version={extra.get('feature_version', '?')})")
+                logger.info(f"Loaded trained model from {model_path}")
+            else:
+                logger.warning(f"No trained model found at {model_path}, using random initialization")
+
+        if state.preprocessor is None:
+            normalize = bool(checkpoint_meta.get("preprocessing_normalize", getattr(config, "PREPROCESSING_NORMALIZE", True)))
+            fast_mode = bool(checkpoint_meta.get("preprocessing_fast_mode", getattr(config, "PREPROCESSING_FAST_MODE", False)))
+            state.preprocessor = NoisePreprocessor(normalize=normalize, fast_mode=fast_mode)
+        if state.feature_converter is None:
+            state.feature_converter = FeatureVector(get_canonical_feature_names())
         
         # Initialize dataset builder for training data collection
         dataset_builder = DatasetBuilder()
@@ -308,6 +355,8 @@ async def startup_event():
             embedder=state.embedder,
             preprocessor=state.preprocessor,
             feature_converter=state.feature_converter,
+            source_embedders=state.source_embedders,
+            source_feature_converters=state.source_feature_converters,
             storage_dir=storage_dir,
             dataset_builder=dataset_builder
         )
@@ -318,6 +367,7 @@ async def startup_event():
             preprocessor=state.preprocessor,
             feature_converter=state.feature_converter,
             enroller=state.enroller,
+            source_embedders=state.source_embedders,
             threshold=float(getattr(config, "AUTH_CONFIDENCE_STRONG", getattr(config, "SIMILARITY_THRESHOLD", config.AUTH_CONFIG.get("similarity_threshold", 0.97))))
         )
         

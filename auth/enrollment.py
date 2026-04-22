@@ -32,12 +32,16 @@ class DeviceEnroller:
         embedder: DeviceEmbedder,
         preprocessor: NoisePreprocessor,
         feature_converter: FeatureVector,
+        source_embedders: Optional[Dict[str, DeviceEmbedder]] = None,
+        source_feature_converters: Optional[Dict[str, FeatureVector]] = None,
         storage_dir: str = "./auth/device_embeddings",
         dataset_builder: Optional[object] = None,
     ):
         self.embedder = embedder
         self.preprocessor = preprocessor
         self.feature_converter = feature_converter
+        self.source_embedders = source_embedders or {}
+        self.source_feature_converters = source_feature_converters or {}
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(parents=True, exist_ok=True)
         self.dataset_builder = dataset_builder
@@ -45,6 +49,16 @@ class DeviceEnroller:
         self.drift_ema_alpha = float(getattr(config, "AUTH_DRIFT_EMA_ALPHA", 0.2))
         self.drift_min_strong_matches = int(getattr(config, "AUTH_DRIFT_MIN_STRONG_MATCHES", 2))
         logger.info("DeviceEnroller initialized")
+
+    def _get_embedder(self, source: Optional[str] = None) -> DeviceEmbedder:
+        if source is not None and source in self.source_embedders:
+            return self.source_embedders[source]
+        return self.embedder
+
+    def _get_feature_converter(self, source: Optional[str] = None) -> FeatureVector:
+        if source is not None and source in self.source_feature_converters:
+            return self.source_feature_converters[source]
+        return self.feature_converter
 
     def _load_source_weights(self) -> Dict[str, float]:
         configured = getattr(
@@ -137,10 +151,11 @@ class DeviceEnroller:
         for source, samples in noise_samples.items():
             feature_vectors: List[np.ndarray] = []
             logger.info("Processing %s samples from %s...", len(samples), source)
+            converter = self._get_feature_converter(source)
             for sample in samples:
                 try:
                     features = self.preprocessor.extract_all_features(sample)
-                    feature_vector = self.feature_converter.to_vector(features)
+                    feature_vector = converter.to_vector(features)
                     feature_vectors.append(feature_vector)
                 except Exception as exc:
                     logger.warning("Failed to process %s sample: %s", source, exc)
@@ -158,19 +173,25 @@ class DeviceEnroller:
         logger.info("Processed %s feature vectors", len(feature_vectors))
         return feature_vectors
 
-    def _embed_feature_vector(self, feature_vector: np.ndarray) -> torch.Tensor:
-        fv_tensor = torch.from_numpy(feature_vector).float().to(self.embedder.device)
-        return self.embedder.embed(fv_tensor)
+    def _embed_feature_vector(
+        self,
+        feature_vector: np.ndarray,
+        source: Optional[str] = None,
+    ) -> torch.Tensor:
+        embedder = self._get_embedder(source)
+        fv_tensor = torch.from_numpy(feature_vector).float().to(embedder.device)
+        return embedder.embed(fv_tensor)
 
     def create_device_embedding(
         self,
         feature_vectors: List[np.ndarray],
+        source: Optional[str] = None,
         method: str = "mean",
     ) -> torch.Tensor:
         if not feature_vectors:
             raise ValueError("No feature vectors provided")
 
-        embeddings = [self._embed_feature_vector(fv) for fv in feature_vectors]
+        embeddings = [self._embed_feature_vector(fv, source=source) for fv in feature_vectors]
         embedding_stack = torch.stack(embeddings)
 
         if method == "mean":
@@ -192,7 +213,7 @@ class DeviceEnroller:
         source_embeddings: Dict[str, torch.Tensor] = {}
         for source, vectors in features_by_source.items():
             if vectors:
-                source_embeddings[source] = self.create_device_embedding(vectors, method="mean")
+                source_embeddings[source] = self.create_device_embedding(vectors, source=source, method="mean")
         return source_embeddings
 
     def combine_source_embeddings(
