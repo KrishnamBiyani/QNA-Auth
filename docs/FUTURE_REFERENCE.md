@@ -85,12 +85,12 @@ Before finalizing:
 ## 7) Recommended command set
 
 - Build/refresh manifest:
-  - `python scripts/build_dataset_manifest.py --dataset-dir dataset/samples`
+  - `python scripts/data/build_dataset_manifest.py --dataset-dir dataset/samples`
 - Train + evaluate:
-  - `python scripts/train_and_evaluate.py --data-dir dataset/samples --seed 42 --epochs 20`
+  - `python scripts/training/train_and_evaluate.py --data-dir dataset/samples --seed 42 --epochs 20`
 - Capstone evaluation (splits + baselines + attacks):
-  - `python scripts/run_capstone_evaluation.py --data-dir dataset/samples --seed 42`
+  - `python scripts/training/run_capstone_evaluation.py --data-dir dataset/samples --seed 42`
 - One-command reproducibility:
-  - `python scripts/reproduce_capstone.py --data-dir dataset/samples --seed 42 --epochs 20`
+  - `python scripts/training/reproduce_capstone.py --data-dir dataset/samples --seed 42 --epochs 20`
 - Longitudinal drift:
-  - `python scripts/analyze_longitudinal.py --data-dir dataset/samples --baseline-session <session_id>`
+  - `python scripts/data/analyze_longitudinal.py --data-dir dataset/samples --baseline-session <session_id>`

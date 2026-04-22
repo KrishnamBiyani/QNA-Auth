@@ -25,4 +25,4 @@ jobs:
           pytest -q tests
       - name: Eval smoke
         run: |
-          python scripts/build_dataset_manifest.py --dataset-dir dataset/samples || true
+          python scripts/data/build_dataset_manifest.py --dataset-dir dataset/samples || true

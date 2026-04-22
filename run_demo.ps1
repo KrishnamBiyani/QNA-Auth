@@ -18,7 +18,7 @@ for ($i=0; $i -lt 60; $i++) {
 }
 
 Write-Host "Running Test Script..."
-& $python test_enrollment.py
+& $python scripts/diagnostics/test_enrollment.py
 
 Write-Host "Cleaning up..."
 Stop-Process -Id $serverProcess.Id -Force

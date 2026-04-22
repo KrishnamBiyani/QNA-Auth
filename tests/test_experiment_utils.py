@@ -1,6 +1,6 @@
 import numpy as np
 
-from scripts.experiment_utils import bootstrap_metric_ci
+from scripts.training.experiment_utils import bootstrap_metric_ci
 
 
 def test_bootstrap_metric_ci_shape():

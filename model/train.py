@@ -7,10 +7,12 @@ import torch
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
+import random
 from pathlib import Path
 from typing import Tuple, List, Optional, Dict, Any
 import json
 import logging
+from contextlib import nullcontext
 from tqdm import tqdm
 
 from .siamese_model import SiameseNetwork, TripletLoss, ContrastiveLoss
@@ -30,7 +32,10 @@ def set_seed(seed: int = 42) -> torch.Generator:
     torch.manual_seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = False
+        torch.backends.cudnn.benchmark = True
     np.random.seed(seed)
+    random.seed(seed)
     g = torch.Generator()
     g.manual_seed(seed)
     logger.info(f"Random seed set to {seed}")
@@ -52,9 +57,27 @@ class TripletDataset(Dataset):
             features_by_device: Dictionary mapping device_id to list of feature arrays
             samples_per_epoch: Number of triplets to generate per epoch
         """
-        self.features_by_device = features_by_device
-        self.device_ids = list(features_by_device.keys())
+        self.features_by_device = {}
+        for device_id, device_features in features_by_device.items():
+            if not device_features:
+                continue
+            arr = np.asarray(device_features, dtype=np.float32)
+            if arr.ndim == 1:
+                arr = arr[np.newaxis, :]
+            self.features_by_device[device_id] = torch.from_numpy(np.ascontiguousarray(arr))
+
+        self.device_ids = list(self.features_by_device.keys())
+        self.num_samples_by_device = {
+            device_id: features.shape[0]
+            for device_id, features in self.features_by_device.items()
+        }
+        self.negative_candidates = {
+            device_id: [other for other in self.device_ids if other != device_id]
+            for device_id in self.device_ids
+        }
         self.samples_per_epoch = samples_per_epoch
+        if len(self.device_ids) < 2:
+            raise ValueError("TripletDataset requires at least 2 devices")
         
         logger.info(f"TripletDataset: {len(self.device_ids)} devices, "
                    f"{samples_per_epoch} triplets/epoch")
@@ -72,27 +95,20 @@ class TripletDataset(Dataset):
         # Select anchor device
         anchor_device = np.random.choice(self.device_ids)
         anchor_features = self.features_by_device[anchor_device]
+        n_anchor = self.num_samples_by_device[anchor_device]
         
         # Select anchor and positive from same device
-        anchor_idx, positive_idx = np.random.choice(
-            len(anchor_features), size=2, replace=True
-        )
+        anchor_idx = np.random.randint(0, n_anchor)
+        positive_idx = np.random.randint(0, n_anchor)
         anchor = anchor_features[anchor_idx]
         positive = anchor_features[positive_idx]
         
         # Select negative from different device
-        negative_device = np.random.choice(
-            [d for d in self.device_ids if d != anchor_device]
-        )
+        negative_device = np.random.choice(self.negative_candidates[anchor_device])
         negative_features = self.features_by_device[negative_device]
-        negative_idx = np.random.choice(len(negative_features))
+        negative_idx = np.random.randint(0, self.num_samples_by_device[negative_device])
         negative = negative_features[negative_idx]
-        
-        # Convert to tensors
-        anchor = torch.from_numpy(anchor).float()
-        positive = torch.from_numpy(positive).float()
-        negative = torch.from_numpy(negative).float()
-        
+
         return anchor, positive, negative
 
 
@@ -170,7 +186,9 @@ class ModelTrainer:
         model: SiameseNetwork,
         loss_type: str = 'triplet',
         learning_rate: float = 0.001,
-        device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
+        device: str = 'cuda' if torch.cuda.is_available() else 'cpu',
+        use_amp: bool = True,
+        grad_clip_norm: Optional[float] = 1.0,
     ):
         """
         Initialize trainer
@@ -184,6 +202,8 @@ class ModelTrainer:
         self.model = model
         self.device = torch.device(device)
         self.model.to(self.device)
+        self.use_amp = bool(use_amp and self.device.type == "cuda")
+        self.grad_clip_norm = grad_clip_norm
         
         # Loss function
         if loss_type == 'triplet':
@@ -201,6 +221,7 @@ class ModelTrainer:
             lr=learning_rate,
             weight_decay=1e-5
         )
+        self.grad_scaler = torch.cuda.amp.GradScaler(enabled=self.use_amp)
         
         # Learning rate scheduler
         self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
@@ -219,6 +240,7 @@ class ModelTrainer:
         
         logger.info(f"ModelTrainer initialized on {self.device}")
         logger.info(f"Loss type: {loss_type}")
+        logger.info(f"Mixed precision (AMP): {'enabled' if self.use_amp else 'disabled'}")
     
     def train_epoch(
         self,
@@ -241,35 +263,51 @@ class ModelTrainer:
         pbar = tqdm(train_loader, desc=f"Epoch {epoch}")
         
         for batch_idx, batch in enumerate(pbar):
-            if self.loss_type == 'triplet':
-                anchor, positive, negative = batch
-                anchor = anchor.to(self.device)
-                positive = positive.to(self.device)
-                negative = negative.to(self.device)
-                
-                # Forward pass
-                anchor_emb, pos_emb, neg_emb = self.model(anchor, positive, negative)
-                
-                # Compute loss
-                loss = self.criterion(anchor_emb, pos_emb, neg_emb)
-                
-            elif self.loss_type == 'contrastive':
-                sample1, sample2, label = batch
-                sample1 = sample1.to(self.device)
-                sample2 = sample2.to(self.device)
-                label = label.to(self.device)
-                
-                # Forward pass
-                emb1 = self.model.forward_one(sample1)
-                emb2 = self.model.forward_one(sample2)
-                
-                # Compute loss
-                loss = self.criterion(emb1, emb2, label)
-            
-            # Backward pass
-            self.optimizer.zero_grad()
-            loss.backward()
-            self.optimizer.step()
+            self.optimizer.zero_grad(set_to_none=True)
+            autocast_ctx = (
+                torch.autocast(device_type="cuda", dtype=torch.float16, enabled=self.use_amp)
+                if self.device.type == "cuda"
+                else nullcontext()
+            )
+
+            with autocast_ctx:
+                if self.loss_type == 'triplet':
+                    anchor, positive, negative = batch
+                    anchor = anchor.to(self.device, non_blocking=True)
+                    positive = positive.to(self.device, non_blocking=True)
+                    negative = negative.to(self.device, non_blocking=True)
+                    
+                    # Forward pass
+                    anchor_emb, pos_emb, neg_emb = self.model(anchor, positive, negative)
+                    
+                    # Compute loss
+                    loss = self.criterion(anchor_emb, pos_emb, neg_emb)
+                    
+                elif self.loss_type == 'contrastive':
+                    sample1, sample2, label = batch
+                    sample1 = sample1.to(self.device, non_blocking=True)
+                    sample2 = sample2.to(self.device, non_blocking=True)
+                    label = label.to(self.device, non_blocking=True)
+                    
+                    # Forward pass
+                    emb1 = self.model.forward_one(sample1)
+                    emb2 = self.model.forward_one(sample2)
+                    
+                    # Compute loss
+                    loss = self.criterion(emb1, emb2, label)
+
+            if self.use_amp:
+                self.grad_scaler.scale(loss).backward()
+                if self.grad_clip_norm is not None:
+                    self.grad_scaler.unscale_(self.optimizer)
+                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.grad_clip_norm)
+                self.grad_scaler.step(self.optimizer)
+                self.grad_scaler.update()
+            else:
+                loss.backward()
+                if self.grad_clip_norm is not None:
+                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.grad_clip_norm)
+                self.optimizer.step()
             
             total_loss += loss.item()
             
@@ -294,24 +332,30 @@ class ModelTrainer:
         
         with torch.no_grad():
             for batch in val_loader:
-                if self.loss_type == 'triplet':
-                    anchor, positive, negative = batch
-                    anchor = anchor.to(self.device)
-                    positive = positive.to(self.device)
-                    negative = negative.to(self.device)
-                    
-                    anchor_emb, pos_emb, neg_emb = self.model(anchor, positive, negative)
-                    loss = self.criterion(anchor_emb, pos_emb, neg_emb)
-                    
-                elif self.loss_type == 'contrastive':
-                    sample1, sample2, label = batch
-                    sample1 = sample1.to(self.device)
-                    sample2 = sample2.to(self.device)
-                    label = label.to(self.device)
-                    
-                    emb1 = self.model.forward_one(sample1)
-                    emb2 = self.model.forward_one(sample2)
-                    loss = self.criterion(emb1, emb2, label)
+                autocast_ctx = (
+                    torch.autocast(device_type="cuda", dtype=torch.float16, enabled=self.use_amp)
+                    if self.device.type == "cuda"
+                    else nullcontext()
+                )
+                with autocast_ctx:
+                    if self.loss_type == 'triplet':
+                        anchor, positive, negative = batch
+                        anchor = anchor.to(self.device, non_blocking=True)
+                        positive = positive.to(self.device, non_blocking=True)
+                        negative = negative.to(self.device, non_blocking=True)
+                        
+                        anchor_emb, pos_emb, neg_emb = self.model(anchor, positive, negative)
+                        loss = self.criterion(anchor_emb, pos_emb, neg_emb)
+                        
+                    elif self.loss_type == 'contrastive':
+                        sample1, sample2, label = batch
+                        sample1 = sample1.to(self.device, non_blocking=True)
+                        sample2 = sample2.to(self.device, non_blocking=True)
+                        label = label.to(self.device, non_blocking=True)
+                        
+                        emb1 = self.model.forward_one(sample1)
+                        emb2 = self.model.forward_one(sample2)
+                        loss = self.criterion(emb1, emb2, label)
                 
                 total_loss += loss.item()
         
@@ -495,7 +539,7 @@ def main(seed: int = 42):
     if not features_by_device or len(features_by_device) < 2:
         print("!! INSUFFICIENT DATA !!")
         print("Need at least 2 devices with samples to train.")
-        print("Run scripts/collect_data_for_training.py and scripts/ingest_collected_data.py to add data.")
+        print("Run scripts/data/collect_data_for_training.py and scripts/data/ingest_collected_data.py to add data.")
         return
 
     embedding_dim = 128

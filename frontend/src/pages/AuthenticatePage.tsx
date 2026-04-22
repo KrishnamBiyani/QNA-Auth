@@ -24,6 +24,24 @@ export default function AuthenticatePage() {
     loadDevices();
   }, []);
 
+  useEffect(() => {
+    const syncSourcesWithEnrollment = async () => {
+      if (!selectedDevice) return;
+      try {
+        const metadata = await qnaAuthService.getDevice(selectedDevice);
+        const enrolledSources = Array.isArray(metadata?.sources)
+          ? metadata.sources.filter((s: unknown): s is string => typeof s === "string")
+          : [];
+        if (enrolledSources.length > 0) {
+          setSources(enrolledSources);
+        }
+      } catch (err) {
+        console.error("Failed to load enrolled sources for device:", err);
+      }
+    };
+    syncSourcesWithEnrollment();
+  }, [selectedDevice]);
+
   const loadDevices = async () => {
     try {
       const response = await qnaAuthService.listDevices();
@@ -135,10 +153,6 @@ export default function AuthenticatePage() {
       const needsClientCollection = useClientSensors;
 
       if (needsClientCollection) {
-        // Ensure sources list includes microphone if not already present
-        if (!sources.includes("microphone")) {
-          sources.push("microphone");
-        }
         const samplesPerSource = 5; // Default for auth
         clientSamples = await collectClientSamples(samplesPerSource);
 

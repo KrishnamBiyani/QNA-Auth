@@ -77,7 +77,7 @@ export class CameraNoiseCollector {
         // Here we just use the raw flattened array as it will be processed on backend
         // Ideally, we'd do the same blurring subtraction here
         
-        return grayscaleData;
+        return downsample1D(grayscaleData, 1024);
     }
 
     release() {
@@ -145,7 +145,8 @@ export class MicNoiseCollector {
                     gainNode.disconnect();
                     
                     // Return exactly required samples
-                    resolve(Array.from(collectedSamples.slice(0, samplesToCollect)));
+                    const raw = Array.from(collectedSamples.slice(0, samplesToCollect));
+                    resolve(downsample1D(raw, 1024));
                 }
             };
 
@@ -167,4 +168,16 @@ export class MicNoiseCollector {
             this.audioContext = null;
         }
     }
+}
+
+function downsample1D(input: number[], targetLength: number): number[] {
+    if (input.length <= targetLength) {
+        return input;
+    }
+    const step = input.length / targetLength;
+    const output = new Array<number>(targetLength);
+    for (let i = 0; i < targetLength; i++) {
+        output[i] = input[Math.floor(i * step)];
+    }
+    return output;
 }

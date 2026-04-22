@@ -3,7 +3,7 @@
 This document spells out **what data you need**, **how much**, **how to store it**, and **how it connects to training and evaluation** so the project can support a research-level capstone.
 
 Current implementation note:
-- Canonical manifest builder: `python scripts/build_dataset_manifest.py --dataset-dir dataset/samples`
+- Canonical manifest builder: `python scripts/data/build_dataset_manifest.py --dataset-dir dataset/samples`
 - Canonical output: `dataset/samples/manifest.v1.json`
 - Ingestion now records `session_id`, `collection_created_at`, and `collection_folder` per sample.
 
@@ -187,11 +187,11 @@ Use this when participants collect data and send it back for training.
    ```
 3. Run collection:
    ```bash
-   python scripts/collect_data_for_training.py
+   python scripts/data/collect_data_for_training.py
    ```
 4. Or run with explicit options:
    ```bash
-   python scripts/collect_data_for_training.py --name "Alice Laptop" --sources qrng,camera,microphone --num-samples 50 --session-id week_01 --zip
+   python scripts/data/collect_data_for_training.py --name "Alice Laptop" --sources qrng,camera,microphone --num-samples 50 --session-id week_01 --zip
    ```
 5. Send generated folder/zip to project owner.
 
@@ -205,7 +205,7 @@ Use this when participants collect data and send it back for training.
 ### Owner ingest step
 Merge one or many participant folders/zips:
 ```bash
-python scripts/ingest_collected_data.py path/to/folder1 path/to/folder2.zip
+python scripts/data/ingest_collected_data.py path/to/folder1 path/to/folder2.zip
 ```
 
 This updates `dataset/samples/` and refreshes `manifest.v1.json`.

@@ -91,3 +91,14 @@ tmp/
 config.py
 server/models/
 
+# Local participant collection dumps (generated)
+qna_auth_collection_*/
+qna_auth_test_collection/
+
+# Legacy checked-in sample dumps (generated)
+server/dataset/samples/
+
+# Editor/temp artifacts
+scripts/tempCodeRunnerFile.py
+repomix-output.xml
+

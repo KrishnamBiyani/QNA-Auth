@@ -157,11 +157,18 @@ async def startup_event():
         
         embedding_dim = 128
         
-        # Create embedder (this creates and initializes the model on device)
-        state.embedder = DeviceEmbedder(input_dim=input_dim, embedding_dim=embedding_dim, device=config.DEVICE)
+        # Create embedder (this creates and initializes the model on device).
+        # Backward compatibility: some config.py versions do not define DEVICE.
+        runtime_device = getattr(config, "DEVICE", "cuda" if torch.cuda.is_available() else "cpu")
+        state.embedder = DeviceEmbedder(
+            input_dim=input_dim,
+            embedding_dim=embedding_dim,
+            device=runtime_device,
+        )
         
-        # Load model if checkpoint exists; use feature_names from checkpoint for train/serve consistency
-        model_path = Path(config.MODEL_PATH)
+        # Load model if checkpoint exists; use feature_names from checkpoint for train/serve consistency.
+        model_path_value = getattr(config, "MODEL_PATH", config.MODEL_CONFIG.get("model_path"))
+        model_path = Path(model_path_value)
         
         if model_path.exists():
             extra = state.embedder.load_model(str(model_path))
@@ -178,8 +185,8 @@ async def startup_event():
         # Initialize database (create tables if missing)
         init_db()
         
-        # Initialize enroller (storage_dir from config)
-        storage_dir = str(config.EMBEDDINGS_DIR)
+        # Initialize enroller (support both flat and dict-based config layouts).
+        storage_dir = str(getattr(config, "EMBEDDINGS_DIR", config.STORAGE_CONFIG.get("embeddings_dir", "./auth/device_embeddings")))
         state.enroller = DeviceEnroller(
             embedder=state.embedder,
             preprocessor=state.preprocessor,
