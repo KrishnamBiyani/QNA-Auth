@@ -47,6 +47,7 @@ checkpoints/
 data/
 
 # Data and Models
+dataset/samples.zip
 dataset/samples/*.npy
 dataset/samples/*.csv
 dataset/samples/json/

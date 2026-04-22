@@ -12,6 +12,13 @@ from tqdm import tqdm
 from preprocessing.features import NoisePreprocessor, FeatureVector, get_canonical_feature_names
 
 
+def parse_sources_arg(value: str | None) -> List[str] | None:
+    if value is None:
+        return None
+    parts = [part.strip().lower() for part in value.split(",") if part.strip()]
+    return parts or None
+
+
 @dataclass
 class SampleRecord:
     sample_id: str
@@ -24,17 +31,22 @@ class SampleRecord:
 
 def load_sample_records(
     data_dir: Path,
-    source_filter: str | None = None,
+    source_filter: str | List[str] | None = None,
     max_records: int | None = None,
     seed: int = 42,
 ) -> List[SampleRecord]:
     records: List[SampleRecord] = []
     json_dir = data_dir / "json"
+    allowed_sources = None
+    if isinstance(source_filter, str):
+        allowed_sources = {source_filter.lower()}
+    elif source_filter is not None:
+        allowed_sources = {str(item).lower() for item in source_filter}
     for jf in sorted(json_dir.glob("*.json")):
         try:
             meta = json.loads(jf.read_text(encoding="utf-8"))
             source = str(meta.get("noise_source", "")).lower()
-            if source_filter is not None and source != source_filter:
+            if allowed_sources is not None and source not in allowed_sources:
                 continue
             rel = str(meta.get("raw_data_path", "")).lstrip("/\\")
             raw_path = data_dir / rel

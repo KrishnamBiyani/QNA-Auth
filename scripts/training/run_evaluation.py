@@ -33,11 +33,12 @@ from preprocessing.features import (
     NoisePreprocessor,
     FeatureVector,
 )
+from scripts.training.experiment_utils import parse_sources_arg
 
 
 def load_features_for_eval(
     data_dir: Path,
-    source_filter: str | None = None,
+    source_filter: str | list[str] | None = None,
     max_samples: int | None = None,
     fast_features: bool = False,
 ):
@@ -50,6 +51,11 @@ def load_features_for_eval(
     converter = FeatureVector(get_canonical_feature_names())
     features_by_device = {}
     sample_count = 0
+    allowed_sources = None
+    if isinstance(source_filter, str):
+        allowed_sources = {source_filter.lower()}
+    elif source_filter is not None:
+        allowed_sources = {str(item).lower() for item in source_filter}
 
     json_files = list(json_dir.glob("*.json"))
     if max_samples is not None and len(json_files) > max_samples:
@@ -63,7 +69,7 @@ def load_features_for_eval(
                 meta = json.load(f)
             device_id = meta["device_id"]
             noise_source = meta.get("noise_source", "").lower()
-            if source_filter is not None and noise_source != source_filter:
+            if allowed_sources is not None and noise_source not in allowed_sources:
                 continue
             rel_path = meta.get("raw_data_path", "").lstrip("/\\")
             raw_path = data_dir / rel_path
@@ -139,6 +145,7 @@ def main():
     p.add_argument("--ablations-only", action="store_true", help="Only run ablation table by source")
     p.add_argument("--max-samples", type=int, default=None, help="Cap samples per run (for quick runs)")
     p.add_argument("--fast-features", action="store_true", help="Skip expensive complexity features for quick threshold tuning")
+    p.add_argument("--sources", type=str, default="camera,microphone", help="Comma-separated sources to include in the combined evaluation")
     args = p.parse_args()
 
     try:
@@ -171,6 +178,8 @@ def main():
     print(f"  Model:  {model_path}")
     print(f"  Output: {output_dir}")
     print(f"  Feature version: {ckpt.get('feature_version', '?')}")
+    print(f"  Train sources: {ckpt.get('train_sources', ['unknown'])}")
+    combined_sources = parse_sources_arg(args.sources)
 
     # Ablations: by source
     sources = [("combined", None), ("camera", "camera"), ("microphone", "microphone")]
@@ -178,7 +187,7 @@ def main():
     for label, source_filter in sources:
         features_by_device, _ = load_features_for_eval(
             data_dir,
-            source_filter=source_filter,
+            source_filter=(combined_sources if label == "combined" else source_filter),
             max_samples=args.max_samples,
             fast_features=args.fast_features
         )
@@ -205,7 +214,7 @@ def main():
     if not args.ablations_only:
         features_by_device, _ = load_features_for_eval(
             data_dir,
-            source_filter=None,
+            source_filter=combined_sources,
             max_samples=args.max_samples,
             fast_features=args.fast_features
         )

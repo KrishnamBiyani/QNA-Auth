@@ -27,6 +27,7 @@ if str(ROOT) not in sys.path:
 import torch
 import numpy as np
 from torch.utils.data import DataLoader
+import config
 
 from model.train import set_seed, TripletDataset, ModelTrainer
 from model.siamese_model import SiameseNetwork, DeviceEmbedder
@@ -38,6 +39,7 @@ from scripts.training.experiment_utils import (
     assert_no_leakage,
     save_split_artifacts,
     features_from_split,
+    parse_sources_arg,
 )
 
 
@@ -54,17 +56,20 @@ def main():
     p.add_argument("--amp", action=argparse.BooleanOptionalAction, default=True, help="Use mixed precision on CUDA")
     p.add_argument("--eval-dir", type=str, default="model/evaluation", help="Where to save evaluation report/plots")
     p.add_argument("--val-ratio", type=float, default=0.2, help="Fraction of data per device for validation (0 = no val)")
+    p.add_argument("--sources", type=str, default="camera,microphone", help="Comma-separated sources to include in training/eval")
+    p.add_argument("--fast-features", action="store_true", help="Skip expensive complexity features during feature extraction")
     args = p.parse_args()
 
     data_dir = args.data_dir or str(ROOT / "dataset" / "samples")
     set_seed(args.seed)
+    source_filter = parse_sources_arg(args.sources)
 
-    records = load_sample_records(Path(data_dir))
+    records = load_sample_records(Path(data_dir), source_filter=source_filter)
     splits = split_by_device(records, seed=args.seed, val_ratio=args.val_ratio, test_ratio=0.2)
     assert_no_leakage(splits)
     split_dir = ROOT / "artifacts" / "splits"
     split_path = save_split_artifacts(splits, split_dir, split_name=f"train_eval_seed_{args.seed}")
-    feat_splits = features_from_split(splits, normalize=True)
+    feat_splits = features_from_split(splits, normalize=True, fast_features=args.fast_features)
     train_by_device = feat_splits["train"]
     val_by_device = feat_splits["val"]
     test_by_device = feat_splits["test"]
@@ -77,6 +82,7 @@ def main():
     n_devices = len(train_by_device)
     total_samples = sum(len(v) for v in train_by_device.values())
     print(f"Devices: {n_devices}, Total samples: {total_samples}, Input dim: {input_dim}")
+    print(f"Sources: {source_filter or ['all']}")
 
     if torch.cuda.is_available():
         torch.set_float32_matmul_precision("high")
@@ -182,6 +188,9 @@ def main():
         "input_dim": input_dim,
         "feature_names": get_canonical_feature_names(),
         "feature_version": FEATURE_VERSION,
+        "train_sources": source_filter or ["all"],
+        "source_weights": getattr(config, "AUTH_SOURCE_WEIGHTS", {"camera": 0.7, "microphone": 0.3}),
+        "runtime_alignment": "camera_microphone_weighted_matching",
     }
     torch.save(server_ckpt, server_path)
     print(f"Deployed model (feature_version={FEATURE_VERSION}) to {server_path}")

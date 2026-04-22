@@ -25,6 +25,7 @@ if str(ROOT) not in sys.path:
 
 import numpy as np
 import torch
+import config
 
 from model.evaluate import ModelEvaluator
 from model.siamese_model import DeviceEmbedder
@@ -37,6 +38,7 @@ from scripts.training.experiment_utils import (
     save_split_artifacts,
     split_by_device,
     split_by_session,
+    parse_sources_arg,
 )
 
 
@@ -116,6 +118,7 @@ def main() -> int:
     parser.add_argument("--min-devices", type=int, default=2)
     parser.add_argument("--max-records", type=int, default=None, help="Cap total records for quick review runs")
     parser.add_argument("--fast-features", action="store_true", help="Skip expensive complexity features")
+    parser.add_argument("--sources", type=str, default="camera,microphone", help="Comma-separated runtime sources to evaluate together")
     args = parser.parse_args()
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
@@ -139,9 +142,10 @@ def main() -> int:
     except Exception:
         pass
 
+    source_filter = parse_sources_arg(args.sources) if args.source_filter is None else [args.source_filter]
     records = load_sample_records(
         args.data_dir,
-        source_filter=args.source_filter,
+        source_filter=source_filter,
         max_records=args.max_records,
         seed=args.seed
     )
@@ -207,10 +211,16 @@ def main() -> int:
             "seed": args.seed,
             "split_policy": args.split_policy,
             "source_filter": args.source_filter,
+            "sources": source_filter,
             "max_records": args.max_records,
             "fast_features": args.fast_features,
             "model_path": str(args.model_path),
             "data_dir": str(args.data_dir),
+            "source_weights": getattr(config, "AUTH_SOURCE_WEIGHTS", {"camera": 0.7, "microphone": 0.3}),
+            "confidence_bands": {
+                "strong_accept": float(getattr(config, "AUTH_CONFIDENCE_STRONG", 0.97)),
+                "uncertain": float(getattr(config, "AUTH_CONFIDENCE_UNCERTAIN", 0.92)),
+            },
         },
         "split_artifact": str(split_path),
         "methods": {

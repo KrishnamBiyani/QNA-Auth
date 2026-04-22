@@ -4,7 +4,7 @@ import {
   CameraNoiseCollector,
   MicNoiseCollector,
 } from "../services/collectors";
-import { Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 
 export default function AuthenticatePage() {
   const [devices, setDevices] = useState<DeviceSummary[]>([]);
@@ -15,6 +15,7 @@ export default function AuthenticatePage() {
     window.location.hostname !== "localhost" &&
     window.location.hostname !== "127.0.0.1";
   const [useClientSensors, setUseClientSensors] = useState(isRemote);
+  const [numSamplesPerSource, setNumSamplesPerSource] = useState(8);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string>("");
   const [result, setResult] = useState<AuthenticationResponse | null>(null);
@@ -153,8 +154,7 @@ export default function AuthenticatePage() {
       const needsClientCollection = useClientSensors;
 
       if (needsClientCollection) {
-        const samplesPerSource = 5; // Default for auth
-        clientSamples = await collectClientSamples(samplesPerSource);
+        clientSamples = await collectClientSamples(numSamplesPerSource);
 
         // Verify we got what we needed
         if (sources.includes("camera") && !clientSamples["camera"]) {
@@ -178,7 +178,7 @@ export default function AuthenticatePage() {
       const response = await qnaAuthService.authenticateDevice({
         device_id: selectedDevice,
         sources: sources,
-        num_samples_per_source: 5,
+        num_samples_per_source: numSamplesPerSource,
         client_samples: clientSamples, // Ensure this property name matches the Python Pydantic model exactly
       });
       setResult(response);
@@ -257,6 +257,17 @@ export default function AuthenticatePage() {
               </div>
 
               <div className="pt-2 border-t border-neutral-700">
+                <label className="block text-sm font-medium mb-2">
+                  Samples Per Source: {numSamplesPerSource}
+                </label>
+                <input
+                  type="range"
+                  min="5"
+                  max="12"
+                  value={numSamplesPerSource}
+                  onChange={(e) => setNumSamplesPerSource(parseInt(e.target.value, 10))}
+                  className="w-full mb-3"
+                />
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <input
                     type="checkbox"
@@ -317,7 +328,24 @@ export default function AuthenticatePage() {
           </div>
         )}
 
-        {result && !result.authenticated && (
+        {result && !result.authenticated && result.details?.confidence_band === "uncertain" && (
+          <div className="mt-6 p-4 bg-amber-900/30 border border-amber-500">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-5 h-5 text-amber-400" />
+              <h3 className="font-semibold text-amber-300">
+                Match Uncertain
+              </h3>
+            </div>
+            <p className="text-sm text-neutral-200 mt-1">
+              Match similarity: {(typeof result.similarity === "number" ? result.similarity : 0).toFixed(2)}. This is in the uncertain band, not a hard reject.
+            </p>
+            <p className="text-sm text-neutral-300 mt-2">
+              Try collecting more samples from the same enrolled device or use fallback authentication.
+            </p>
+          </div>
+        )}
+
+        {result && !result.authenticated && result.details?.confidence_band !== "uncertain" && (
           <div className="mt-6 p-4 bg-red-900/30 border border-red-500">
             <div className="flex items-center gap-2 mb-2">
               <XCircle className="w-5 h-5 text-red-500" />
@@ -326,7 +354,7 @@ export default function AuthenticatePage() {
               </h3>
             </div>
             <p className="text-sm text-neutral-300 mt-1">
-              Match similarity: {(typeof result.similarity === "number" ? result.similarity : 0).toFixed(2)}. If the result is uncertain, collect more samples or use fallback auth.
+              Match similarity: {(typeof result.similarity === "number" ? result.similarity : 0).toFixed(2)}. The current sample set did not meet the acceptance threshold.
             </p>
           </div>
         )}
