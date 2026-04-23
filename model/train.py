@@ -202,6 +202,8 @@ class ModelTrainer:
         model: SiameseNetwork,
         loss_type: str = 'triplet',
         learning_rate: float = 0.001,
+        margin: float = 1.0,
+        weight_decay: float = 1e-5,
         device: str = 'cuda' if torch.cuda.is_available() else 'cpu',
         use_amp: bool = True,
         grad_clip_norm: Optional[float] = 1.0,
@@ -220,12 +222,13 @@ class ModelTrainer:
         self.model.to(self.device)
         self.use_amp = bool(use_amp and self.device.type == "cuda")
         self.grad_clip_norm = grad_clip_norm
+        self.margin = float(margin)
         
         # Loss function
         if loss_type == 'triplet':
-            self.criterion = TripletLoss(margin=1.0)
+            self.criterion = TripletLoss(margin=self.margin)
         elif loss_type == 'contrastive':
-            self.criterion = ContrastiveLoss(margin=1.0)
+            self.criterion = ContrastiveLoss(margin=self.margin)
         else:
             raise ValueError(f"Unknown loss type: {loss_type}")
         
@@ -235,7 +238,7 @@ class ModelTrainer:
         self.optimizer = optim.Adam(
             self.model.parameters(),
             lr=learning_rate,
-            weight_decay=1e-5
+            weight_decay=weight_decay
         )
         self.grad_scaler = torch.cuda.amp.GradScaler(enabled=self.use_amp)
         
@@ -256,6 +259,7 @@ class ModelTrainer:
         
         logger.info(f"ModelTrainer initialized on {self.device}")
         logger.info(f"Loss type: {loss_type}")
+        logger.info(f"Margin: {self.margin:.4f}")
         logger.info(f"Mixed precision (AMP): {'enabled' if self.use_amp else 'disabled'}")
     
     def train_epoch(

@@ -20,6 +20,8 @@ def run_training(
     fast_features: bool,
     augment_camera_train: bool = False,
     camera_aug_copies: int = 3,
+    hard_negative_k: int = 4,
+    triplet_margin: float = 1.0,
 ) -> int:
     output_stem = f"{source}_v2"
     command = [
@@ -32,11 +34,15 @@ def run_training(
         "--batch-size",
         "64",
         "--num-workers",
-        "2",
+        "0",
         "--save-last-n",
         "2",
         "--target-far",
         str(target_far),
+        "--hard-negative-k",
+        str(hard_negative_k),
+        "--triplet-margin",
+        str(triplet_margin),
         "--output-stem",
         output_stem,
         "--val-ratio",
@@ -55,7 +61,14 @@ def run_training(
 
 def main() -> int:
     # Microphone has enough data to support a longer run.
-    rc = run_training(source="microphone", epochs=36, target_far=0.10, fast_features=False)
+    rc = run_training(
+        source="microphone",
+        epochs=36,
+        target_far=0.10,
+        fast_features=False,
+        hard_negative_k=8,
+        triplet_margin=0.8,
+    )
     if rc != 0:
         return rc
 
@@ -67,6 +80,8 @@ def main() -> int:
         fast_features=True,
         augment_camera_train=True,
         camera_aug_copies=2,
+        hard_negative_k=12,
+        triplet_margin=0.8,
     )
     return rc
 

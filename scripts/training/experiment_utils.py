@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import logging
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
@@ -10,6 +12,8 @@ from sklearn.neural_network import MLPRegressor
 from tqdm import tqdm
 
 from preprocessing.features import NoisePreprocessor, FeatureVector, get_canonical_feature_names
+
+logger = logging.getLogger(__name__)
 
 
 def parse_sources_arg(value: str | None) -> List[str] | None:
@@ -221,9 +225,22 @@ def features_from_split(
 
         return variants
 
+    total_records = sum(len(recs) for recs in splits.values())
+    logger.info(
+        "Starting feature extraction (total_records=%d, fast_features=%s, augment_camera_train=%s, camera_aug_copies=%d)",
+        total_records,
+        bool(fast_features),
+        bool(augment_camera_train),
+        int(camera_aug_copies),
+    )
+
+    started_all = time.perf_counter()
     for split_name, recs in splits.items():
+        started_split = time.perf_counter()
         by_device: Dict[str, List[np.ndarray]] = {}
-        for r in recs:
+        augmented_count = 0
+        desc = f"Extracting {split_name} features"
+        for r in tqdm(recs, desc=desc, leave=False):
             raw = np.load(r.raw_path)
             vec = converter.to_vector(preprocessor.extract_all_features(raw))
             by_device.setdefault(r.device_id, []).append(vec)
@@ -232,7 +249,18 @@ def features_from_split(
                 for aug_raw in augment_camera_sample(raw):
                     aug_vec = converter.to_vector(preprocessor.extract_all_features(aug_raw))
                     by_device.setdefault(r.device_id, []).append(aug_vec)
+                    augmented_count += 1
         split_feature_map[split_name] = by_device
+        elapsed_split = time.perf_counter() - started_split
+        logger.info(
+            "Finished %s split: base_records=%d, devices=%d, augmented=%d, elapsed=%.1fs",
+            split_name,
+            len(recs),
+            len(by_device),
+            augmented_count,
+            elapsed_split,
+        )
+    logger.info("Feature extraction completed in %.1fs", time.perf_counter() - started_all)
     return split_feature_map
 
 

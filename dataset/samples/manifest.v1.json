@@ -1,14 +1,18 @@
 {
   "manifest_version": "v1",
-  "created_at": "2026-04-22T12:29:55.657778Z",
+  "created_at": "2026-04-23T09:01:14.194707Z",
   "dataset_dir": "dataset\\samples",
-  "dataset_fingerprint": "72fac138cbaa28b9b47dccaf3cb4e421e52c1aa62f4184cab819b074e3f1dc06",
+  "dataset_fingerprint": "2fdb3495418fe8a3b092451fb9601470ecdf983a3a56c53ddf2c0dd6ecb30b29",
   "counts": {
-    "total_samples": 2780,
-    "unique_devices": 43,
+    "total_samples": 2880,
+    "unique_devices": 44,
     "sources": {
-      "microphone": 1450,
-      "camera": 1330
+      "microphone": 1500,
+      "camera": 1380
+    },
+    "collection_kinds": {
+      "real": 880,
+      "synthetic": 2000
     },
     "missing_raw_files": 0,
     "malformed_json": 0
@@ -21,7 +25,8 @@
       ],
       "sessions": [
         "unknown_session"
-      ]
+      ],
+      "session_count": 1
     },
     "02387b9cbe8e24fd": {
       "samples": 80,
@@ -31,7 +36,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Vibhor_Bhatia_20260412_202737"
-      ]
+      ],
+      "session_count": 1
     },
     "048ebd4c1deba134": {
       "samples": 80,
@@ -41,7 +47,8 @@
       ],
       "sessions": [
         "qna_auth_collection_YourName_20260411_214839"
-      ]
+      ],
+      "session_count": 1
     },
     "19562771bed1a637": {
       "samples": 80,
@@ -51,7 +58,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_17_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "1b5faf380eed2312": {
       "samples": 100,
@@ -61,7 +69,8 @@
       ],
       "sessions": [
         "unknown_session"
-      ]
+      ],
+      "session_count": 1
     },
     "1febc91d0b46399a": {
       "samples": 80,
@@ -71,7 +80,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_05_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "246dc7392d4f7994": {
       "samples": 80,
@@ -81,7 +91,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_15_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "2b1644efe576e916": {
       "samples": 10,
@@ -90,7 +101,8 @@
       ],
       "sessions": [
         "unknown_session"
-      ]
+      ],
+      "session_count": 1
     },
     "2f7ae38e5f04ccae": {
       "samples": 10,
@@ -99,7 +111,8 @@
       ],
       "sessions": [
         "unknown_session"
-      ]
+      ],
+      "session_count": 1
     },
     "304a798cdc7e5d45": {
       "samples": 20,
@@ -109,7 +122,8 @@
       ],
       "sessions": [
         "unknown_session"
-      ]
+      ],
+      "session_count": 1
     },
     "4074de8ebfac6840": {
       "samples": 80,
@@ -119,7 +133,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_24_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "46647f7e96be25f1": {
       "samples": 80,
@@ -129,7 +144,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_12_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "47679033b49b4ef6": {
       "samples": 80,
@@ -139,7 +155,19 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_06_20260412_210149"
-      ]
+      ],
+      "session_count": 1
+    },
+    "50d065ced869ec26": {
+      "samples": 100,
+      "sources": [
+        "camera",
+        "microphone"
+      ],
+      "sessions": [
+        "unknown_session"
+      ],
+      "session_count": 1
     },
     "5b0e6f8077e79e3c": {
       "samples": 20,
@@ -149,7 +177,8 @@
       ],
       "sessions": [
         "unknown_session"
-      ]
+      ],
+      "session_count": 1
     },
     "5c2d4095f4304a1f": {
       "samples": 40,
@@ -159,7 +188,8 @@
       ],
       "sessions": [
         "unknown_session"
-      ]
+      ],
+      "session_count": 1
     },
     "6449519725346549": {
       "samples": 80,
@@ -169,7 +199,8 @@
       ],
       "sessions": [
         "qna_auth_collection_krishnam_20260413_022803"
-      ]
+      ],
+      "session_count": 1
     },
     "662d24dfbdcd5d59": {
       "samples": 80,
@@ -179,7 +210,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_23_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "676d8a6fa1ae1a40": {
       "samples": 80,
@@ -189,7 +221,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_14_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "71cebd49ee376c19": {
       "samples": 80,
@@ -199,7 +232,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Omkar_20260413_011817"
-      ]
+      ],
+      "session_count": 1
     },
     "72305d30d606014e": {
       "samples": 80,
@@ -209,7 +243,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_07_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "7a90c62e29ee2fbf": {
       "samples": 10,
@@ -218,7 +253,8 @@
       ],
       "sessions": [
         "unknown_session"
-      ]
+      ],
+      "session_count": 1
     },
     "7e4c120a84d4c861": {
       "samples": 80,
@@ -228,7 +264,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_22_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "8426409298dc087e": {
       "samples": 80,
@@ -238,7 +275,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_10_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "8968838b7a0400a7": {
       "samples": 10,
@@ -247,7 +285,8 @@
       ],
       "sessions": [
         "unknown_session"
-      ]
+      ],
+      "session_count": 1
     },
     "a9df06840c8a5ba3": {
       "samples": 80,
@@ -257,7 +296,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_16_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "b2a4dd15b98155d3": {
       "samples": 80,
@@ -267,7 +307,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_13_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "b8ab6a5419cd0244": {
       "samples": 10,
@@ -276,7 +317,8 @@
       ],
       "sessions": [
         "unknown_session"
-      ]
+      ],
+      "session_count": 1
     },
     "bb2ef57f75a216b5": {
       "samples": 80,
@@ -286,7 +328,8 @@
       ],
       "sessions": [
         "qna_auth_collection_YourName_20260411_184311"
-      ]
+      ],
+      "session_count": 1
     },
     "bdd82f18fbed0510": {
       "samples": 80,
@@ -296,7 +339,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_02_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "c0743ef082690146": {
       "samples": 80,
@@ -306,7 +350,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_08_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "c1af859f31ed20d8": {
       "samples": 80,
@@ -316,7 +361,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_11_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "ca879b2cd53ec351": {
       "samples": 80,
@@ -326,7 +372,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_20_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "ccf7b73d52729d1a": {
       "samples": 80,
@@ -336,7 +383,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_03_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "da99c10c138772a6": {
       "samples": 80,
@@ -346,7 +394,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_04_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "dd76aa95fdb7c27f": {
       "samples": 80,
@@ -356,7 +405,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_25_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "e4ff83e44c4eded1": {
       "samples": 80,
@@ -366,7 +416,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_18_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "e5c58a6be643c772": {
       "samples": 80,
@@ -376,7 +427,8 @@
       ],
       "sessions": [
         "session_20260412"
-      ]
+      ],
+      "session_count": 1
     },
     "e96d07cb8a3a393c": {
       "samples": 80,
@@ -386,7 +438,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_09_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "eabc431f8a364d39": {
       "samples": 50,
@@ -395,7 +448,8 @@
       ],
       "sessions": [
         "unknown_session"
-      ]
+      ],
+      "session_count": 1
     },
     "f27243e9b1a90fda": {
       "samples": 80,
@@ -405,7 +459,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_21_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "f528475cab68374a": {
       "samples": 80,
@@ -415,7 +470,8 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_01_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     },
     "f5acc369dfd52c9d": {
       "samples": 10,
@@ -424,7 +480,8 @@
       ],
       "sessions": [
         "unknown_session"
-      ]
+      ],
+      "session_count": 1
     },
     "f5b8fffbe3d0b1e5": {
       "samples": 80,
@@ -434,11 +491,13 @@
       ],
       "sessions": [
         "qna_auth_collection_Synthetic_19_20260412_210149"
-      ]
+      ],
+      "session_count": 1
     }
   },
   "quality_gates": {
     "min_samples_per_device": 20,
+    "min_sessions_per_device": 2,
     "required_sources": [
       "camera",
       "microphone"
@@ -446,20 +505,64 @@
     "passed": false,
     "failures": [
       "012128c4671852e3: insufficient samples (10 < 20)",
+      "012128c4671852e3: insufficient sessions (1 < 2)",
       "012128c4671852e3: missing required sources ['camera']",
+      "02387b9cbe8e24fd: insufficient sessions (1 < 2)",
+      "048ebd4c1deba134: insufficient sessions (1 < 2)",
+      "19562771bed1a637: insufficient sessions (1 < 2)",
+      "1b5faf380eed2312: insufficient sessions (1 < 2)",
+      "1febc91d0b46399a: insufficient sessions (1 < 2)",
+      "246dc7392d4f7994: insufficient sessions (1 < 2)",
       "2b1644efe576e916: insufficient samples (10 < 20)",
+      "2b1644efe576e916: insufficient sessions (1 < 2)",
       "2b1644efe576e916: missing required sources ['camera']",
       "2f7ae38e5f04ccae: insufficient samples (10 < 20)",
+      "2f7ae38e5f04ccae: insufficient sessions (1 < 2)",
       "2f7ae38e5f04ccae: missing required sources ['camera']",
+      "304a798cdc7e5d45: insufficient sessions (1 < 2)",
+      "4074de8ebfac6840: insufficient sessions (1 < 2)",
+      "46647f7e96be25f1: insufficient sessions (1 < 2)",
+      "47679033b49b4ef6: insufficient sessions (1 < 2)",
+      "50d065ced869ec26: insufficient sessions (1 < 2)",
+      "5b0e6f8077e79e3c: insufficient sessions (1 < 2)",
+      "5c2d4095f4304a1f: insufficient sessions (1 < 2)",
+      "6449519725346549: insufficient sessions (1 < 2)",
+      "662d24dfbdcd5d59: insufficient sessions (1 < 2)",
+      "676d8a6fa1ae1a40: insufficient sessions (1 < 2)",
+      "71cebd49ee376c19: insufficient sessions (1 < 2)",
+      "72305d30d606014e: insufficient sessions (1 < 2)",
       "7a90c62e29ee2fbf: insufficient samples (10 < 20)",
+      "7a90c62e29ee2fbf: insufficient sessions (1 < 2)",
       "7a90c62e29ee2fbf: missing required sources ['camera']",
+      "7e4c120a84d4c861: insufficient sessions (1 < 2)",
+      "8426409298dc087e: insufficient sessions (1 < 2)",
       "8968838b7a0400a7: insufficient samples (10 < 20)",
+      "8968838b7a0400a7: insufficient sessions (1 < 2)",
       "8968838b7a0400a7: missing required sources ['camera']",
+      "a9df06840c8a5ba3: insufficient sessions (1 < 2)",
+      "b2a4dd15b98155d3: insufficient sessions (1 < 2)",
       "b8ab6a5419cd0244: insufficient samples (10 < 20)",
+      "b8ab6a5419cd0244: insufficient sessions (1 < 2)",
       "b8ab6a5419cd0244: missing required sources ['camera']",
+      "bb2ef57f75a216b5: insufficient sessions (1 < 2)",
+      "bdd82f18fbed0510: insufficient sessions (1 < 2)",
+      "c0743ef082690146: insufficient sessions (1 < 2)",
+      "c1af859f31ed20d8: insufficient sessions (1 < 2)",
+      "ca879b2cd53ec351: insufficient sessions (1 < 2)",
+      "ccf7b73d52729d1a: insufficient sessions (1 < 2)",
+      "da99c10c138772a6: insufficient sessions (1 < 2)",
+      "dd76aa95fdb7c27f: insufficient sessions (1 < 2)",
+      "e4ff83e44c4eded1: insufficient sessions (1 < 2)",
+      "e5c58a6be643c772: insufficient sessions (1 < 2)",
+      "e96d07cb8a3a393c: insufficient sessions (1 < 2)",
+      "eabc431f8a364d39: insufficient sessions (1 < 2)",
       "eabc431f8a364d39: missing required sources ['camera']",
+      "f27243e9b1a90fda: insufficient sessions (1 < 2)",
+      "f528475cab68374a: insufficient sessions (1 < 2)",
       "f5acc369dfd52c9d: insufficient samples (10 < 20)",
-      "f5acc369dfd52c9d: missing required sources ['camera']"
+      "f5acc369dfd52c9d: insufficient sessions (1 < 2)",
+      "f5acc369dfd52c9d: missing required sources ['camera']",
+      "f5b8fffbe3d0b1e5: insufficient sessions (1 < 2)"
     ]
   }
 }

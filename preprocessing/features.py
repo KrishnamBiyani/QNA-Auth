@@ -33,9 +33,10 @@ def get_canonical_feature_names() -> list:
 class NoisePreprocessor:
     """Preprocessing and feature extraction for noise data."""
 
-    def __init__(self, normalize: bool = True, fast_mode: bool = False):
+    def __init__(self, normalize: bool = True, fast_mode: bool = False, max_analysis_points: int = 16_384):
         self.normalize = normalize
         self.fast_mode = fast_mode
+        self.max_analysis_points = max(1, int(max_analysis_points))
 
     @staticmethod
     def _ensure_1d_float_array(data: np.ndarray) -> np.ndarray:
@@ -54,6 +55,13 @@ class NoisePreprocessor:
     @staticmethod
     def _prefix_features(prefix: str, features: Dict[str, float]) -> Dict[str, float]:
         return {f"{prefix}{name}": float(value) for name, value in features.items()}
+
+    def _analysis_view(self, data: np.ndarray) -> np.ndarray:
+        """Return a bounded-length view used by expensive transforms."""
+        if data.size <= self.max_analysis_points:
+            return data
+        step = int(np.ceil(data.size / self.max_analysis_points))
+        return np.ascontiguousarray(data[::step][: self.max_analysis_points], dtype=np.float32)
 
     def apply_bandpass_filter(
         self,
@@ -219,6 +227,7 @@ class NoisePreprocessor:
         raw = self._ensure_1d_float_array(data)
         centered = raw - np.mean(raw)
         normalized = self.normalize_data(centered, method="standard") if self.normalize else centered
+        analysis = self._analysis_view(normalized)
 
         features: Dict[str, float] = {}
 
@@ -232,10 +241,10 @@ class NoisePreprocessor:
         norm_stats = self.compute_statistical_features(normalized)
         for key in ("skewness", "kurtosis", "peak_factor"):
             features[f"norm_{key}"] = norm_stats[key]
-        features["norm_shannon_entropy"] = self.compute_entropy(normalized)
-        features.update(self._prefix_features("norm_", self.compute_fft_features(normalized, sample_rate)))
-        features.update(self._prefix_features("norm_", self.compute_autocorrelation_features(normalized)))
-        features.update(self._prefix_features("norm_", self.compute_complexity_features(normalized)))
+        features["norm_shannon_entropy"] = self.compute_entropy(analysis)
+        features.update(self._prefix_features("norm_", self.compute_fft_features(analysis, sample_rate)))
+        features.update(self._prefix_features("norm_", self.compute_autocorrelation_features(analysis)))
+        features.update(self._prefix_features("norm_", self.compute_complexity_features(analysis)))
         return {name: self._safe_value(value) for name, value in features.items()}
 
 

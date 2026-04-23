@@ -88,10 +88,16 @@ def main():
     p.add_argument("--epochs", type=int, default=20, help="Training epochs")
     p.add_argument("--save-last-n", type=int, default=3, help="Keep last N epoch checkpoints (0 = keep all)")
     p.add_argument("--batch-size", type=int, default=64, help="DataLoader batch size")
-    p.add_argument("--num-workers", type=int, default=min(4, os.cpu_count() or 1), help="DataLoader worker processes")
+    default_num_workers = 0 if os.name == "nt" else min(4, os.cpu_count() or 1)
+    p.add_argument("--num-workers", type=int, default=default_num_workers, help="DataLoader worker processes")
     p.add_argument("--samples-per-epoch", type=int, default=0, help="Triplets per epoch (0 = auto)")
     p.add_argument("--grad-clip", type=float, default=1.0, help="Gradient clipping max-norm (<=0 disables)")
     p.add_argument("--amp", action=argparse.BooleanOptionalAction, default=True, help="Use mixed precision on CUDA")
+    p.add_argument("--learning-rate", type=float, default=0.001, help="Optimizer learning rate")
+    p.add_argument("--weight-decay", type=float, default=1e-5, help="Adam weight decay")
+    p.add_argument("--triplet-margin", type=float, default=1.0, help="Triplet/contrastive margin")
+    p.add_argument("--hard-negative-k", type=int, default=4, help="Sample this many candidate negatives and keep the hardest")
+    p.add_argument("--embedding-dim", type=int, default=128, help="Embedding dimension")
     p.add_argument("--eval-dir", type=str, default="model/evaluation", help="Where to save evaluation report/plots")
     p.add_argument("--val-ratio", type=float, default=0.2, help="Fraction of data per device for validation (0 = no val)")
     p.add_argument("--sources", type=str, default="camera,microphone", help="Comma-separated sources to include in training/eval")
@@ -145,7 +151,11 @@ def main():
         torch.set_float32_matmul_precision("high")
 
     samples_per_epoch = args.samples_per_epoch if args.samples_per_epoch > 0 else max(400, total_samples * 6)
-    train_dataset = TripletDataset(train_by_device, samples_per_epoch=samples_per_epoch)
+    train_dataset = TripletDataset(
+        train_by_device,
+        samples_per_epoch=samples_per_epoch,
+        hard_negative_k=args.hard_negative_k,
+    )
 
     g = torch.Generator()
     g.manual_seed(args.seed)
@@ -169,7 +179,11 @@ def main():
     val_loader = None
     if len(val_by_device) >= 2 and all(len(v) > 0 for v in val_by_device.values()):
         val_samples = max(50, sum(len(v) for v in val_by_device.values()) // 2)
-        val_dataset = TripletDataset(val_by_device, samples_per_epoch=val_samples)
+        val_dataset = TripletDataset(
+            val_by_device,
+            samples_per_epoch=val_samples,
+            hard_negative_k=max(1, min(args.hard_negative_k, 4)),
+        )
         g_val = torch.Generator()
         g_val.manual_seed(args.seed + 1)
         val_loader_kwargs = {
@@ -191,12 +205,14 @@ def main():
     else:
         print("No validation split; best model will not be saved by val loss")
 
-    embedding_dim = 128
+    embedding_dim = args.embedding_dim
     model = SiameseNetwork(input_dim=input_dim, embedding_dim=embedding_dim)
     trainer = ModelTrainer(
         model=model,
         loss_type="triplet",
-        learning_rate=0.001,
+        learning_rate=args.learning_rate,
+        margin=args.triplet_margin,
+        weight_decay=args.weight_decay,
         use_amp=args.amp,
         grad_clip_norm=(args.grad_clip if args.grad_clip > 0 else None),
     )
@@ -226,10 +242,61 @@ def main():
 
     evaluator = ModelEvaluator(embedder)
     eval_dir = str(ROOT / args.eval_dir / output_stem)
-    report = evaluator.generate_report(test_by_device, save_dir=eval_dir, target_far=args.target_far)
+    calibration_threshold = None
+    calibration_source = "test_fallback"
+    calibration_report = None
+
+    if len(val_by_device) >= 2:
+        logger_target = "validation"
+        val_embeddings = evaluator.compute_embeddings(val_by_device)
+        val_scores, val_labels = evaluator.compute_similarity_scores(val_embeddings, metric="cosine")
+        if val_scores and len(set(val_labels)) >= 2:
+            calibration_report = evaluator.generate_score_report(
+                val_scores,
+                val_labels,
+                target_far=args.target_far,
+                optimal_metric="balanced_accuracy",
+            )
+            calibration_threshold = float(calibration_report["target_far_threshold"])
+            calibration_source = "validation_target_far"
+        else:
+            logger_target = "test fallback"
+        print(f"Threshold calibration source: {logger_target}")
+
+    test_embeddings = evaluator.compute_embeddings(test_by_device)
+    test_scores, test_labels = evaluator.compute_similarity_scores(test_embeddings, metric="cosine")
+    if not test_scores or len(set(test_labels)) < 2:
+        raise ValueError("Held-out test split must contain both genuine and impostor pairs")
+
+    if calibration_threshold is None:
+        fallback = evaluator.generate_score_report(
+            test_scores,
+            test_labels,
+            target_far=args.target_far,
+            optimal_metric="balanced_accuracy",
+        )
+        calibration_threshold = float(fallback["target_far_threshold"])
+
+    report = evaluator.generate_score_report(
+        test_scores,
+        test_labels,
+        target_far=args.target_far,
+        optimal_metric="balanced_accuracy",
+        deployed_threshold=calibration_threshold,
+    )
+    eval_path = Path(eval_dir)
+    eval_path.mkdir(parents=True, exist_ok=True)
+    evaluator.plot_roc_curve(test_scores, test_labels, eval_path / "roc_curve.png")
+    evaluator.plot_precision_recall_curve(test_scores, test_labels, eval_path / "pr_curve.png")
     report["split_artifact"] = str(split_path)
     report["evaluation_scope"] = "test_only"
     report["source_filter"] = source_filter or ["all"]
+    report["num_devices"] = len(test_by_device)
+    report["total_samples"] = sum(len(v) for v in test_by_device.values())
+    report["deployed_threshold_source"] = calibration_source
+    report["calibration_target_far"] = float(args.target_far)
+    if calibration_report is not None:
+        report["calibration_report"] = calibration_report
     report["history"] = {
         "train_loss": history.get("train_loss", []),
         "val_loss": history.get("val_loss", []),
@@ -254,9 +321,13 @@ def main():
         "preprocessing_fast_mode": bool(args.fast_features),
         "camera_train_augmentation": bool(args.augment_camera_train),
         "camera_aug_copies": int(args.camera_aug_copies),
-        "recommended_threshold": float(report["target_far_threshold"]),
+        "hard_negative_k": int(args.hard_negative_k),
+        "triplet_margin": float(args.triplet_margin),
+        "learning_rate": float(args.learning_rate),
+        "weight_decay": float(args.weight_decay),
+        "recommended_threshold": float(calibration_threshold),
         "target_far": float(args.target_far),
-        "target_far_metrics": report["target_far_metrics"],
+        "target_far_metrics": report.get("deployed_threshold_metrics", report["target_far_metrics"]),
         "output_stem": output_stem,
     }
     torch.save(server_ckpt, server_path)

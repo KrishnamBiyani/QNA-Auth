@@ -1,5 +1,5 @@
 {
-  "split_name": "train_eval_seed_42",
+  "split_name": "camera_microphone_seed_42",
   "counts": {
     "train": 1630,
     "val": 580,
