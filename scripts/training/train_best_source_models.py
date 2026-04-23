@@ -39,6 +39,8 @@ def run_training(
         "2",
         "--target-far",
         str(target_far),
+        "--collection-kinds",
+        "real",
         "--hard-negative-k",
         str(hard_negative_k),
         "--triplet-margin",

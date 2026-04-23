@@ -11,6 +11,7 @@ import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+from itertools import zip_longest
 
 import numpy as np
 import torch
@@ -46,6 +47,8 @@ class DeviceEnroller:
         self.storage_dir.mkdir(parents=True, exist_ok=True)
         self.dataset_builder = dataset_builder
         self.source_weights = self._load_source_weights()
+        self.template_chunk_size = int(getattr(config, "AUTH_TEMPLATE_CHUNK_SIZE", 5))
+        self.max_templates_per_source = int(getattr(config, "AUTH_MAX_TEMPLATES_PER_SOURCE", 4))
         self.drift_ema_alpha = float(getattr(config, "AUTH_DRIFT_EMA_ALPHA", 0.2))
         self.drift_min_strong_matches = int(getattr(config, "AUTH_DRIFT_MIN_STRONG_MATCHES", 2))
         logger.info("DeviceEnroller initialized")
@@ -216,6 +219,52 @@ class DeviceEnroller:
                 source_embeddings[source] = self.create_device_embedding(vectors, source=source, method="mean")
         return source_embeddings
 
+    def create_source_template_bank(
+        self,
+        features_by_source: Dict[str, List[np.ndarray]],
+    ) -> Dict[str, List[torch.Tensor]]:
+        source_templates: Dict[str, List[torch.Tensor]] = {}
+        chunk_size = max(1, self.template_chunk_size)
+        max_templates = max(1, self.max_templates_per_source)
+        for source, vectors in features_by_source.items():
+            if not vectors:
+                continue
+            templates: List[torch.Tensor] = []
+            for start in range(0, len(vectors), chunk_size):
+                chunk = vectors[start:start + chunk_size]
+                if not chunk:
+                    continue
+                templates.append(self.create_device_embedding(chunk, source=source, method="mean"))
+                if len(templates) >= max_templates:
+                    break
+            if templates:
+                source_templates[source] = templates
+        return source_templates
+
+    def combine_source_template_bank(
+        self,
+        source_templates: Dict[str, List[torch.Tensor]],
+    ) -> List[torch.Tensor]:
+        if not source_templates:
+            return []
+        weights = self.get_effective_weights(list(source_templates.keys()))
+        max_len = max(len(templates) for templates in source_templates.values())
+        combined_templates: List[torch.Tensor] = []
+        for idx in range(max_len):
+            template_slice = {
+                source: templates[min(idx, len(templates) - 1)]
+                for source, templates in source_templates.items()
+                if templates
+            }
+            if not template_slice:
+                continue
+            combined = None
+            for source, embedding in template_slice.items():
+                weighted = embedding * float(weights.get(source, 0.0))
+                combined = weighted if combined is None else combined + weighted
+            combined_templates.append(torch.nn.functional.normalize(combined, p=2, dim=0))
+        return combined_templates
+
     def combine_source_embeddings(
         self,
         source_embeddings: Dict[str, torch.Tensor],
@@ -254,6 +303,14 @@ class DeviceEnroller:
                     source: tensor.detach().cpu()
                     for source, tensor in embedding.get("source_embeddings", {}).items()
                 },
+                "combined_templates": [
+                    tensor.detach().cpu()
+                    for tensor in embedding.get("combined_templates", [])
+                ],
+                "source_templates": {
+                    source: [tensor.detach().cpu() for tensor in tensors]
+                    for source, tensors in embedding.get("source_templates", {}).items()
+                },
             }
             combined = payload["combined_embedding"]
         else:
@@ -287,12 +344,21 @@ class DeviceEnroller:
                     source: tensor.float()
                     for source, tensor in payload.get("source_embeddings", {}).items()
                 },
+                "combined_templates": [
+                    tensor.float() for tensor in payload.get("combined_templates", [])
+                ] or [payload["combined_embedding"].float()],
+                "source_templates": {
+                    source: [tensor.float() for tensor in tensors]
+                    for source, tensors in payload.get("source_templates", {}).items()
+                },
                 "template_version": int(payload.get("template_version", 2)),
             }
         else:
             record = {
                 "combined_embedding": payload.float(),
                 "source_embeddings": {},
+                "combined_templates": [payload.float()],
+                "source_templates": {},
                 "template_version": 1,
             }
         return record
@@ -356,6 +422,7 @@ class DeviceEnroller:
             return metadata
 
         updated_sources = dict(record.get("source_embeddings", {}))
+        updated_source_templates = dict(record.get("source_templates", {}))
         for source, auth_embedding in auth_profile.get("source_embeddings", {}).items():
             existing = updated_sources.get(source)
             if existing is None:
@@ -366,6 +433,9 @@ class DeviceEnroller:
                     p=2,
                     dim=0,
                 )
+            source_templates = [tensor.detach().cpu() for tensor in updated_source_templates.get(source, [])]
+            source_templates.append(auth_embedding.detach().cpu())
+            updated_source_templates[source] = source_templates[-max(1, self.max_templates_per_source):]
 
         combined = torch.nn.functional.normalize(
             ((1.0 - alpha) * record["combined_embedding"]) +
@@ -373,6 +443,9 @@ class DeviceEnroller:
             p=2,
             dim=0,
         )
+        combined_templates = [tensor.detach().cpu() for tensor in record.get("combined_templates", [])]
+        combined_templates.append(auth_profile["combined_embedding"].detach().cpu())
+        combined_templates = combined_templates[-max(1, self.max_templates_per_source):]
 
         drift_state["updates"] = int(drift_state.get("updates", 0)) + 1
         drift_state["last_update_at"] = datetime.now().isoformat()
@@ -404,6 +477,8 @@ class DeviceEnroller:
             embedding={
                 "combined_embedding": combined,
                 "source_embeddings": updated_sources,
+                "combined_templates": combined_templates,
+                "source_templates": updated_source_templates,
             },
             metadata=metadata,
         )
@@ -482,6 +557,8 @@ class DeviceEnroller:
             raise RuntimeError("No feature vectors generated from the collected samples")
 
         source_embeddings = self.create_source_embeddings(features_by_source)
+        source_templates = self.create_source_template_bank(features_by_source)
+        combined_templates = self.combine_source_template_bank(source_templates)
         combined_embedding = self.combine_source_embeddings(source_embeddings)
         source_profiles = self._build_source_profiles(noise_samples)
         effective_weights = self.get_effective_weights(list(source_embeddings.keys()))
@@ -494,6 +571,10 @@ class DeviceEnroller:
             "feature_dimension": feature_dimension,
             "source_profiles": source_profiles,
             "source_weights": effective_weights,
+            "template_strategy": "multi_template_chunk_mean",
+            "template_chunk_size": self.template_chunk_size,
+            "max_templates_per_source": self.max_templates_per_source,
+            "combined_template_count": len(combined_templates),
             "embedding_role": "feature_only",
             "match_semantics": "high-confidence device matching",
             "drift_model": {
@@ -515,6 +596,8 @@ class DeviceEnroller:
             embedding={
                 "combined_embedding": combined_embedding,
                 "source_embeddings": source_embeddings,
+                "combined_templates": combined_templates,
+                "source_templates": source_templates,
             },
             metadata=metadata,
         )

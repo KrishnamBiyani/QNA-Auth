@@ -36,21 +36,33 @@ class SampleRecord:
 def load_sample_records(
     data_dir: Path,
     source_filter: str | List[str] | None = None,
+    collection_kinds: str | List[str] | None = None,
     max_records: int | None = None,
     seed: int = 42,
 ) -> List[SampleRecord]:
     records: List[SampleRecord] = []
     json_dir = data_dir / "json"
     allowed_sources = None
+    allowed_collection_kinds = None
     if isinstance(source_filter, str):
         allowed_sources = {source_filter.lower()}
     elif source_filter is not None:
         allowed_sources = {str(item).lower() for item in source_filter}
+    if isinstance(collection_kinds, str):
+        allowed_collection_kinds = {collection_kinds.lower()}
+    elif collection_kinds is not None:
+        allowed_collection_kinds = {str(item).lower() for item in collection_kinds}
     for jf in sorted(json_dir.glob("*.json")):
         try:
             meta = json.loads(jf.read_text(encoding="utf-8"))
             source = str(meta.get("noise_source", "")).lower()
+            collection_kind = str(meta.get("collection_kind", "unknown")).lower()
+            if collection_kind == "unknown":
+                collection_folder = str(meta.get("collection_folder", "")).lower()
+                collection_kind = "synthetic" if "synthetic" in collection_folder else "real"
             if allowed_sources is not None and source not in allowed_sources:
+                continue
+            if allowed_collection_kinds is not None and collection_kind not in allowed_collection_kinds:
                 continue
             rel = str(meta.get("raw_data_path", "")).lstrip("/\\")
             raw_path = data_dir / rel
@@ -135,6 +147,45 @@ def split_by_session(records: List[SampleRecord], train_sessions: List[str], tes
             splits["test"].append(r)
         elif r.session_id in train_set:
             splits["train"].append(r)
+    return splits
+
+
+def split_by_device_session(
+    records: List[SampleRecord],
+    min_sessions_per_device: int = 3,
+    val_ratio: float = 0.2,
+) -> Dict[str, List[SampleRecord]]:
+    by_device: Dict[str, Dict[str, List[SampleRecord]]] = {}
+    for r in records:
+        by_device.setdefault(r.device_id, {}).setdefault(r.session_id, []).append(r)
+
+    eligible_devices = {
+        device_id: session_map
+        for device_id, session_map in by_device.items()
+        if len(session_map) >= max(2, min_sessions_per_device)
+    }
+    if len(eligible_devices) < 2:
+        raise ValueError(
+            f"Need at least 2 devices with >= {max(2, min_sessions_per_device)} sessions for device-session split"
+        )
+
+    splits = {"train": [], "val": [], "test": []}
+    for device_id, session_map in eligible_devices.items():
+        ordered_sessions = sorted(session_map.keys())
+        test_session = ordered_sessions[-1]
+        remaining_sessions = ordered_sessions[:-1]
+        val_session = None
+        if val_ratio > 0 and len(remaining_sessions) >= 2:
+            val_session = remaining_sessions[-1]
+            remaining_sessions = remaining_sessions[:-1]
+
+        for session_id, session_records in session_map.items():
+            if session_id == test_session:
+                splits["test"].extend(session_records)
+            elif val_session is not None and session_id == val_session:
+                splits["val"].extend(session_records)
+            else:
+                splits["train"].extend(session_records)
     return splits
 
 

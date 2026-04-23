@@ -42,8 +42,10 @@ class DeviceAuthenticator:
         self.profile_guard_z = float(getattr(config, "AUTH_PROFILE_GUARD_Z", 6.0))
         self.profile_guard_min_delta = float(getattr(config, "AUTH_PROFILE_GUARD_MIN_DELTA", 0.02))
         self.identification_margin = float(getattr(config, "AUTH_IDENTIFICATION_MARGIN", 0.02))
+        self.template_top_k = int(getattr(config, "AUTH_TEMPLATE_TOP_K", 2))
         self.strong_accept_threshold = float(getattr(config, "AUTH_CONFIDENCE_STRONG", 0.97))
         self.uncertain_threshold = float(getattr(config, "AUTH_CONFIDENCE_UNCERTAIN", 0.92))
+        self.source_thresholds = getattr(config, "AUTH_SOURCE_THRESHOLDS", {})
         self.drift_update_enabled = bool(getattr(config, "AUTH_DRIFT_UPDATE_ENABLED", True))
         logger.info(
             "DeviceAuthenticator initialized (strong=%s, uncertain=%s, metric=%s)",
@@ -116,21 +118,17 @@ class DeviceAuthenticator:
     def _compute_identification_margin(
         self,
         claimed_device_id: str,
-        auth_embedding: torch.Tensor,
+        auth_profile: Dict,
     ) -> Tuple[Optional[float], Optional[float], Optional[str]]:
         claimed_similarity = None
         best_other_similarity = None
         best_other_device_id = None
 
         for candidate_id in self.enroller.list_enrolled_devices():
-            candidate_embedding = self.enroller.load_device_embedding(candidate_id)
-            if candidate_embedding is None:
+            candidate_record = self.enroller.load_device_record(candidate_id)
+            if candidate_record is None:
                 continue
-            similarity = self.embedder.compute_similarity(
-                auth_embedding,
-                candidate_embedding,
-                metric=self.metric,
-            )
+            similarity, _ = self._score_device_record(candidate_record, auth_profile)
             if candidate_id == claimed_device_id:
                 claimed_similarity = similarity
             elif best_other_similarity is None or similarity > best_other_similarity:
@@ -138,6 +136,85 @@ class DeviceAuthenticator:
                 best_other_device_id = candidate_id
 
         return claimed_similarity, best_other_similarity, best_other_device_id
+
+    def _score_template_bank(
+        self,
+        auth_embedding: torch.Tensor,
+        templates: List[torch.Tensor],
+        source: Optional[str] = None,
+    ) -> Tuple[float, List[float]]:
+        if not templates:
+            return 0.0, []
+        embedder = self._get_similarity_embedder(source)
+        scores = [
+            float(embedder.compute_similarity(auth_embedding, template, metric=self.metric))
+            for template in templates
+        ]
+        top_k = max(1, min(self.template_top_k, len(scores)))
+        top_scores = sorted(scores, reverse=True)[:top_k]
+        return float(sum(top_scores) / len(top_scores)), scores
+
+    def _source_thresholds_for(self, source: str) -> Tuple[float, float]:
+        configured = self.source_thresholds.get(source, {}) if isinstance(self.source_thresholds, dict) else {}
+        strong = float(configured.get("strong", self.strong_accept_threshold))
+        uncertain = float(configured.get("uncertain", self.uncertain_threshold))
+        return strong, uncertain
+
+    def _score_device_record(
+        self,
+        stored_record: Dict,
+        auth_profile: Dict,
+    ) -> Tuple[float, Dict]:
+        source_weights = self.enroller.get_effective_weights(auth_profile.get("sources", []))
+        weighted_scores: List[Tuple[str, float, float]] = []
+        per_source_details: Dict[str, Dict[str, float | str | bool]] = {}
+
+        stored_sources = stored_record.get("source_embeddings", {})
+        stored_source_templates = stored_record.get("source_templates", {})
+        auth_sources = auth_profile.get("source_embeddings", {})
+        common_sources = [source for source in auth_sources.keys() if source in stored_sources]
+
+        if common_sources:
+            for source in common_sources:
+                templates = stored_source_templates.get(source) or [stored_sources[source]]
+                similarity, all_scores = self._score_template_bank(auth_sources[source], templates, source=source)
+                weight = float(source_weights.get(source, 0.0))
+                strong_threshold, uncertain_threshold = self._source_thresholds_for(source)
+                band, _ = self._classify_similarity(similarity if source not in self.source_thresholds else similarity)
+                if similarity >= strong_threshold:
+                    band = "strong_accept"
+                elif similarity >= uncertain_threshold:
+                    band = "uncertain"
+                else:
+                    band = "reject"
+                weighted_scores.append((source, similarity, weight))
+                per_source_details[source] = {
+                    "similarity": similarity,
+                    "weight": weight,
+                    "band": band,
+                    "strong_threshold": strong_threshold,
+                    "uncertain_threshold": uncertain_threshold,
+                    "template_count": len(templates),
+                    "template_max_similarity": max(all_scores) if all_scores else similarity,
+                }
+            total_weight = sum(weight for _, _, weight in weighted_scores) or 1.0
+            similarity = sum(score * weight for _, score, weight in weighted_scores) / total_weight
+        else:
+            combined_templates = stored_record.get("combined_templates") or [stored_record["combined_embedding"]]
+            similarity, all_scores = self._score_template_bank(auth_profile["combined_embedding"], combined_templates)
+            per_source_details["combined"] = {
+                "similarity": similarity,
+                "weight": 1.0,
+                "band": "strong_accept" if similarity >= self.strong_accept_threshold else ("uncertain" if similarity >= self.uncertain_threshold else "reject"),
+                "strong_threshold": self.strong_accept_threshold,
+                "uncertain_threshold": self.uncertain_threshold,
+                "template_count": len(combined_templates),
+                "template_max_similarity": max(all_scores) if all_scores else similarity,
+            }
+        return similarity, {
+            "per_source_similarity": per_source_details,
+            "common_sources": common_sources,
+        }
 
     def collect_authentication_sample(
         self,
@@ -233,34 +310,12 @@ class DeviceAuthenticator:
             return False, 0.0, {"error": "Device not enrolled"}
 
         metadata = self._load_device_metadata(device_id)
-        source_weights = self.enroller.get_effective_weights(auth_profile.get("sources", []))
-        weighted_scores: List[Tuple[str, float, float]] = []
-
-        stored_sources = stored_record.get("source_embeddings", {})
-        auth_sources = auth_profile.get("source_embeddings", {})
-        common_sources = [source for source in auth_sources.keys() if source in stored_sources]
-
-        if common_sources:
-            for source in common_sources:
-                similarity = self._get_similarity_embedder(source).compute_similarity(
-                    auth_sources[source],
-                    stored_sources[source],
-                    metric=self.metric,
-                )
-                weighted_scores.append((source, similarity, float(source_weights.get(source, 0.0))))
-            total_weight = sum(weight for _, _, weight in weighted_scores) or 1.0
-            similarity = sum(score * weight for _, score, weight in weighted_scores) / total_weight
-        else:
-            similarity = self.embedder.compute_similarity(
-                auth_profile["combined_embedding"],
-                stored_record["combined_embedding"],
-                metric=self.metric,
-            )
+        similarity, scoring_details = self._score_device_record(stored_record, auth_profile)
 
         band, recommended_action = self._classify_similarity(similarity)
         claimed_similarity, best_other_similarity, best_other_device_id = self._compute_identification_margin(
             claimed_device_id=device_id,
-            auth_embedding=auth_profile["combined_embedding"],
+            auth_profile=auth_profile,
         )
         observed_margin = None
         margin_ok = True
@@ -268,7 +323,13 @@ class DeviceAuthenticator:
             observed_margin = claimed_similarity - best_other_similarity
             margin_ok = observed_margin >= self.identification_margin
 
-        is_authenticated = band == "strong_accept" and margin_ok
+        per_source_checks = scoring_details.get("per_source_similarity", {})
+        per_source_check_passed = all(
+            detail.get("band") != "reject"
+            for detail in per_source_checks.values()
+        ) if per_source_checks else True
+
+        is_authenticated = band == "strong_accept" and margin_ok and per_source_check_passed
         details = {
             "device_id": device_id,
             "similarity": similarity,
@@ -282,13 +343,9 @@ class DeviceAuthenticator:
             "best_other_similarity": best_other_similarity,
             "best_other_device_id": best_other_device_id,
             "margin_check_passed": margin_ok,
-            "per_source_similarity": {
-                source: {
-                    "similarity": score,
-                    "weight": weight,
-                }
-                for source, score, weight in weighted_scores
-            },
+            "per_source_check_passed": per_source_check_passed,
+            "per_source_similarity": per_source_checks,
+            "template_top_k": self.template_top_k,
             "authenticated": is_authenticated,
             "timestamp": datetime.now().isoformat(),
         }

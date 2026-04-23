@@ -37,6 +37,7 @@ from scripts.training.experiment_utils import (
     load_sample_records,
     save_split_artifacts,
     split_by_device,
+    split_by_device_session,
     split_by_session,
     parse_sources_arg,
 )
@@ -112,6 +113,7 @@ def main() -> int:
     parser.add_argument("--out-dir", type=Path, default=Path("artifacts/capstone_eval"))
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--split-policy", choices=["device", "session"], default="device")
+    parser.add_argument("--collection-kinds", type=str, default="real", help="Comma-separated collection kinds to include")
     parser.add_argument("--train-sessions", type=str, default="")
     parser.add_argument("--test-sessions", type=str, default="")
     parser.add_argument("--source-filter", type=str, default=None, help="camera|microphone|None")
@@ -143,9 +145,11 @@ def main() -> int:
         pass
 
     source_filter = parse_sources_arg(args.sources) if args.source_filter is None else [args.source_filter]
+    collection_kinds = parse_sources_arg(args.collection_kinds)
     records = load_sample_records(
         args.data_dir,
         source_filter=source_filter,
+        collection_kinds=collection_kinds,
         max_records=args.max_records,
         seed=args.seed
     )
@@ -156,8 +160,12 @@ def main() -> int:
     if args.split_policy == "session":
         train_sessions = [s for s in args.train_sessions.split(",") if s]
         test_sessions = [s for s in args.test_sessions.split(",") if s]
-        splits = split_by_session(records, train_sessions=train_sessions, test_sessions=test_sessions)
-        split_name = "session"
+        if train_sessions or test_sessions:
+            splits = split_by_session(records, train_sessions=train_sessions, test_sessions=test_sessions)
+            split_name = "session"
+        else:
+            splits = split_by_device_session(records, min_sessions_per_device=3, val_ratio=0.2)
+            split_name = "device_session"
     else:
         splits = split_by_device(records, seed=args.seed, val_ratio=0.2, test_ratio=0.2)
         split_name = "device"
@@ -212,6 +220,7 @@ def main() -> int:
             "split_policy": args.split_policy,
             "source_filter": args.source_filter,
             "sources": source_filter,
+            "collection_kinds": collection_kinds,
             "max_records": args.max_records,
             "fast_features": args.fast_features,
             "model_path": str(args.model_path),

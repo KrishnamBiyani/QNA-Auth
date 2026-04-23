@@ -38,6 +38,7 @@ from preprocessing.features import FEATURE_VERSION, FeatureVector, get_canonical
 from scripts.training.experiment_utils import (
     load_sample_records,
     split_by_device,
+    split_by_device_session,
     assert_no_leakage,
     save_split_artifacts,
     features_from_split,
@@ -101,6 +102,8 @@ def main():
     p.add_argument("--eval-dir", type=str, default="model/evaluation", help="Where to save evaluation report/plots")
     p.add_argument("--val-ratio", type=float, default=0.2, help="Fraction of data per device for validation (0 = no val)")
     p.add_argument("--sources", type=str, default="camera,microphone", help="Comma-separated sources to include in training/eval")
+    p.add_argument("--collection-kinds", type=str, default="real", help="Comma-separated collection kinds to include, e.g. real or real,synthetic")
+    p.add_argument("--split-policy", choices=["device", "device_session"], default="device", help="How to split train/val/test")
     p.add_argument("--fast-features", action="store_true", help="Skip expensive complexity features during feature extraction")
     p.add_argument("--output-stem", type=str, default=None, help="Subdirectory / file stem for checkpoints and evaluation artifacts")
     p.add_argument("--target-far", type=float, default=0.10, help="Target FAR used for threshold calibration")
@@ -111,10 +114,18 @@ def main():
     data_dir = args.data_dir or str(ROOT / "dataset" / "samples")
     set_seed(args.seed)
     source_filter = parse_sources_arg(args.sources)
+    collection_kinds = parse_sources_arg(args.collection_kinds)
     output_stem = args.output_stem or "_".join(source_filter or ["all"])
 
-    records = load_sample_records(Path(data_dir), source_filter=source_filter)
-    splits = split_by_device(records, seed=args.seed, val_ratio=args.val_ratio, test_ratio=0.2)
+    records = load_sample_records(
+        Path(data_dir),
+        source_filter=source_filter,
+        collection_kinds=collection_kinds,
+    )
+    if args.split_policy == "device_session":
+        splits = split_by_device_session(records, min_sessions_per_device=3, val_ratio=args.val_ratio)
+    else:
+        splits = split_by_device(records, seed=args.seed, val_ratio=args.val_ratio, test_ratio=0.2)
     assert_no_leakage(splits)
     split_dir = ROOT / "artifacts" / "splits"
     split_path = save_split_artifacts(splits, split_dir, split_name=f"{output_stem}_seed_{args.seed}")
@@ -291,6 +302,8 @@ def main():
     report["split_artifact"] = str(split_path)
     report["evaluation_scope"] = "test_only"
     report["source_filter"] = source_filter or ["all"]
+    report["collection_kinds"] = collection_kinds or ["all"]
+    report["split_policy"] = args.split_policy
     report["num_devices"] = len(test_by_device)
     report["total_samples"] = sum(len(v) for v in test_by_device.values())
     report["deployed_threshold_source"] = calibration_source
@@ -315,6 +328,8 @@ def main():
         **feature_converter.to_metadata(),
         "feature_version": FEATURE_VERSION,
         "train_sources": source_filter or ["all"],
+        "collection_kinds": collection_kinds or ["all"],
+        "split_policy": args.split_policy,
         "source_weights": getattr(config, "AUTH_SOURCE_WEIGHTS", {"camera": 0.7, "microphone": 0.3}),
         "runtime_alignment": "camera_microphone_weighted_matching",
         "preprocessing_normalize": True,
