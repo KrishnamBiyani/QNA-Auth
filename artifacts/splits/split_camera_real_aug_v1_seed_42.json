@@ -1,0 +1,1455 @@
+{
+  "split_name": "camera_real_aug_v1_seed_42",
+  "counts": {
+    "train": 120,
+    "val": 0,
+    "test": 60
+  },
+  "splits": {
+    "train": [
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203133_376472",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_15:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203133_376472_raw.npy",
+        "timestamp": "2026-04-23T20:31:33.376472"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203133_489913",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_15:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203133_489913_raw.npy",
+        "timestamp": "2026-04-23T20:31:33.489913"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203133_580607",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_15:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203133_580607_raw.npy",
+        "timestamp": "2026-04-23T20:31:33.580607"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203133_671061",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_15:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203133_671061_raw.npy",
+        "timestamp": "2026-04-23T20:31:33.671061"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203133_760026",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_15:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203133_760026_raw.npy",
+        "timestamp": "2026-04-23T20:31:33.760026"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203133_849908",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_15:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203133_849908_raw.npy",
+        "timestamp": "2026-04-23T20:31:33.850885"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203133_919857",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_15:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203133_919857_raw.npy",
+        "timestamp": "2026-04-23T20:31:33.919857"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203134_002640",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_15:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203134_002640_raw.npy",
+        "timestamp": "2026-04-23T20:31:34.002640"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203134_088683",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_15:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203134_088683_raw.npy",
+        "timestamp": "2026-04-23T20:31:34.088683"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203134_154729",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_15:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203134_154729_raw.npy",
+        "timestamp": "2026-04-23T20:31:34.154729"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203134_232578",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_15:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203134_232578_raw.npy",
+        "timestamp": "2026-04-23T20:31:34.232578"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203134_292757",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_15:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203134_292757_raw.npy",
+        "timestamp": "2026-04-23T20:31:34.292757"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203134_356132",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_15:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203134_356132_raw.npy",
+        "timestamp": "2026-04-23T20:31:34.356132"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203134_420966",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_15:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203134_420966_raw.npy",
+        "timestamp": "2026-04-23T20:31:34.420966"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203134_490055",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_15:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203134_490055_raw.npy",
+        "timestamp": "2026-04-23T20:31:34.490055"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203135_488848",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_16:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203135_488848_raw.npy",
+        "timestamp": "2026-04-23T20:31:35.488848"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203135_527597",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_16:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203135_527597_raw.npy",
+        "timestamp": "2026-04-23T20:31:35.527597"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203135_600606",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_16:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203135_600606_raw.npy",
+        "timestamp": "2026-04-23T20:31:35.601615"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203135_667693",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_16:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203135_667693_raw.npy",
+        "timestamp": "2026-04-23T20:31:35.667693"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203135_723861",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_16:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203135_723861_raw.npy",
+        "timestamp": "2026-04-23T20:31:35.723861"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203135_778669",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_16:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203135_778669_raw.npy",
+        "timestamp": "2026-04-23T20:31:35.778669"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203135_843964",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_16:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203135_843964_raw.npy",
+        "timestamp": "2026-04-23T20:31:35.843964"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203135_911916",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_16:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203135_911916_raw.npy",
+        "timestamp": "2026-04-23T20:31:35.911916"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203135_984084",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_16:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203135_984084_raw.npy",
+        "timestamp": "2026-04-23T20:31:35.984084"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203136_053156",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_16:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203136_053156_raw.npy",
+        "timestamp": "2026-04-23T20:31:36.053156"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203136_138343",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_16:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203136_138343_raw.npy",
+        "timestamp": "2026-04-23T20:31:36.138343"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203136_206751",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_16:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203136_206751_raw.npy",
+        "timestamp": "2026-04-23T20:31:36.206751"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203136_276927",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_16:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203136_276927_raw.npy",
+        "timestamp": "2026-04-23T20:31:36.276927"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203136_333927",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_16:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203136_333927_raw.npy",
+        "timestamp": "2026-04-23T20:31:36.333927"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203136_404613",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_16:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203136_404613_raw.npy",
+        "timestamp": "2026-04-23T20:31:36.404613"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203137_473050",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_18:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203137_473050_raw.npy",
+        "timestamp": "2026-04-23T20:31:37.474050"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203137_544681",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_18:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203137_544681_raw.npy",
+        "timestamp": "2026-04-23T20:31:37.544681"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203137_604629",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_18:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203137_604629_raw.npy",
+        "timestamp": "2026-04-23T20:31:37.604629"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203137_651583",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_18:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203137_651583_raw.npy",
+        "timestamp": "2026-04-23T20:31:37.651583"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203137_709646",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_18:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203137_709646_raw.npy",
+        "timestamp": "2026-04-23T20:31:37.709646"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203137_757729",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_18:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203137_757729_raw.npy",
+        "timestamp": "2026-04-23T20:31:37.757729"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203137_798104",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_18:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203137_798104_raw.npy",
+        "timestamp": "2026-04-23T20:31:37.798104"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203137_848517",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_18:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203137_848517_raw.npy",
+        "timestamp": "2026-04-23T20:31:37.848517"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203137_909614",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_18:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203137_909614_raw.npy",
+        "timestamp": "2026-04-23T20:31:37.909614"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203137_983689",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_18:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203137_983689_raw.npy",
+        "timestamp": "2026-04-23T20:31:37.983689"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203138_057700",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_18:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203138_057700_raw.npy",
+        "timestamp": "2026-04-23T20:31:38.057700"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203138_135112",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_18:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203138_135112_raw.npy",
+        "timestamp": "2026-04-23T20:31:38.135112"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203138_192024",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_18:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203138_192024_raw.npy",
+        "timestamp": "2026-04-23T20:31:38.192024"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203138_241025",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_18:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203138_241025_raw.npy",
+        "timestamp": "2026-04-23T20:31:38.241025"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203138_284871",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_18:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203138_284871_raw.npy",
+        "timestamp": "2026-04-23T20:31:38.284871"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203139_121666",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_20:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203139_121666_raw.npy",
+        "timestamp": "2026-04-23T20:31:39.121666"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203139_159728",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_20:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203139_159728_raw.npy",
+        "timestamp": "2026-04-23T20:31:39.159728"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203139_194758",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_20:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203139_194758_raw.npy",
+        "timestamp": "2026-04-23T20:31:39.194758"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203139_239693",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_20:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203139_239693_raw.npy",
+        "timestamp": "2026-04-23T20:31:39.239693"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203139_277050",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_20:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203139_277050_raw.npy",
+        "timestamp": "2026-04-23T20:31:39.277050"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203139_320463",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_20:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203139_320463_raw.npy",
+        "timestamp": "2026-04-23T20:31:39.320463"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203139_368600",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_20:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203139_368600_raw.npy",
+        "timestamp": "2026-04-23T20:31:39.368600"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203139_431451",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_20:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203139_431451_raw.npy",
+        "timestamp": "2026-04-23T20:31:39.432450"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203139_541573",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_20:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203139_541573_raw.npy",
+        "timestamp": "2026-04-23T20:31:39.541573"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203139_585157",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_20:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203139_585157_raw.npy",
+        "timestamp": "2026-04-23T20:31:39.585157"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203139_639933",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_20:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203139_639933_raw.npy",
+        "timestamp": "2026-04-23T20:31:39.639933"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203139_694821",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_20:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203139_694821_raw.npy",
+        "timestamp": "2026-04-23T20:31:39.694821"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203139_753563",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_20:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203139_753563_raw.npy",
+        "timestamp": "2026-04-23T20:31:39.753563"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203139_821336",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_20:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203139_821336_raw.npy",
+        "timestamp": "2026-04-23T20:31:39.821336"
+      },
+      {
+        "sample_id": "84d4687c0a274411_camera_20260423_203139_893728",
+        "device_id": "84d4687c0a274411",
+        "source": "camera",
+        "session_id": "day1_20:00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\84d4687c0a274411_camera_20260423_203139_893728_raw.npy",
+        "timestamp": "2026-04-23T20:31:39.893728"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203142_522794",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "14_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203142_522794_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.522794"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203142_539739",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "14_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203142_539739_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.539739"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203142_551799",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "14_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203142_551799_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.551799"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203142_564033",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "14_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203142_564033_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.564033"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203142_580555",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "14_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203142_580555_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.580555"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203142_593628",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "14_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203142_593628_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.593628"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203142_606238",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "14_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203142_606238_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.606788"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203142_632996",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "14_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203142_632996_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.633975"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203142_672831",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "14_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203142_672831_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.672831"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203142_710893",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "14_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203142_710893_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.711899"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203142_747664",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "14_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203142_747664_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.747664"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203142_784982",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "14_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203142_784982_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.784982"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203142_818571",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "14_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203142_818571_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.818571"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203142_854281",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "14_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203142_854281_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.854281"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203142_895838",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "14_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203142_895838_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.895838"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203143_462975",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "16_15",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203143_462975_raw.npy",
+        "timestamp": "2026-04-23T20:31:43.462975"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203143_474013",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "16_15",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203143_474013_raw.npy",
+        "timestamp": "2026-04-23T20:31:43.474013"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203143_488675",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "16_15",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203143_488675_raw.npy",
+        "timestamp": "2026-04-23T20:31:43.488675"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203143_504598",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "16_15",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203143_504598_raw.npy",
+        "timestamp": "2026-04-23T20:31:43.504598"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203143_518869",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "16_15",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203143_518869_raw.npy",
+        "timestamp": "2026-04-23T20:31:43.518869"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203143_532924",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "16_15",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203143_532924_raw.npy",
+        "timestamp": "2026-04-23T20:31:43.532924"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203143_588592",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "16_15",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203143_588592_raw.npy",
+        "timestamp": "2026-04-23T20:31:43.589605"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203143_620956",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "16_15",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203143_620956_raw.npy",
+        "timestamp": "2026-04-23T20:31:43.620956"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203143_642601",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "16_15",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203143_642601_raw.npy",
+        "timestamp": "2026-04-23T20:31:43.642601"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203143_661933",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "16_15",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203143_661933_raw.npy",
+        "timestamp": "2026-04-23T20:31:43.661933"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203143_676044",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "16_15",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203143_676044_raw.npy",
+        "timestamp": "2026-04-23T20:31:43.676044"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203143_690216",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "16_15",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203143_690216_raw.npy",
+        "timestamp": "2026-04-23T20:31:43.690216"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203143_706770",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "16_15",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203143_706770_raw.npy",
+        "timestamp": "2026-04-23T20:31:43.706770"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203143_718876",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "16_15",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203143_718876_raw.npy",
+        "timestamp": "2026-04-23T20:31:43.718876"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203143_733713",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "16_15",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203143_733713_raw.npy",
+        "timestamp": "2026-04-23T20:31:43.733713"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203144_301576",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "17_52",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203144_301576_raw.npy",
+        "timestamp": "2026-04-23T20:31:44.301576"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203144_316692",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "17_52",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203144_316692_raw.npy",
+        "timestamp": "2026-04-23T20:31:44.316692"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203144_340598",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "17_52",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203144_340598_raw.npy",
+        "timestamp": "2026-04-23T20:31:44.340598"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203144_353748",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "17_52",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203144_353748_raw.npy",
+        "timestamp": "2026-04-23T20:31:44.353748"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203144_373740",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "17_52",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203144_373740_raw.npy",
+        "timestamp": "2026-04-23T20:31:44.373740"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203144_392944",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "17_52",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203144_392944_raw.npy",
+        "timestamp": "2026-04-23T20:31:44.392944"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203144_409967",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "17_52",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203144_409967_raw.npy",
+        "timestamp": "2026-04-23T20:31:44.409967"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203144_428563",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "17_52",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203144_428563_raw.npy",
+        "timestamp": "2026-04-23T20:31:44.428563"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203144_446225",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "17_52",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203144_446225_raw.npy",
+        "timestamp": "2026-04-23T20:31:44.446225"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203144_462960",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "17_52",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203144_462960_raw.npy",
+        "timestamp": "2026-04-23T20:31:44.462960"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203144_483821",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "17_52",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203144_483821_raw.npy",
+        "timestamp": "2026-04-23T20:31:44.483821"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203144_505224",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "17_52",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203144_505224_raw.npy",
+        "timestamp": "2026-04-23T20:31:44.505224"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203144_524911",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "17_52",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203144_524911_raw.npy",
+        "timestamp": "2026-04-23T20:31:44.524911"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203144_545043",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "17_52",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203144_545043_raw.npy",
+        "timestamp": "2026-04-23T20:31:44.545043"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203144_564828",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "17_52",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203144_564828_raw.npy",
+        "timestamp": "2026-04-23T20:31:44.564828"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203145_112950",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "19_50",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203145_112950_raw.npy",
+        "timestamp": "2026-04-23T20:31:45.112950"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203145_126220",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "19_50",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203145_126220_raw.npy",
+        "timestamp": "2026-04-23T20:31:45.126220"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203145_138911",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "19_50",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203145_138911_raw.npy",
+        "timestamp": "2026-04-23T20:31:45.138911"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203145_151975",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "19_50",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203145_151975_raw.npy",
+        "timestamp": "2026-04-23T20:31:45.151975"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203145_167411",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "19_50",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203145_167411_raw.npy",
+        "timestamp": "2026-04-23T20:31:45.167411"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203145_182204",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "19_50",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203145_182204_raw.npy",
+        "timestamp": "2026-04-23T20:31:45.182204"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203145_194107",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "19_50",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203145_194107_raw.npy",
+        "timestamp": "2026-04-23T20:31:45.194107"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203145_209707",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "19_50",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203145_209707_raw.npy",
+        "timestamp": "2026-04-23T20:31:45.209707"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203145_221821",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "19_50",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203145_221821_raw.npy",
+        "timestamp": "2026-04-23T20:31:45.221821"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203145_234441",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "19_50",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203145_234441_raw.npy",
+        "timestamp": "2026-04-23T20:31:45.234441"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203145_250339",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "19_50",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203145_250339_raw.npy",
+        "timestamp": "2026-04-23T20:31:45.250339"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203145_265947",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "19_50",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203145_265947_raw.npy",
+        "timestamp": "2026-04-23T20:31:45.265947"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203145_281630",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "19_50",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203145_281630_raw.npy",
+        "timestamp": "2026-04-23T20:31:45.282618"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203145_296220",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "19_50",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203145_296220_raw.npy",
+        "timestamp": "2026-04-23T20:31:45.296220"
+      },
+      {
+        "sample_id": "b07e03ff520c82cc_camera_20260423_203145_309796",
+        "device_id": "b07e03ff520c82cc",
+        "source": "camera",
+        "session_id": "19_50",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b07e03ff520c82cc_camera_20260423_203145_309796_raw.npy",
+        "timestamp": "2026-04-23T20:31:45.309796"
+      }
+    ],
+    "val": [],
+    "test": [
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_203142_147644",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "18_40",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_203142_147644_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.147644"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_203142_162494",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "18_40",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_203142_162494_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.162494"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_203142_176654",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "18_40",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_203142_176654_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.176654"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_203142_197619",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "18_40",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_203142_197619_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.197619"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_203142_217409",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "18_40",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_203142_217409_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.217409"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_203142_232421",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "18_40",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_203142_232421_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.232421"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_203142_249548",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "18_40",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_203142_249548_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.249548"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_203142_262344",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "18_40",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_203142_262344_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.262344"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_203142_274384",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "18_40",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_203142_274384_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.274384"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_203142_289503",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "18_40",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_203142_289503_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.289503"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_203142_303587",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "18_40",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_203142_303587_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.303587"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_203142_314660",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "18_40",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_203142_314660_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.314660"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_203142_329862",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "18_40",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_203142_329862_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.329862"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_203142_344908",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "18_40",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_203142_344908_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.344908"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_203142_357588",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "18_40",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_203142_357588_raw.npy",
+        "timestamp": "2026-04-23T20:31:42.357588"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_210931_511084",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "21_00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_210931_511084_raw.npy",
+        "timestamp": "2026-04-23T21:09:31.511084"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_210931_524600",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "21_00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_210931_524600_raw.npy",
+        "timestamp": "2026-04-23T21:09:31.524600"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_210931_535600",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "21_00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_210931_535600_raw.npy",
+        "timestamp": "2026-04-23T21:09:31.535600"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_210931_546601",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "21_00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_210931_546601_raw.npy",
+        "timestamp": "2026-04-23T21:09:31.546601"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_210931_558615",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "21_00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_210931_558615_raw.npy",
+        "timestamp": "2026-04-23T21:09:31.558615"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_210931_571612",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "21_00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_210931_571612_raw.npy",
+        "timestamp": "2026-04-23T21:09:31.571612"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_210931_584611",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "21_00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_210931_584611_raw.npy",
+        "timestamp": "2026-04-23T21:09:31.584611"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_210931_596610",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "21_00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_210931_596610_raw.npy",
+        "timestamp": "2026-04-23T21:09:31.596610"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_210931_608623",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "21_00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_210931_608623_raw.npy",
+        "timestamp": "2026-04-23T21:09:31.608623"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_210931_620851",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "21_00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_210931_620851_raw.npy",
+        "timestamp": "2026-04-23T21:09:31.620851"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_210931_632853",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "21_00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_210931_632853_raw.npy",
+        "timestamp": "2026-04-23T21:09:31.632853"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_210931_644850",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "21_00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_210931_644850_raw.npy",
+        "timestamp": "2026-04-23T21:09:31.644850"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_210931_655851",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "21_00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_210931_655851_raw.npy",
+        "timestamp": "2026-04-23T21:09:31.655851"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_210931_667852",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "21_00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_210931_667852_raw.npy",
+        "timestamp": "2026-04-23T21:09:31.667852"
+      },
+      {
+        "sample_id": "b8d7a4a56c344485_camera_20260423_210931_680853",
+        "device_id": "b8d7a4a56c344485",
+        "source": "camera",
+        "session_id": "21_00",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\b8d7a4a56c344485_camera_20260423_210931_680853_raw.npy",
+        "timestamp": "2026-04-23T21:09:31.680853"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203140_730821",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "18_13",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203140_730821_raw.npy",
+        "timestamp": "2026-04-23T20:31:40.730821"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203140_760761",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "18_13",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203140_760761_raw.npy",
+        "timestamp": "2026-04-23T20:31:40.760761"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203140_793739",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "18_13",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203140_793739_raw.npy",
+        "timestamp": "2026-04-23T20:31:40.793739"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203140_827240",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "18_13",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203140_827240_raw.npy",
+        "timestamp": "2026-04-23T20:31:40.827240"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203140_859876",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "18_13",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203140_859876_raw.npy",
+        "timestamp": "2026-04-23T20:31:40.859876"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203140_876973",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "18_13",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203140_876973_raw.npy",
+        "timestamp": "2026-04-23T20:31:40.876973"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203140_890136",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "18_13",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203140_890136_raw.npy",
+        "timestamp": "2026-04-23T20:31:40.890136"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203140_906164",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "18_13",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203140_906164_raw.npy",
+        "timestamp": "2026-04-23T20:31:40.906164"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203140_921243",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "18_13",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203140_921243_raw.npy",
+        "timestamp": "2026-04-23T20:31:40.921243"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203140_931770",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "18_13",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203140_931770_raw.npy",
+        "timestamp": "2026-04-23T20:31:40.931770"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203140_944915",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "18_13",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203140_944915_raw.npy",
+        "timestamp": "2026-04-23T20:31:40.944915"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203140_959863",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "18_13",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203140_959863_raw.npy",
+        "timestamp": "2026-04-23T20:31:40.959863"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203140_972938",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "18_13",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203140_972938_raw.npy",
+        "timestamp": "2026-04-23T20:31:40.972938"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203140_984066",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "18_13",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203140_984066_raw.npy",
+        "timestamp": "2026-04-23T20:31:40.984066"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203140_999238",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "18_13",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203140_999238_raw.npy",
+        "timestamp": "2026-04-23T20:31:40.999238"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203141_486244",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "19_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203141_486244_raw.npy",
+        "timestamp": "2026-04-23T20:31:41.486244"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203141_501872",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "19_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203141_501872_raw.npy",
+        "timestamp": "2026-04-23T20:31:41.501872"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203141_516999",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "19_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203141_516999_raw.npy",
+        "timestamp": "2026-04-23T20:31:41.516999"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203141_531556",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "19_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203141_531556_raw.npy",
+        "timestamp": "2026-04-23T20:31:41.531556"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203141_546752",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "19_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203141_546752_raw.npy",
+        "timestamp": "2026-04-23T20:31:41.546752"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203141_561822",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "19_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203141_561822_raw.npy",
+        "timestamp": "2026-04-23T20:31:41.561822"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203141_575912",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "19_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203141_575912_raw.npy",
+        "timestamp": "2026-04-23T20:31:41.575912"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203141_588370",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "19_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203141_588370_raw.npy",
+        "timestamp": "2026-04-23T20:31:41.588370"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203141_602416",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "19_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203141_602416_raw.npy",
+        "timestamp": "2026-04-23T20:31:41.602416"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203141_616145",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "19_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203141_616145_raw.npy",
+        "timestamp": "2026-04-23T20:31:41.616145"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203141_636845",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "19_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203141_636845_raw.npy",
+        "timestamp": "2026-04-23T20:31:41.636845"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203141_663065",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "19_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203141_663065_raw.npy",
+        "timestamp": "2026-04-23T20:31:41.663065"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203141_679682",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "19_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203141_679682_raw.npy",
+        "timestamp": "2026-04-23T20:31:41.679682"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203141_697529",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "19_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203141_697529_raw.npy",
+        "timestamp": "2026-04-23T20:31:41.697529"
+      },
+      {
+        "sample_id": "bc688826d32aa7f8_camera_20260423_203141_714227",
+        "device_id": "bc688826d32aa7f8",
+        "source": "camera",
+        "session_id": "19_55",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\bc688826d32aa7f8_camera_20260423_203141_714227_raw.npy",
+        "timestamp": "2026-04-23T20:31:41.714227"
+      }
+    ]
+  }
+}

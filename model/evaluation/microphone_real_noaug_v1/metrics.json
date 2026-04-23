@@ -1,0 +1,135 @@
+{
+  "pair_counts": {
+    "total": 1770,
+    "genuine": 870,
+    "impostor": 900
+  },
+  "score_summary": {
+    "genuine": {
+      "count": 870,
+      "mean": 1.0000001192092896,
+      "std": 0.0,
+      "min": 1.0000001192092896,
+      "max": 1.0000001192092896
+    },
+    "impostor": {
+      "count": 900,
+      "mean": 1.0000001192092896,
+      "std": 0.0,
+      "min": 1.0000001192092896,
+      "max": 1.0000001192092896
+    },
+    "overall": {
+      "count": 1770,
+      "mean": 1.0000001192092896,
+      "std": 0.0,
+      "min": 1.0000001192092896,
+      "max": 1.0000001192092896
+    }
+  },
+  "roc_auc": 0.5,
+  "pr_auc": 0.4915254237288136,
+  "optimal_metric": "balanced_accuracy",
+  "optimal_threshold": 0.9999991192092895,
+  "metrics": {
+    "threshold": 0.9999991192092895,
+    "accuracy": 0.4915254237288136,
+    "balanced_accuracy": 0.5,
+    "precision": 0.4915254237288136,
+    "recall": 1.0,
+    "f1_score": 0.6590909090909091,
+    "far": 1.0,
+    "frr": 0.0,
+    "tpr": 1.0,
+    "tnr": 0.0,
+    "tp": 870,
+    "tn": 0,
+    "fp": 900,
+    "fn": 0
+  },
+  "target_far": 0.1,
+  "target_far_threshold": 1.0000011192092895,
+  "target_far_metrics": {
+    "threshold": 1.0000011192092895,
+    "accuracy": 0.5084745762711864,
+    "balanced_accuracy": 0.5,
+    "precision": 0,
+    "recall": 0.0,
+    "f1_score": 0,
+    "far": 0.0,
+    "frr": 1.0,
+    "tpr": 0.0,
+    "tnr": 1.0,
+    "tp": 0,
+    "tn": 900,
+    "fp": 0,
+    "fn": 870
+  },
+  "eer": 0.5,
+  "eer_threshold": Infinity,
+  "deployed_threshold": 1.0000011192092895,
+  "deployed_threshold_metrics": {
+    "threshold": 1.0000011192092895,
+    "accuracy": 0.5084745762711864,
+    "balanced_accuracy": 0.5,
+    "precision": 0,
+    "recall": 0.0,
+    "f1_score": 0,
+    "far": 0.0,
+    "frr": 1.0,
+    "tpr": 0.0,
+    "tnr": 1.0,
+    "tp": 0,
+    "tn": 900,
+    "fp": 0,
+    "fn": 870
+  },
+  "split_artifact": "E:\\Code\\Capstone\\QNA-Auth\\artifacts\\splits\\split_microphone_real_noaug_v1_seed_42.json",
+  "evaluation_scope": "test_only",
+  "source_filter": [
+    "microphone"
+  ],
+  "collection_kinds": [
+    "real"
+  ],
+  "split_policy": "device",
+  "num_devices": 2,
+  "total_samples": 60,
+  "deployed_threshold_source": "test_fallback",
+  "calibration_target_far": 0.1,
+  "history": {
+    "train_loss": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "val_loss": []
+  }
+}

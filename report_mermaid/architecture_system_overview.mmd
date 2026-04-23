@@ -1,0 +1,13 @@
+flowchart LR
+    A["Client Devices<br/>Laptop Collector<br/>Phone LAN Collector"] --> B["Raw Sensor Capture<br/>Camera Dark-Frame Noise<br/>Microphone Ambient Noise"]
+    B --> C["Preprocessing Pipeline<br/>Normalization<br/>Statistical Features<br/>FFT / Autocorrelation<br/>Complexity Features"]
+    C --> D["Siamese Embedding Models<br/>Camera Model: camera_real_aug_v2<br/>Microphone Model: microphone_real_aug_v2"]
+    D --> E["Template Layer<br/>Per-source template banks<br/>Combined templates<br/>Threshold metadata"]
+    E --> F["Authentication Engine<br/>Weighted fusion<br/>Camera 0.85<br/>Microphone 0.15"]
+    F --> G["Decision Layer<br/>Camera required<br/>Margin check<br/>Accept / Uncertain / Reject"]
+    E --> H["Persistence<br/>auth/device_embeddings<br/>server/models<br/>dataset/samples"]
+
+    classDef node fill:#12263f,stroke:#5ea4ff,color:#eef5ff,stroke-width:2px;
+    classDef accent fill:#17354f,stroke:#65e3b4,color:#eef5ff,stroke-width:2px;
+    class A,B,C,D,E,H node;
+    class F,G accent;

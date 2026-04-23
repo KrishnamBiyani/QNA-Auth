@@ -1,0 +1,53 @@
+classDiagram
+    class DeviceEnroller {
+        +collect_noise_samples()
+        +process_noise_to_features_by_source()
+        +create_source_embeddings()
+        +combine_source_embeddings()
+        +load_device_record()
+        +get_effective_weights()
+    }
+
+    class DeviceAuthenticator {
+        +generate_authentication_profile()
+        +verify_device()
+        +_score_device_record()
+        +_compute_identification_margin()
+    }
+
+    class NoisePreprocessor {
+        +extract_all_features()
+        +compute_fft_features()
+        +compute_autocorrelation_features()
+        +compute_complexity_features()
+    }
+
+    class FeatureVector {
+        +to_vector()
+        +to_metadata()
+        +with_standardization()
+    }
+
+    class DeviceEmbedder {
+        +embed()
+        +compute_similarity()
+        +load_model()
+    }
+
+    class FastAPI_Server {
+        +/enroll
+        +/authenticate
+        +/challenge
+        +/verify
+        +/collector
+    }
+
+    FastAPI_Server --> DeviceEnroller
+    FastAPI_Server --> DeviceAuthenticator
+    DeviceEnroller --> NoisePreprocessor
+    DeviceEnroller --> FeatureVector
+    DeviceEnroller --> DeviceEmbedder
+    DeviceAuthenticator --> NoisePreprocessor
+    DeviceAuthenticator --> FeatureVector
+    DeviceAuthenticator --> DeviceEnroller
+    DeviceAuthenticator --> DeviceEmbedder

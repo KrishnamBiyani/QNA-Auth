@@ -1,0 +1,62 @@
+\chapter{\MakeUppercase{Project Description and Goals}}
+\section{Literature Review}
+Representation learning for similarity has a long history, with Siamese architectures serving as one of the most influential formulations for verification tasks. Early work by Bromley et al. demonstrated that twin networks can learn useful comparison functions for signature verification \cite{bromley1993signature}. Later, contrastive-learning approaches and triplet-loss formulations broadened the same idea: instead of learning a closed-set classifier alone, the system learns a space in which same-class samples are close and different-class samples are separated \cite{hadsell2006dimensionality, schroff2015facenet}. QNA-Auth uses this logic for device verification by embedding engineered sensor-noise features into a normalized latent space.
+
+Signal-processing theory also plays a central role. The project does not operate on raw images or full waveforms alone; it relies on a canonical feature extractor that summarizes each sample through descriptive statistics, entropy, autocorrelation, and frequency-domain measures. Spectral estimation methods such as those discussed by Welch remain foundational when reasoning about how power is distributed across frequency components \cite{welch1967use}. Entropy measures trace back to the classical information-theoretic framework of Shannon \cite{shannon1948mathematical}, and are useful here because they capture disorder and distributional spread in noisy signals.
+
+From a methodological perspective, the project aligns more closely with applied security research than with isolated classification studies. A similarity score without a threat model is easy to misinterpret. For that reason, the repository includes a documented attacker model, explicit claim boundaries, confidence bands, rate limiting, audit logging, and nonce-based verification. These elements are part of the project's intellectual contribution, because the system is judged not only by model performance but also by how responsibly it handles uncertainty and exposure.
+
+\section{Research Gap}
+The main research gap addressed by this project lies in the integration of three concerns that are often separated in smaller academic systems:
+\begin{itemize}
+	\item feature extraction and metric learning for noisy sensor data,
+	\item an operational application layer that can enroll, authenticate, and persist state,
+	\item a security-aware interpretation of similarity scores that explicitly models replay, uncertainty, and drift.
+\end{itemize}
+
+Many small prototypes explore hardware-derived or sensor-derived signatures, but they often stop at pairwise score plots. Conversely, many application demos expose endpoints and user interfaces without a clear evaluation story or threat model. QNA-Auth sits between those extremes. It implements a complete service while preserving a research-style evaluation workflow and a defensible attacker narrative.
+
+Another gap is the treatment of ambiguity. Binary thresholding is common because it is easy to implement, but it is a poor representation of uncertain biometric-like signals. QNA-Auth addresses this by using three outcome bands: strong accept, uncertain, and reject. This is particularly useful for device-noise verification because environmental changes can produce genuine but borderline samples that should not be forced into a confident decision.
+
+\section{Objectives}
+The major objectives of the project are:
+\begin{enumerate}
+	\item To design a reusable feature-extraction pipeline for camera and microphone noise samples.
+	\item To build a Siamese-style embedding network suitable for similarity-based device matching.
+	\item To support multi-source enrollment and weighted fusion of source-wise embeddings.
+	\item To implement a runtime authentication policy using confidence bands, per-source checks, and nearest-impostor margins.
+	\item To harden verification against replay using a nonce-bound challenge-response protocol.
+	\item To package the system as a demonstrable backend-frontend application with persistent storage, tests, diagnostics, and reports.
+\end{enumerate}
+
+\section{Problem Statement}
+The project addresses the following problem statement:
+
+\begin{quote}
+Can a software system use camera and microphone sensor noise to build a practical prototype for high-confidence device verification, while remaining technically honest about uncertainty, replay risks, and dataset limitations?
+\end{quote}
+
+This problem is non-trivial because the signals are noisy, the device classes are closely related, and the output must be exposed as a usable service rather than as an offline metric alone. Any useful solution therefore requires feature stability, metric learning, threshold calibration, persistence, and secure workflow design.
+
+\section{Project Plan}
+The repository structure itself suggests the practical project plan followed during development. The work naturally breaks into phases:
+\begin{itemize}
+	\item data collection and dataset organization,
+	\item feature engineering and canonical preprocessing,
+	\item embedding model design and evaluation,
+	\item enrollment and authentication workflow implementation,
+	\item challenge hardening and operational controls,
+	\item review preparation, reporting, and demo stabilization.
+\end{itemize}
+
+This phased plan is suitable for a capstone because each stage produces an independently testable artifact. It also supports iterative improvement. For example, drift logic and confidence-band policies can evolve without rewriting the core feature extractor.
+
+\section{Expected Deliverables}
+The expected final deliverables of the project are not only code files but system capabilities:
+\begin{itemize}
+	\item a working backend with endpoints for enrollment, authentication, challenge creation, and verification,
+	\item a frontend for operating and demonstrating the system,
+	\item a database-backed store for devices, challenges, and audit logs,
+	\item evaluation artifacts with \ac{roc}, \ac{pr}, \ac{far}, \ac{frr}, and \ac{eer} reporting,
+	\item documentation suitable for project review and thesis submission.
+\end{itemize}

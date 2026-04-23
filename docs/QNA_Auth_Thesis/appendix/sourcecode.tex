@@ -1,0 +1,34 @@
+\begin{center}
+	{\Large \textbf{Appendix A}}-\vspace*{0.5 cm}
+	{\Large \textbf{Selected Source Code}}
+\end{center}
+\begin{lstlisting}[language=Python]
+class DeviceAuthenticator:
+    def _classify_similarity(self, similarity: float):
+        if similarity >= self.strong_accept_threshold:
+            return "strong_accept", "accept"
+        if similarity >= self.uncertain_threshold:
+            return "uncertain", "collect_more_samples_or_fallback_auth"
+        return "reject", "reject"
+
+    def authenticate(self, device_id, sources, num_samples_per_source=5, client_samples=None):
+        metadata = self._load_device_metadata(device_id)
+        enrolled_sources = set(metadata.get("sources", []))
+        requested_sources = set(sources)
+        invalid_sources = requested_sources - enrolled_sources
+        if invalid_sources:
+            return False, {"error": "Source mismatch"}
+
+        profile_ok, profile_reason, runtime_profiles = \
+            self._validate_source_profile(metadata, samples_by_source)
+        if not profile_ok:
+            return False, {
+                "error": "Authentication sample profile mismatch",
+                "details": profile_reason,
+                "runtime_profiles": runtime_profiles,
+            }
+
+        auth_profile = self.generate_authentication_profile(samples_by_source)
+        is_authenticated, similarity, details = self.verify_device(device_id, auth_profile)
+        return is_authenticated, details
+\end{lstlisting}

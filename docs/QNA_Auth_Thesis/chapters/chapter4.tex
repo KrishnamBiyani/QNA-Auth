@@ -1,0 +1,64 @@
+\chapter{\MakeUppercase{System Design}}
+
+\section{System Architecture}
+The project follows a layered architecture in which collection, preprocessing, embedding, application logic, persistence, and user interface concerns are separated. This structure improves maintainability and also makes the thesis easier to explain because each layer has a clear responsibility.
+
+\begin{figure}[h!]
+	\centering
+	\fbox{
+	\begin{minipage}{0.85\linewidth}
+	\centering
+	Client Interface (React Frontend)\\
+	$\downarrow$\\
+	FastAPI Endpoints and Request Models\\
+	$\downarrow$\\
+	Enrollment / Authentication / Challenge Logic\\
+	$\downarrow$\\
+	Preprocessing + Feature Vector Conversion\\
+	$\downarrow$\\
+	Siamese Embedding Model and Similarity Engine\\
+	$\downarrow$\\
+	SQLite Database + Template Files + Artifacts
+	\end{minipage}
+	}
+	\caption{High-level architecture of QNA-Auth}
+	\label{fig:qna_arch}
+\end{figure}
+
+At startup, the backend loads the configured model, initializes the feature converter, opens database access, and constructs the enrollment and authentication services. This means requests operate against pre-initialized runtime state rather than rebuilding heavy objects repeatedly.
+
+\section{Detailed Design}
+\subsection{API Design}
+The backend exposes a compact set of endpoints that align with the user workflow:
+\begin{itemize}
+	\item \texttt{POST /enroll}
+	\item \texttt{POST /authenticate}
+	\item \texttt{POST /challenge}
+	\item \texttt{POST /verify}
+	\item \texttt{GET /devices}
+	\item \texttt{GET /devices/\{device\_id\}}
+	\item \texttt{DELETE /devices/\{device\_id\}}
+	\item \texttt{GET /health}
+	\item \texttt{GET /stats}
+\end{itemize}
+
+This design keeps the interface small enough for demonstration but complete enough for thesis discussion. The split between \texttt{/authenticate} and the \texttt{/challenge}--\texttt{/verify} flow is especially useful because it distinguishes a simple matching flow from the more security-hardened replay-resistant path.
+
+\subsection{Enrollment Design}
+The enrollment design centers on multi-template construction. Raw samples are collected or received, grouped by source, converted into canonical feature vectors, and embedded into source-wise representations. Instead of storing only one averaged embedding, the system also stores template banks derived from chunked groups of samples. This allows later matching to compare a runtime sample against several stored variants, which is beneficial when sensor measurements fluctuate.
+
+\subsection{Authentication Design}
+Authentication begins with a source consistency check: the requested runtime sources must match the enrolled source set. Next, the system performs source-profile validation using \ac{rms} statistics. If this check passes, it computes runtime embeddings and scores them against the stored source and combined template banks. Weighted fusion is applied according to configured source weights. Finally, the system computes the best competing impostor score to enforce the required margin before returning a decision.
+
+\subsection{Persistence Design}
+The database schema contains three main entities: devices, challenges, and audit logs. Devices store identifiers, optional names, paths to embedding files, and serialized metadata. Challenges store challenge ID, device ID, nonce, creation time, and expiry time. Audit logs store action type, optional device ID, JSON details, and timestamps. This schema is enough to support both runtime operation and post-hoc inspection.
+
+\subsection{Frontend Design}
+The frontend contains pages for Home, Enroll, Authenticate, and Devices. It is intentionally lightweight. The emphasis is on supporting the workflow rather than building a large dashboard. This is appropriate for a capstone prototype because the main novelty lies in the verification pipeline, while the frontend functions as a clear operational shell around it.
+
+\subsection{Source Fusion Design}
+One of the most important design choices is weighted source fusion. If both camera and microphone embeddings are available, they are combined as:
+\begin{equation}
+e_{combined} = \frac{w_c e_c + w_m e_m}{\|w_c e_c + w_m e_m\|_2}
+\end{equation}
+where the current configuration uses $w_c = 0.7$ and $w_m = 0.3$. The normalized denominator ensures that the combined representation remains a valid cosine-comparison vector. The advantage of this design is that it captures complementary evidence while still allowing per-source diagnostics.

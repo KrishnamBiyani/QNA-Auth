@@ -1,0 +1,103 @@
+\chapter{\MakeUppercase{Methodology and Testing}}
+
+\section{Methodology}
+The QNA-Auth methodology proceeds through five stages: data acquisition, feature extraction, embedding generation, decision scoring, and system-level verification. This staged structure is important because a thesis must explain not only what the code does but why the ordering and dependencies are reasonable.
+
+\subsection{Noise Acquisition}
+The active runtime sources are camera and microphone. During enrollment, the backend can either collect samples directly from the local hardware or accept client-provided sample arrays through the API. Direct collection is useful for live demos. Client-provided payloads are useful for testing, reproducibility, and fallback demonstrations. The same dual-mode logic is also available for authentication.
+
+\subsection{Feature Extraction}
+Every raw sample is reshaped into a one-dimensional numeric array and sanitized for invalid values. The system then computes a bounded analysis view for expensive transforms and extracts both raw-domain and normalized-domain features. This hybrid design is stronger than relying on normalized features alone because raw-domain amplitude descriptors still carry useful information about the acquisition path.
+
+\subsection{Embedding and Similarity}
+The feature vector is passed through a Siamese-style embedding network. The network uses a multilayer perceptron with hidden dimensions and a 128-dimensional normalized output embedding. Similarity is measured by cosine similarity. The system supports both triplet and contrastive formulations, but the runtime interface only depends on the final embedding and similarity functions.
+
+\subsection{Template Bank Construction}
+Enrollment samples are not collapsed into a single vector only. The implementation creates:
+\begin{itemize}
+	\item source embeddings,
+	\item source template banks,
+	\item combined embeddings,
+	\item combined template banks.
+\end{itemize}
+The bank approach improves robustness because the runtime sample can be compared against several stored enrollment summaries rather than one fragile aggregate.
+
+\subsection{Confidence Bands and Drift Updates}
+The project avoids a rigid accept/reject policy by introducing strong accept, uncertain, and reject bands. This is a better fit for noisy sensor verification because it allows the system to ask for more samples or fallback authentication when the evidence is not sufficiently strong.
+
+Template drift is handled through an \ac{ema} update strategy gated by strong accepts. If $e_{old}$ is the stored embedding and $e_{auth}$ is a fresh strong-match embedding, the updated template is:
+\begin{equation}
+e_{new} = \frac{(1-\ac{alpha})e_{old} + \ac{alpha}e_{auth}}{\|(1-\ac{alpha})e_{old} + \ac{alpha}e_{auth}\|_2}
+\end{equation}
+The code further requires a minimum number of strong matches before applying the update, which helps reduce gradual poisoning risk.
+
+\section{Algorithms}
+\begin{algorithm}
+	\caption{Enrollment algorithm}
+	\label{alg:enrollment}
+	\begin{algorithmic}
+		\Require device name, sources, sample count
+		\Ensure device template bundle persisted
+		\State collect or receive noise samples by source
+		\State extract canonical feature vectors for each sample
+		\State generate source embeddings
+		\State build source template bank from chunked samples
+		\State combine source embeddings using configured weights
+		\State compute metadata and source profiles
+		\State save template bundle and metadata
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+	\caption{Authentication algorithm}
+	\label{alg:authentication}
+	\begin{algorithmic}
+		\Require claimed device, fresh samples
+		\Ensure decision and diagnostics
+		\State load stored record and metadata
+		\State validate source set
+		\State compute runtime source \ac{rms} profile
+		\If{profile mismatch}
+			\State reject
+		\EndIf
+		\State generate runtime embeddings
+		\State score against stored template banks
+		\State compute weighted similarity
+		\State compute best impostor similarity
+		\If{strong band and margin satisfied}
+			\State accept
+		\ElsIf{uncertain band}
+			\State return uncertain
+		\Else
+			\State reject
+		\EndIf
+	\end{algorithmic}
+\end{algorithm}
+
+\section{Testing Strategy}
+The repository contains dedicated tests for model evaluation, feature scaling, drift updates, authentication guards, margin checks, multi-template matching, and session split behavior. This is a strong engineering characteristic because the most brittle parts of an authentication system often lie in edge-case decision logic, not just in the model.
+
+Testing in QNA-Auth can be grouped into four categories:
+\begin{itemize}
+	\item preprocessing and feature consistency tests,
+	\item model and evaluation tests,
+	\item authentication-rule and guard tests,
+	\item operational diagnostics and preflight scripts.
+\end{itemize}
+
+\section{Evaluation Procedure}
+The evaluation module computes pairwise similarity scores, threshold sweeps, target-\ac{far} thresholds, \ac{eer}, \ac{roc}, \ac{pr}, and score-distribution summaries. It also supports direct-vector baselines so that the learned Siamese embedding can be compared with simpler alternatives. The latest artifact stored in the repository was generated on April 22, 2026 and uses a device-level split on microphone samples with fast features enabled.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.66\linewidth]{../../artifacts/capstone_eval/20260422T122948Z/roc_siamese.png}
+    \caption{ROC curve from the latest capstone evaluation artifact}
+    \label{fig:roc_eval}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.66\linewidth]{../../artifacts/capstone_eval/20260422T122948Z/pr_siamese.png}
+    \caption{Precision-recall curve from the latest capstone evaluation artifact}
+    \label{fig:pr_eval}
+\end{figure}

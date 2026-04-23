@@ -1,0 +1,11 @@
+\begin{center}
+	\Large{\textbf{EXECUTIVE SUMMARY}}
+\end{center}
+\vspace{1em}
+\normalsize
+\justifying
+\hspace{1cm}QNA-Auth is a capstone prototype for noise-based device verification using camera and microphone sensor fingerprints. The system is designed around a conservative claim boundary: it does not treat learned embeddings as digital credentials or proof of cryptographic identity, but as biometric-like feature templates that support repeated similarity matching under controlled conditions. This framing is central to the project because it keeps the engineering honest while still allowing a meaningful study of device verification.
+
+\hspace{1cm}The implementation combines signal processing, machine learning, and security-oriented system design. Raw samples collected from camera and microphone sources are transformed into a canonical feature representation containing statistical, spectral, entropy, autocorrelation, and complexity descriptors. A Siamese-style embedding network maps these feature vectors into a normalized similarity space, where source-wise and combined templates can be compared during enrollment and authentication. Runtime decisions are not based on a single threshold alone. Instead, the system uses weighted multi-source fusion, confidence bands, source-profile guards, and nearest-impostor margin checks to reduce brittle decisions.
+
+\hspace{1cm}Beyond the core model, QNA-Auth includes a FastAPI backend, SQLite-backed persistence, audit logs, a React frontend, diagnostic scripts, and a nonce-bound challenge-response layer hardened with HKDF and a server secret. The repository also includes evaluation artifacts, review notes, and demo documentation. Taken together, these elements make the project suitable for thesis-level presentation because it demonstrates an end-to-end, technically coherent device-verification pipeline while remaining explicit about dataset limitations, environmental drift, and the need for broader future validation.

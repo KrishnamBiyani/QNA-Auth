@@ -20,6 +20,8 @@ def run_training(
     fast_features: bool,
     augment_camera_train: bool = False,
     camera_aug_copies: int = 3,
+    augment_microphone_train: bool = False,
+    microphone_aug_copies: int = 3,
     hard_negative_k: int = 4,
     triplet_margin: float = 1.0,
 ) -> int:
@@ -54,6 +56,8 @@ def run_training(
         command.append("--fast-features")
     if augment_camera_train:
         command.extend(["--augment-camera-train", "--camera-aug-copies", str(camera_aug_copies)])
+    if augment_microphone_train:
+        command.extend(["--augment-microphone-train", "--microphone-aug-copies", str(microphone_aug_copies)])
 
     print(f"\n=== Training {source} model ===")
     print(" ".join(command))
@@ -68,6 +72,8 @@ def main() -> int:
         epochs=36,
         target_far=0.10,
         fast_features=False,
+        augment_microphone_train=True,
+        microphone_aug_copies=2,
         hard_negative_k=8,
         triplet_margin=0.8,
     )

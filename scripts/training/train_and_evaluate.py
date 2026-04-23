@@ -109,6 +109,8 @@ def main():
     p.add_argument("--target-far", type=float, default=0.10, help="Target FAR used for threshold calibration")
     p.add_argument("--augment-camera-train", action=argparse.BooleanOptionalAction, default=False, help="Apply synthetic augmentation to camera samples in the training split only")
     p.add_argument("--camera-aug-copies", type=int, default=3, help="Number of synthetic camera variants per real training sample")
+    p.add_argument("--augment-microphone-train", action=argparse.BooleanOptionalAction, default=False, help="Apply synthetic augmentation to microphone samples in the training split only")
+    p.add_argument("--microphone-aug-copies", type=int, default=3, help="Number of synthetic microphone variants per real training sample")
     args = p.parse_args()
 
     data_dir = args.data_dir or str(ROOT / "dataset" / "samples")
@@ -135,6 +137,8 @@ def main():
         fast_features=args.fast_features,
         augment_camera_train=args.augment_camera_train,
         camera_aug_copies=args.camera_aug_copies,
+        augment_microphone_train=args.augment_microphone_train,
+        microphone_aug_copies=args.microphone_aug_copies,
         seed=args.seed,
     )
     train_by_device = feat_splits["train"]
@@ -152,6 +156,8 @@ def main():
     print(f"Sources: {source_filter or ['all']}")
     if args.augment_camera_train:
         print(f"Camera augmentation enabled: {args.camera_aug_copies} synthetic train variants per real camera sample")
+    if args.augment_microphone_train:
+        print(f"Microphone augmentation enabled: {args.microphone_aug_copies} synthetic train variants per real microphone sample")
 
     feature_mean, feature_scale = fit_feature_standardization(train_by_device)
     train_by_device = apply_feature_standardization(train_by_device, feature_mean, feature_scale)
@@ -336,6 +342,8 @@ def main():
         "preprocessing_fast_mode": bool(args.fast_features),
         "camera_train_augmentation": bool(args.augment_camera_train),
         "camera_aug_copies": int(args.camera_aug_copies),
+        "microphone_train_augmentation": bool(args.augment_microphone_train),
+        "microphone_aug_copies": int(args.microphone_aug_copies),
         "hard_negative_k": int(args.hard_negative_k),
         "triplet_margin": float(args.triplet_margin),
         "learning_rate": float(args.learning_rate),

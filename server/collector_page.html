@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QNA-Auth LAN Collector</title>
+  <style>
+    :root {
+      --bg: #09111f;
+      --panel: rgba(12, 23, 40, 0.84);
+      --panel-2: rgba(18, 33, 57, 0.92);
+      --line: rgba(164, 193, 255, 0.18);
+      --text: #eef4ff;
+      --muted: #9fb1d1;
+      --accent: #6de0b8;
+      --accent-2: #5da7ff;
+      --danger: #ff7f7f;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Space Grotesk", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(93, 167, 255, 0.22), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(109, 224, 184, 0.16), transparent 24%),
+        linear-gradient(160deg, #050b14 0%, #09111f 48%, #0d1728 100%);
+      padding: 18px;
+    }
+
+    .shell {
+      max-width: 1040px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero, .panel {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .hero {
+      padding: 24px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(2rem, 6vw, 3.4rem);
+      line-height: 0.98;
+      letter-spacing: -0.04em;
+    }
+
+    .hero p, .hint, .status-text {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+    }
+
+    .panel {
+      padding: 18px;
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 1.05rem;
+      letter-spacing: 0.01em;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    input, textarea, select {
+      width: 100%;
+      margin-top: 6px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(164, 193, 255, 0.16);
+      background: var(--panel-2);
+      color: var(--text);
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 92px;
+      resize: vertical;
+    }
+
+    .checks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .check {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 10px 14px;
+      color: var(--text);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .check input {
+      width: auto;
+      margin: 0;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      padding: 13px 18px;
+      font: inherit;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      color: #05101b;
+      background: linear-gradient(135deg, var(--accent) 0%, #b7ffe5 100%);
+      box-shadow: 0 12px 28px rgba(109, 224, 184, 0.24);
+    }
+
+    button.secondary {
+      color: var(--text);
+      background: linear-gradient(135deg, rgba(93,167,255,0.24), rgba(93,167,255,0.14));
+      box-shadow: none;
+      border: 1px solid rgba(93,167,255,0.24);
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .preview-wrap {
+      position: relative;
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: #03070f;
+      aspect-ratio: 4 / 3;
+      min-height: 220px;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.3rem;
+      margin-bottom: 4px;
+    }
+
+    .log {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre-wrap;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(2, 8, 17, 0.84);
+      padding: 14px;
+      min-height: 180px;
+      color: #dbe7ff;
+      overflow-wrap: anywhere;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      border-radius: 999px;
+      padding: 8px 12px;
+      color: #03111d;
+      background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(198, 243, 255, 0.82));
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    .status-ok { color: var(--accent); }
+    .status-warn { color: #ffd38f; }
+    .status-bad { color: var(--danger); }
+
+    @media (max-width: 720px) {
+      body { padding: 12px; }
+      .hero, .panel { border-radius: 20px; }
+      .actions { flex-direction: column; }
+      button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="badge">Local Network Phone Collector</div>
+      <h1>Capture camera and microphone samples from your phone and save them straight onto the training server.</h1>
+      <p>Open this page from your phone on the same Wi‑Fi, grant camera and microphone permission once, then collect a session and save it into <code>dataset/collected</code> on the host machine.</p>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>Session Setup</h2>
+        <label>Device Name
+          <input id="deviceName" value="Phone Device" />
+        </label>
+        <label>Stable Device Key
+          <input id="deviceKey" value="phone_1" />
+        </label>
+        <label>Session ID
+          <input id="sessionId" placeholder="day2_evening" />
+        </label>
+        <label>Environment Label
+          <input id="environmentLabel" placeholder="desk_evening" />
+        </label>
+        <label>Operator
+          <input id="operator" placeholder="Your name" />
+        </label>
+        <label>Notes
+          <textarea id="notes" placeholder="room, lighting, charging state, anything relevant"></textarea>
+        </label>
+        <label>Samples Per Source
+          <input id="sampleCount" type="number" value="10" min="3" max="20" />
+        </label>
+        <div class="checks">
+          <label class="check"><input id="sourceCamera" type="checkbox" checked /> Camera</label>
+          <label class="check"><input id="sourceMicrophone" type="checkbox" checked /> Microphone</label>
+          <label class="check"><input id="createZip" type="checkbox" /> Also create zip</label>
+        </div>
+        <p class="hint">Reuse the same device key every time for the same phone. Change session ID and environment label for each collection run.</p>
+      </div>
+
+      <div class="panel">
+        <h2>Preview</h2>
+        <div class="preview-wrap">
+          <video id="preview" playsinline autoplay muted></video>
+        </div>
+        <div class="actions">
+          <button id="startButton">Enable Camera + Mic</button>
+          <button id="collectButton" class="secondary" disabled>Collect Session</button>
+        </div>
+        <p class="status-text" id="statusText">Waiting for permissions.</p>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>Capture Stats</h2>
+        <div class="stats">
+          <div class="stat"><strong id="cameraCount">0</strong><span>camera samples</span></div>
+          <div class="stat"><strong id="micCount">0</strong><span>microphone samples</span></div>
+          <div class="stat"><strong id="duplicateCount">0</strong><span>duplicate mic rejections</span></div>
+          <div class="stat"><strong id="invalidCount">0</strong><span>invalid mic rejections</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Run Log</h2>
+        <div id="log" class="log"></div>
+      </div>
+    </section>
+  </div>
+
+  <canvas id="cameraCanvas" width="160" height="120" hidden></canvas>
+
+  <script>
+    const preview = document.getElementById("preview");
+    const cameraCanvas = document.getElementById("cameraCanvas");
+    const cameraCtx = cameraCanvas.getContext("2d", { willReadFrequently: true });
+    const logEl = document.getElementById("log");
+    const statusText = document.getElementById("statusText");
+    const startButton = document.getElementById("startButton");
+    const collectButton = document.getElementById("collectButton");
+
+    const cameraCount = document.getElementById("cameraCount");
+    const micCount = document.getElementById("micCount");
+    const duplicateCount = document.getElementById("duplicateCount");
+    const invalidCount = document.getElementById("invalidCount");
+
+    let mediaStream = null;
+    let audioContext = null;
+    let analyser = null;
+    let audioBuffer = null;
+
+    function log(message) {
+      const stamp = new Date().toLocaleTimeString();
+      logEl.textContent = `[${stamp}] ${message}\n` + logEl.textContent;
+    }
+
+    function setStatus(message, tone = "ok") {
+      statusText.textContent = message;
+      statusText.className = `status-text ${tone === "bad" ? "status-bad" : tone === "warn" ? "status-warn" : "status-ok"}`;
+    }
+
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    async function enableMedia() {
+      if (mediaStream) {
+        return;
+      }
+      mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: {
+          channelCount: 1,
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+        },
+      });
+      preview.srcObject = mediaStream;
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const source = audioContext.createMediaStreamSource(mediaStream);
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 4096;
+      analyser.smoothingTimeConstant = 0;
+      source.connect(analyser);
+      audioBuffer = new Float32Array(analyser.fftSize);
+    }
+
+    function captureCameraSample() {
+      cameraCtx.drawImage(preview, 0, 0, cameraCanvas.width, cameraCanvas.height);
+      const imageData = cameraCtx.getImageData(0, 0, cameraCanvas.width, cameraCanvas.height);
+      const { data, width, height } = imageData;
+      const gray = new Float32Array(width * height);
+      for (let i = 0, j = 0; i < data.length; i += 4, j += 1) {
+        gray[j] = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+      }
+
+      const blurred = new Float32Array(gray.length);
+      for (let y = 1; y < height - 1; y += 1) {
+        for (let x = 1; x < width - 1; x += 1) {
+          const idx = y * width + x;
+          let sum = 0;
+          for (let ky = -1; ky <= 1; ky += 1) {
+            for (let kx = -1; kx <= 1; kx += 1) {
+              sum += gray[(y + ky) * width + (x + kx)];
+            }
+          }
+          blurred[idx] = sum / 9;
+        }
+      }
+
+      const noise = new Array(gray.length);
+      for (let i = 0; i < gray.length; i += 1) {
+        noise[i] = gray[i] - blurred[i];
+      }
+      return noise;
+    }
+
+    async function captureMicrophoneSample() {
+      if (!analyser || !audioBuffer) {
+        throw new Error("Microphone is not ready");
+      }
+      await sleep(120);
+      analyser.getFloatTimeDomainData(audioBuffer);
+      return Array.from(audioBuffer.slice(0, 2048));
+    }
+
+    function selectedSources() {
+      const selected = [];
+      if (document.getElementById("sourceCamera").checked) selected.push("camera");
+      if (document.getElementById("sourceMicrophone").checked) selected.push("microphone");
+      return selected;
+    }
+
+    async function collectAndUpload() {
+      const count = Number(document.getElementById("sampleCount").value || 0);
+      const sources = selectedSources();
+      if (!sources.length) {
+        setStatus("Select at least one source.", "bad");
+        return;
+      }
+      if (count < 3) {
+        setStatus("Use at least 3 samples per selected source.", "bad");
+        return;
+      }
+
+      collectButton.disabled = true;
+      startButton.disabled = true;
+      setStatus("Collecting samples...", "warn");
+      log(`Starting collection for ${count} samples per source: ${sources.join(", ")}`);
+
+      const samples = {};
+      let duplicateMic = 0;
+      let invalidMic = 0;
+      const seenMic = new Set();
+
+      try {
+        for (const source of sources) {
+          samples[source] = [];
+          for (let i = 0; i < count; i += 1) {
+            if (source === "camera") {
+              samples[source].push(captureCameraSample());
+              cameraCount.textContent = String(samples[source].length);
+            } else {
+              const mic = await captureMicrophoneSample();
+              const key = mic.slice(0, 24).map((value) => value.toFixed(6)).join(",");
+              const peak = Math.max(...mic.map((value) => Math.abs(value)));
+              if (peak < 0.00005) {
+                invalidMic += 1;
+                invalidCount.textContent = String(invalidMic);
+                log(`Microphone sample ${i + 1}/${count} rejected as near-silent.`);
+                i -= 1;
+                await sleep(180);
+                continue;
+              }
+              if (seenMic.has(key)) {
+                duplicateMic += 1;
+                duplicateCount.textContent = String(duplicateMic);
+                log(`Microphone sample ${i + 1}/${count} rejected as duplicate.`);
+                i -= 1;
+                await sleep(180);
+                continue;
+              }
+              seenMic.add(key);
+              samples[source].push(mic);
+              micCount.textContent = String(samples[source].length);
+            }
+            await sleep(120);
+          }
+        }
+
+        setStatus("Uploading session to server...", "warn");
+        const response = await fetch("/collector/api/save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            device_name: document.getElementById("deviceName").value.trim(),
+            device_key: document.getElementById("deviceKey").value.trim(),
+            session_id: document.getElementById("sessionId").value.trim() || null,
+            environment_label: document.getElementById("environmentLabel").value.trim() || null,
+            operator: document.getElementById("operator").value.trim() || null,
+            notes: document.getElementById("notes").value.trim() || null,
+            create_zip: document.getElementById("createZip").checked,
+            source_samples: samples,
+          }),
+        });
+
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.detail || "Failed to save session");
+        }
+
+        log(`Saved to ${payload.collection_path}`);
+        if (payload.zip_path) {
+          log(`Zip created at ${payload.zip_path}`);
+        }
+        setStatus("Session saved on server.", "ok");
+      } catch (error) {
+        log(`Error: ${error.message}`);
+        setStatus(error.message, "bad");
+      } finally {
+        collectButton.disabled = false;
+        startButton.disabled = false;
+      }
+    }
+
+    startButton.addEventListener("click", async () => {
+      try {
+        await enableMedia();
+        setStatus("Permissions granted. Preview is live.", "ok");
+        collectButton.disabled = false;
+        log("Camera and microphone stream initialized.");
+      } catch (error) {
+        setStatus(`Permission or device error: ${error.message}`, "bad");
+        log(`Media start failed: ${error.message}`);
+      }
+    });
+
+    collectButton.addEventListener("click", collectAndUpload);
+    log("Ready. Open this page from your phone on the same LAN, then tap Enable Camera + Mic.");
+  </script>
+</body>
+</html>

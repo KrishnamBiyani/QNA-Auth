@@ -1,0 +1,1296 @@
+{
+  "split_name": "microphone_real_aug_v2_seed_42",
+  "counts": {
+    "train": 60,
+    "val": 50,
+    "test": 50
+  },
+  "splits": {
+    "train": [
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235804_976003",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180820",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235804_976003_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.976003"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235804_983997",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180820",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235804_983997_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.983997"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235804_990995",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180820",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235804_990995_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.990995"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235804_996997",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180820",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235804_996997_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.996997"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_002997",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180820",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_002997_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.002997"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_009005",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180820",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_009005_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.009005"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_016002",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180820",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_016002_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.016002"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_022997",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180820",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_022997_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.022997"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_030998",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180820",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_030998_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.030998"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_035999",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180820",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_035999_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.035999"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_283030",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_283030_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.284029"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_287029",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_287029_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.288032"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_291028",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_291028_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.291028"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_294030",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_294030_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.294030"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_299027",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_299027_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.299027"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_302019",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_302019_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.302019"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_306020",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_306020_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.306020"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_311026",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_311026_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.311026"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_315019",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_315019_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.315019"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_319025",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_319025_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.319025"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_324023",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_324023_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.324023"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_328031",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_328031_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.328031"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_332028",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_332028_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.332028"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_336026",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_336026_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.336026"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_340029",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_340029_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.340029"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_344044",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_344044_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.344044"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_348045",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_348045_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.348045"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_352042",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_352042_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.352042"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_355043",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_355043_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.355043"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_360184",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_360184_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.360184"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_365186",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_365186_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.365186"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_369195",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_369195_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.369195"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_375189",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_375189_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.375189"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_379195",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_379195_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.379195"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_383192",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_383192_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.383192"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_386193",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_386193_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.386193"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_390189",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_390189_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.390189"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_394191",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_394191_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.394191"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_397186",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_397186_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.397186"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_400183",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_180852",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_400183_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.400183"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_444188",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_444188_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.444188"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_448191",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_448191_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.448191"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_452185",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_452185_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.452185"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_456185",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_456185_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.456185"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_459716",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_459716_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.459716"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_463715",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_463715_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.463715"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_467730",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_467730_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.467730"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_472719",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_472719_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.472719"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_476728",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_476728_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.476728"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_481717",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_481717_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.481717"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_486715",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_486715_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.486715"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_490717",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_490717_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.491725"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_495711",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_495711_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.495711"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_500712",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_500712_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.500712"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_504720",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_504720_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.504720"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_508717",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_508717_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.508717"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_512716",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_512716_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.512716"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_517721",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_517721_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.517721"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_521714",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_521714_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.521714"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_526714",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_526714_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.526714"
+      }
+    ],
+    "val": [
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_574856",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_574856_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.574856"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_578857",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_578857_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.578857"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_583861",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_583861_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.583861"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_587861",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_587861_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.587861"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_592853",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_592853_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.592853"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_596859",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_596859_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.596859"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_602852",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_602852_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.602852"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_608465",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_608465_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.608465"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_613968",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_613968_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.613968"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_618061",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_618061_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.618061"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_622160",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_622160_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.622160"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_636793",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_636793_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.636793"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_649806",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_649806_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.649806"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_654805",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_654805_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.654805"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_659369",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_659369_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.659369"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_663366",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_663366_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.663366"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_667360",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_667360_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.667360"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_671368",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_671368_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.671368"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_676366",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_676366_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.676366"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_680374",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_680374_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.680374"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_684359",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_684359_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.684359"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_689359",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_689359_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.689359"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_693367",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_693367_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.693367"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_698361",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_698361_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.698361"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_704724",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_704724_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.704724"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_710471",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_710471_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.710471"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_716672",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_716672_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.716672"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_723216",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_723216_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.723216"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_728540",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_728540_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.728540"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235805_734545",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181129",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235805_734545_raw.npy",
+        "timestamp": "2026-04-23T23:58:05.734545"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_648250",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night2",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_648250_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.648250"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_653257",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night2",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_653257_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.653257"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_656253",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night2",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_656253_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.656253"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_661319",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night2",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_661319_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.661319"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_664322",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night2",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_664322_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.664322"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_669326",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night2",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_669326_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.669326"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_673324",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night2",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_673324_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.673324"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_677324",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night2",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_677324_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.677324"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_680326",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night2",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_680326_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.680326"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_683327",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night2",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_683327_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.684328"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_688325",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night2",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_688325_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.688325"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_691327",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night2",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_691327_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.691327"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_695329",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night2",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_695329_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.695329"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_698332",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night2",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_698332_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.698332"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_702325",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night2",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_702325_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.702325"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_706327",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night2",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_706327_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.706327"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_709329",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night2",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_709329_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.710336"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_714324",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night2",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_714324_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.714324"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_719321",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night2",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_719321_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.719321"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_722321",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night2",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_722321_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.722321"
+      }
+    ],
+    "test": [
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_004002",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_004002_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.004002"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_008010",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_008010_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.008010"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_012990",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_012990_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.012990"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_018008",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_018008_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.018008"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_022004",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_022004_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.023000"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_027003",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_027003_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.027003"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_031001",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_031001_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.031001"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_034999",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_034999_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.034999"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_039001",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_039001_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.039001"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_043008",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_043008_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.043008"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_047010",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_047010_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.047010"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_051010",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_051010_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.051010"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_054002",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_054002_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.055005"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_058531",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_058531_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.058531"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_063540",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_063540_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.063540"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_067535",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_067535_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.067535"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_072532",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_072532_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.072532"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_075531",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_075531_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.075531"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_079536",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_079536_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.079536"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_083531",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_083531_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.083531"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_088538",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_088538_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.088538"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_092531",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_092531_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.092531"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_097530",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_097530_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.097530"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_101531",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_101531_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.101531"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_106537",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_106537_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.106537"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_110535",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_110535_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.110535"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_115537",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_115537_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.115537"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_119539",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_119539_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.119539"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_123534",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_123534_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.123534"
+      },
+      {
+        "sample_id": "26f2a3f2351a91cd_microphone_20260423_235806_126531",
+        "device_id": "26f2a3f2351a91cd",
+        "source": "microphone",
+        "session_id": "session_20260423_181506",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\26f2a3f2351a91cd_microphone_20260423_235806_126531_raw.npy",
+        "timestamp": "2026-04-23T23:58:06.126531"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_830884",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night3",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_830884_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.830884"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_834893",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night3",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_834893_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.834893"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_837893",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night3",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_837893_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.837893"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_840884",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night3",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_840884_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.840884"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_844906",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night3",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_844906_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.844906"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_848902",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night3",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_848902_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.848902"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_852898",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night3",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_852898_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.852898"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_856431",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night3",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_856431_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.856431"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_860450",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night3",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_860450_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.860450"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_864458",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night3",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_864458_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.864458"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_868453",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night3",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_868453_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.868453"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_872453",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night3",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_872453_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.872453"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_876456",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night3",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_876456_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.876456"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_880451",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night3",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_880451_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.880451"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_885450",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night3",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_885450_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.885450"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_890442",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night3",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_890442_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.890442"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_894445",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night3",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_894445_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.895457"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_898450",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night3",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_898450_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.898450"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_902448",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night3",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_902448_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.902448"
+      },
+      {
+        "sample_id": "e35dc58cd24845a0_microphone_20260423_235804_906451",
+        "device_id": "e35dc58cd24845a0",
+        "source": "microphone",
+        "session_id": "Day1night3",
+        "raw_path": "E:\\Code\\Capstone\\QNA-Auth\\dataset\\samples\\e35dc58cd24845a0_microphone_20260423_235804_906451_raw.npy",
+        "timestamp": "2026-04-23T23:58:04.906451"
+      }
+    ]
+  }
+}

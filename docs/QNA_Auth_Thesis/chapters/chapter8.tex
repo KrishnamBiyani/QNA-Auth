@@ -1,0 +1,30 @@
+\chapter{\MakeUppercase{Conclusion and Further enhancements}}
+\justifying
+\section{Conclusion}
+This project set out to determine whether camera and microphone sensor noise could support a practical prototype for device verification. The answer, based on the implemented system and local repository artifacts, is yes in a bounded and carefully stated sense. QNA-Auth demonstrates that multi-source sensor-noise captures can be transformed into canonical features, embedded into a learned similarity space, and used in a service-oriented workflow that supports enrollment, verification, replay resistance, and operational explainability.
+
+The system's most important strength is not any single metric. It is the combination of:
+\begin{itemize}
+	\item a complete end-to-end software stack,
+	\item explicit claim boundaries,
+	\item a reusable canonical feature pipeline,
+	\item confidence-band based runtime decisions,
+	\item a security-aware challenge-response protocol,
+	\item documentation and artifact generation suitable for academic review.
+\end{itemize}
+
+This makes the project academically valuable because it goes beyond a narrow model experiment and demonstrates the kind of engineering integration expected in a strong capstone thesis.
+
+\section{Further Enhancements}
+Several extensions would materially strengthen the project:
+\begin{itemize}
+	\item collect a larger multi-session dataset across more devices and environments,
+	\item run matched ablations for camera-only, microphone-only, and fused settings,
+	\item calibrate thresholds per deployment environment instead of relying on one fixed global setting,
+	\item improve anti-spoofing and liveness checks,
+	\item expand challenge verification into a stronger client-assisted possession model,
+	\item add more detailed longitudinal drift analysis,
+	\item formalize report-ready statistical confidence intervals over larger evaluation runs.
+\end{itemize}
+
+In summary, QNA-Auth should be presented as a security-aware prototype for high-confidence device matching, not as a finished identity platform. Within that scope, it is a technically sound and thesis-worthy project.

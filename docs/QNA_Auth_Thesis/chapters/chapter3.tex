@@ -1,0 +1,97 @@
+\chapter{\MakeUppercase{Technical Specification}}
+\section{Requirements}
+\subsection{Functional Requirements}
+QNA-Auth satisfies the following functional requirements:
+\begin{itemize}
+	\item The system shall enroll a device using camera and/or microphone noise samples.
+	\item The system shall create and persist device template bundles for later verification.
+	\item The system shall authenticate a claimed device using fresh samples.
+	\item The system shall expose a two-step challenge and verification flow.
+	\item The system shall list, inspect, and delete enrolled devices.
+	\item The system shall record database-backed challenge state and audit events.
+\end{itemize}
+
+\subsection{Non-Functional Requirements}
+Important non-functional requirements include reproducibility, modularity, explainability, and review-day stability. The repository addresses these requirements with centralized configuration, a shared feature pipeline, runtime counters, diagnostic scripts, and fallback demo documentation. These concerns are especially important in a thesis context because a result that cannot be explained or repeated has limited academic value.
+
+\subsection{Software and Hardware Requirements}
+The software requirements are Python, FastAPI, PyTorch, NumPy, SciPy, SQLAlchemy, SQLite, React, and Vite. Hardware requirements are modest: a system capable of running the backend and frontend, optionally equipped with a camera and microphone for live collection. For demonstrations, pre-recorded client samples can be supplied through the API if live hardware is unstable.
+
+\section{Feasibility Study}
+The project is technically feasible because feature extraction operates on one-dimensional arrays and a relatively lightweight embedding model. The backend can work with CPU execution if GPU inference is unavailable. Operationally, the system is feasible as a capstone because it includes demo-mode configuration, diagnostic preflight scripts, and artifact-based fallback flows.
+
+Research feasibility is positive but bounded. The codebase already supports multiple evaluation modes, threshold sweeps, and attack summaries. However, the dataset size is still limited, so the system is feasible as a prototype research contribution rather than as a final production-grade conclusion.
+
+\section{System Specification}
+The project uses a layered architecture. Table \ref{tab:specstack} summarizes the core technical specification.
+
+\begin{table}[h!]
+	\centering
+	\caption{System specification summary}
+	\renewcommand{\arraystretch}{1.3}
+	\begin{tabular}{|l|l|l|}
+		\hline
+		\textbf{Component} & \textbf{Technology} & \textbf{Role} \\
+		\hline
+		Backend & FastAPI + Pydantic & REST API and request validation \\
+		Model & PyTorch & Embedding network and similarity scoring \\
+		Preprocessing & NumPy + SciPy & Feature extraction from noise arrays \\
+		Database & SQLite + SQLAlchemy & Persistent devices, challenges, and logs \\
+		Frontend & React + TypeScript & User-facing controls for demo and review \\
+		Reporting & Python scripts & Evaluation summaries and review brief generation \\
+		\hline
+	\end{tabular}
+\label{tab:specstack}
+\end{table}
+
+\section{Feature Pipeline Specification}
+The canonical feature pipeline in \texttt{preprocessing/features.py} is versioned and shared across training, evaluation, and runtime use. This is an important design decision because inconsistency between train-time features and serve-time features is one of the easiest ways to invalidate a similarity system.
+
+Each sample is converted into a fixed-dimensional representation consisting of:
+\begin{itemize}
+	\item raw-domain statistical features such as mean, standard deviation, range, quartiles, \ac{rms}, and peak factor,
+	\item entropy measures,
+	\item normalized-domain spectral features such as centroid, spread, flatness, and band powers,
+	\item autocorrelation-derived descriptors,
+	\item complexity measures such as approximate entropy and Hurst exponent.
+\end{itemize}
+
+If $x$ is an extracted feature vector, the learned embedding is defined by:
+\begin{equation}
+e = \frac{f_{\ac{theta}}(x)}{\left\|f_{\ac{theta}}(x)\right\|_2}
+\end{equation}
+and cosine similarity is used for comparison:
+\begin{equation}
+s(e_i,e_j) = \frac{e_i \cdot e_j}{\|e_i\|_2 \|e_j\|_2}
+\end{equation}
+
+\section{Decision Threshold Specification}
+Runtime decisions rely on confidence bands rather than a single binary threshold. The active configuration sets:
+\begin{equation}
+\ac{tauS} = 0.97,\hspace{1cm}\ac{tauU} = 0.92
+\end{equation}
+This means:
+\begin{itemize}
+	\item similarity $\geq \ac{tauS}$ implies strong accept,
+	\item similarity between $\ac{tauU}$ and $\ac{tauS}$ implies uncertain,
+	\item similarity $< \ac{tauU}$ implies reject.
+\end{itemize}
+
+The system also uses an identification margin:
+\begin{equation}
+s_{claimed} - s_{best\_other} \geq \ac{margin}
+\end{equation}
+where the configured margin is 0.02. This reduces the chance of accepting a claimed device when an impostor score is nearly as high.
+
+\section{Security Controls}
+The main security controls in the implementation are:
+\begin{itemize}
+	\item nonce-bound challenge generation with short expiry,
+	\item \ac{hkdf}-derived MAC keys tied to stable feature bytes, nonce, and server secret,
+	\item optional API key enforcement,
+	\item per-IP rate limiting,
+	\item database-backed challenge persistence,
+	\item audit logs for enrollment, authentication, verification, and deletion.
+\end{itemize}
+
+These controls do not make the system invulnerable, but they do meaningfully improve the quality of the implementation relative to a purely academic scoring script.

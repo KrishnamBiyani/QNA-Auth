@@ -1,0 +1,135 @@
+{
+  "pair_counts": {
+    "total": 1770,
+    "genuine": 870,
+    "impostor": 900
+  },
+  "score_summary": {
+    "genuine": {
+      "count": 870,
+      "mean": 0.5579735347337421,
+      "std": 0.7207502885507757,
+      "min": -0.9910203218460083,
+      "max": 1.0
+    },
+    "impostor": {
+      "count": 900,
+      "mean": -0.2991616663833459,
+      "std": 0.8390865836281234,
+      "min": -0.9974148273468018,
+      "max": 0.9899291396141052
+    },
+    "overall": {
+      "count": 1770,
+      "mean": 0.12214207653861262,
+      "std": 0.8927235538498501,
+      "min": -0.9974148273468018,
+      "max": 1.0
+    }
+  },
+  "roc_auc": 0.857904214559387,
+  "pr_auc": 0.8820117906681717,
+  "optimal_metric": "balanced_accuracy",
+  "optimal_threshold": 0.9899627395610713,
+  "metrics": {
+    "threshold": 0.9899627395610713,
+    "accuracy": 0.8175141242937853,
+    "balanced_accuracy": 0.8143678160919541,
+    "precision": 1.0,
+    "recall": 0.628735632183908,
+    "f1_score": 0.7720536344389555,
+    "far": 0.0,
+    "frr": 0.37126436781609196,
+    "tpr": 0.628735632183908,
+    "tnr": 1.0,
+    "tp": 547,
+    "tn": 900,
+    "fp": 0,
+    "fn": 323
+  },
+  "target_far": 0.1,
+  "target_far_threshold": 0.9799254791221426,
+  "target_far_metrics": {
+    "threshold": 0.9799254791221426,
+    "accuracy": 0.7887005649717514,
+    "balanced_accuracy": 0.7861302681992337,
+    "precision": 0.9078947368421053,
+    "recall": 0.6344827586206897,
+    "f1_score": 0.7469553450608932,
+    "far": 0.06222222222222222,
+    "frr": 0.36551724137931035,
+    "tpr": 0.6344827586206897,
+    "tnr": 0.9377777777777778,
+    "tp": 552,
+    "tn": 844,
+    "fp": 56,
+    "fn": 318
+  },
+  "eer": 0.267816091954023,
+  "eer_threshold": 0.5189945697784424,
+  "deployed_threshold": 0.9799254791221426,
+  "deployed_threshold_metrics": {
+    "threshold": 0.9799254791221426,
+    "accuracy": 0.7887005649717514,
+    "balanced_accuracy": 0.7861302681992337,
+    "precision": 0.9078947368421053,
+    "recall": 0.6344827586206897,
+    "f1_score": 0.7469553450608932,
+    "far": 0.06222222222222222,
+    "frr": 0.36551724137931035,
+    "tpr": 0.6344827586206897,
+    "tnr": 0.9377777777777778,
+    "tp": 552,
+    "tn": 844,
+    "fp": 56,
+    "fn": 318
+  },
+  "split_artifact": "E:\\Code\\Capstone\\QNA-Auth\\artifacts\\splits\\split_camera_real_aug_v2_seed_42.json",
+  "evaluation_scope": "test_only",
+  "source_filter": [
+    "camera"
+  ],
+  "collection_kinds": [
+    "real"
+  ],
+  "split_policy": "device",
+  "num_devices": 2,
+  "total_samples": 60,
+  "deployed_threshold_source": "test_fallback",
+  "calibration_target_far": 0.1,
+  "history": {
+    "train_loss": [
+      0.08385810067000635,
+      0.0012743534958537888,
+      0.00012901362360400313,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "val_loss": []
+  }
+}

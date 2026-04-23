@@ -1,0 +1,39 @@
+\documentclass{VITSCOPEThesis}
+\input{acronym.tex}
+\begin{document}
+	\pagestyle{plain}
+	\pagenumbering{roman}
+	\setcounter{page}{-1}
+	\tableofcontents
+	\newpage
+	\addcontentsline{toc}{section}{Executive Summary}
+	\input{execsummary.tex}
+	\newpage
+	\listoftables
+	\addcontentsline{toc}{section}{List of Tables}
+	\newpage
+	\listoffigures
+	\addcontentsline{toc}{section}{List of Figures}
+	\newpage
+	\addcontentsline{toc}{section}{List of Abbreviations}
+	\printacronyms[include=abbr, name=List of Abbreviations]
+	\newpage
+	\addcontentsline{toc}{section}{List of Symbols}
+	\printacronyms[include=symbol, name=Symbols and Notations]
+	\newpage
+	\pagenumbering{arabic}
+	\setcounter{page}{1}
+	\include{chapters/chapter1}
+	\include{chapters/chapter2}
+	\include{chapters/chapter3}
+	\include{chapters/chapter4}
+	\include{chapters/chapter5}
+	\include{chapters/chapter6}
+	\include{chapters/chapter7}
+	\include{chapters/chapter8}
+	\bibliography{references.bib}
+	\newpage
+	\include{appendix/sourcecode}
+	\newpage
+	\include{appendix/publication}
+\end{document}

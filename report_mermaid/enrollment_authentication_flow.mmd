@@ -1,0 +1,23 @@
+flowchart TD
+    subgraph Enrollment
+        E1["1. Capture session samples"] --> E2["2. Extract camera / mic feature vectors"]
+        E2 --> E3["3. Generate source embeddings"]
+        E3 --> E4["4. Build template banks"]
+        E4 --> E5["5. Store device profile + metadata"]
+    end
+
+    subgraph Authentication
+        A1["1. Collect fresh probe samples"] --> A2["2. Extract runtime features"]
+        A2 --> A3["3. Compute source embeddings"]
+        A3 --> A4["4. Score against stored templates"]
+        A4 --> A5["5. Weighted fusion<br/>camera 0.85 / mic 0.15"]
+        A5 --> A6["6. Apply camera-required check<br/>+ margin guard"]
+        A6 --> A7["7. Final result<br/>accept / uncertain / reject"]
+    end
+
+    E5 -. enrolled profile .-> A4
+
+    classDef node fill:#10243a,stroke:#5ea4ff,color:#eef5ff,stroke-width:2px;
+    classDef result fill:#17354f,stroke:#65e3b4,color:#eef5ff,stroke-width:2px;
+    class E1,E2,E3,E4,E5,A1,A2,A3,A4,A5,A6 node;
+    class A7 result;

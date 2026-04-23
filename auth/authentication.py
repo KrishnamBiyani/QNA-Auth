@@ -46,6 +46,7 @@ class DeviceAuthenticator:
         self.strong_accept_threshold = float(getattr(config, "AUTH_CONFIDENCE_STRONG", 0.97))
         self.uncertain_threshold = float(getattr(config, "AUTH_CONFIDENCE_UNCERTAIN", 0.92))
         self.source_thresholds = getattr(config, "AUTH_SOURCE_THRESHOLDS", {})
+        self.required_sources = set(getattr(config, "AUTH_REQUIRED_SOURCES", []))
         self.drift_update_enabled = bool(getattr(config, "AUTH_DRIFT_UPDATE_ENABLED", True))
         logger.info(
             "DeviceAuthenticator initialized (strong=%s, uncertain=%s, metric=%s)",
@@ -324,10 +325,23 @@ class DeviceAuthenticator:
             margin_ok = observed_margin >= self.identification_margin
 
         per_source_checks = scoring_details.get("per_source_similarity", {})
-        per_source_check_passed = all(
-            detail.get("band") != "reject"
-            for detail in per_source_checks.values()
-        ) if per_source_checks else True
+        per_source_check_passed = True
+        required_source_failures: List[str] = []
+        if per_source_checks:
+            if self.required_sources:
+                for source in sorted(self.required_sources):
+                    detail = per_source_checks.get(source)
+                    if detail is None:
+                        per_source_check_passed = False
+                        required_source_failures.append(f"{source}:missing")
+                    elif detail.get("band") == "reject":
+                        per_source_check_passed = False
+                        required_source_failures.append(f"{source}:reject")
+            else:
+                per_source_check_passed = all(
+                    detail.get("band") != "reject"
+                    for detail in per_source_checks.values()
+                )
 
         is_authenticated = band == "strong_accept" and margin_ok and per_source_check_passed
         details = {
@@ -344,6 +358,8 @@ class DeviceAuthenticator:
             "best_other_device_id": best_other_device_id,
             "margin_check_passed": margin_ok,
             "per_source_check_passed": per_source_check_passed,
+            "required_sources": sorted(self.required_sources),
+            "required_source_failures": required_source_failures,
             "per_source_similarity": per_source_checks,
             "template_top_k": self.template_top_k,
             "authenticated": is_authenticated,

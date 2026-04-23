@@ -15,6 +15,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks, status, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict
 import torch
@@ -40,6 +41,7 @@ from db import init_db
 from db.models import Device, AuditLog
 from db.session import get_session_factory
 from db.challenge_store import DbChallengeStore
+from server.collector_store import save_browser_collection
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -218,6 +220,26 @@ class VerifyResponse(BaseModel):
     authenticated: bool
     similarity: float
     details: Dict
+
+
+class CollectorSaveRequest(BaseModel):
+    device_name: str = Field(..., min_length=1, max_length=100)
+    device_key: str = Field(..., min_length=1, max_length=100)
+    session_id: Optional[str] = Field(None, max_length=100)
+    environment_label: Optional[str] = Field(None, max_length=120)
+    operator: Optional[str] = Field(None, max_length=120)
+    notes: Optional[str] = Field(None, max_length=400)
+    create_zip: bool = False
+    source_samples: Dict[str, List[List[float]]]
+
+
+class CollectorSaveResponse(BaseModel):
+    status: str
+    device_id: str
+    collection_path: str
+    manifest_path: str
+    zip_path: Optional[str] = None
+    counts: Dict[str, int]
 
 
 class DeviceSummary(BaseModel):
@@ -484,6 +506,47 @@ async def get_stats():
         "active_challenges": active_challenges,
         "devices_in_db": devices_in_db,
         "last_event_at": state.stats.get("last_event_at"),
+    }
+
+
+@app.get("/collector", response_class=HTMLResponse)
+async def collector_page() -> HTMLResponse:
+    collector_html = (PROJECT_ROOT / "server" / "collector_page.html").read_text(encoding="utf-8")
+    return HTMLResponse(content=collector_html)
+
+
+@app.post("/collector/api/save", response_model=CollectorSaveResponse, status_code=status.HTTP_201_CREATED)
+async def save_collector_session(request: CollectorSaveRequest, http_request: Request):
+    _enforce_api_controls(http_request)
+    if not request.source_samples:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No samples were provided")
+
+    collector_root = Path(getattr(config, "COLLECTOR_STORAGE_DIR", PROJECT_ROOT / "dataset" / "collected"))
+    try:
+        saved = save_browser_collection(
+            base_dir=collector_root,
+            device_name=request.device_name,
+            device_key=request.device_key,
+            source_samples=request.source_samples,
+            session_id=request.session_id,
+            environment_label=request.environment_label,
+            notes=request.notes,
+            operator=request.operator,
+            create_zip=request.create_zip,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.exception("Collector session save failed")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from exc
+
+    return {
+        "status": "saved",
+        "device_id": saved.device_id,
+        "collection_path": str(saved.folder_path),
+        "manifest_path": str(saved.manifest_path),
+        "zip_path": str(saved.zip_path) if saved.zip_path else None,
+        "counts": saved.counts,
     }
 
 
@@ -927,4 +990,16 @@ async def root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    ssl_certfile = getattr(config, "SERVER_SSL_CERTFILE", None)
+    ssl_keyfile = getattr(config, "SERVER_SSL_KEYFILE", None)
+    uvicorn_kwargs = {
+        "host": "0.0.0.0",
+        "port": 8000,
+    }
+    if ssl_certfile and ssl_keyfile:
+        uvicorn_kwargs["ssl_certfile"] = ssl_certfile
+        uvicorn_kwargs["ssl_keyfile"] = ssl_keyfile
+        logger.info("Starting HTTPS server with certificate %s", ssl_certfile)
+    else:
+        logger.warning("Starting without HTTPS. Phone browsers will block camera/microphone on plain HTTP.")
+    uvicorn.run(app, **uvicorn_kwargs)

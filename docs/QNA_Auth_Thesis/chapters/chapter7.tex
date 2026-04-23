@@ -1,0 +1,64 @@
+\chapter{\MakeUppercase{Results and Discussion}}
+\justifying
+\section{Results}
+The repository contains multiple evaluation outputs, but the most thesis-relevant artifact is the latest capstone evaluation run stored under \texttt{artifacts/capstone\_eval/20260422T122948Z}. This run uses a device-level split, microphone-only source filtering, fast-feature extraction, and compares three methods: a Siamese embedding model, raw feature cosine similarity, and a small MLP embedding baseline.
+
+The main Siamese metrics from that artifact are summarized in Table \ref{tab:results}. These values are taken directly from the local result file dated April 22, 2026.
+
+\begin{table}[h!]
+\centering
+\caption{Key results from the latest capstone artifact}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Metric} & \textbf{Value} \\
+\hline
+Optimal threshold & 1.0000001192 \\
+Accuracy & 0.8333 \\
+Precision & 0.5000 \\
+Recall & 1.0000 \\
+\ac{far} & 0.2000 \\
+\ac{frr} & 0.0000 \\
+\ac{eer} & 0.1000 \\
+Replay ASR mean & 0.0000 \\
+Impersonation ASR mean & 0.0000 \\
+Synthetic-stats ASR mean & 0.0000 \\
+\hline
+\end{tabular}
+\label{tab:results}
+\end{table}
+
+\section{Discussion of Artifact-Based Results}
+The latest artifact demonstrates that the current pipeline can separate genuine and impostor device samples reasonably well under the documented evaluation slice. An \ac{eer} of 0.10 for the latest artifact is a strong prototype result, especially when interpreted together with zero reported mean attack success for replay, impersonation, and synthetic-statistics attacks within that run.
+
+However, the discussion must remain careful. Other metric files already present in the repository show less favorable performance under different slices and data configurations. For example, older summary JSON files under \texttt{model/evaluation/} report \ac{eer} values that are substantially higher for some source combinations. This means the project is best understood as a promising and technically coherent prototype whose behavior is still sensitive to data scope, source balance, and evaluation policy.
+
+\section{Practical Interpretation}
+From a practical standpoint, the most important result is not the best single number but the full decision behavior. The runtime system uses:
+\begin{itemize}
+	\item strong/uncertain/reject confidence bands,
+	\item per-source similarity checks,
+	\item source-profile guards,
+	\item nearest-impostor margin checks,
+	\item optional drift updates after repeated strong matches.
+\end{itemize}
+
+This richer decision policy is more meaningful than simply reporting an offline threshold. It indicates that the project has moved from pure model experimentation toward applied verification-system design.
+
+\section{Attack Surface Discussion}
+The attacker model captured in the repository documentation is appropriately conservative. Replayed samples are mitigated by single-use nonce-bound verification. Naive synthetic noise is expected to fail because the matcher depends on higher-dimensional structure rather than only summary statistics. Adaptive mimicry remains a residual risk and should be acknowledged as such. Same-device samples collected under a different environment may fall into the uncertain band, which is why the uncertain state exists in the first place.
+
+\section{Limitations}
+The principal limitations are:
+\begin{itemize}
+	\item limited dataset size compared with mature biometric studies,
+	\item mixed performance across older evaluation slices,
+	\item environmental sensitivity and potential capture instability,
+	\item lack of liveness or advanced anti-spoofing mechanisms,
+	\item no claim of cryptographic identity or secret possession in the simple authentication path.
+\end{itemize}
+
+These limitations should not be treated as flaws in reporting. They are part of the technical integrity of the project.
+
+\section{Overall Assessment}
+Overall, the results justify the thesis claim that QNA-Auth is a viable prototype for high-confidence device verification using sensor noise. The project does not establish universal or production-grade security, but it clearly demonstrates that the combination of engineered features, Siamese embeddings, weighted source fusion, and security-aware workflow design can produce a meaningful device-matching pipeline.

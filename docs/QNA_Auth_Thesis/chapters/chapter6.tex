@@ -1,0 +1,76 @@
+\chapter{\MakeUppercase{Project implementation}}
+\justifying
+\section{Backend Implementation}
+The backend entry point is implemented in \texttt{server/app.py}. It creates the FastAPI application, configures cross-origin settings, loads model checkpoints, initializes the feature converter, opens database access, and constructs runtime services for enrollment, authentication, and challenge handling. This startup strategy is efficient because request handlers only invoke business logic rather than reconstructing model state.
+
+The API request and response models are defined using Pydantic. This is important for correctness because it validates field presence, type constraints, and optional payload shapes such as client-provided samples. It also improves the quality of the generated OpenAPI documentation available at the backend's \texttt{/docs} route.
+
+\section{Enrollment Module}
+The enrollment implementation lives in \texttt{auth/enrollment.py}. It is responsible for generating device IDs, collecting or normalizing raw samples, converting them into features, building source embeddings, constructing template banks, saving template bundles, and recording metadata. The metadata fields include:
+\begin{itemize}
+	\item device name,
+	\item number of samples,
+	\item active sources,
+	\item feature dimension,
+	\item source profiles,
+	\item source weights,
+	\item template strategy and template counts,
+	\item drift model parameters,
+	\item attacker-model notes.
+\end{itemize}
+
+This is a particularly strong part of the implementation because the metadata makes each enrollment interpretable and reviewable.
+
+\section{Authentication Module}
+Authentication is implemented in \texttt{auth/authentication.py}. It validates sources, computes runtime profiles, checks for \ac{rms} mismatch, generates runtime embeddings, scores against the stored template banks, and applies confidence-band plus margin logic. The module also supports rolling re-enrollment after strong matches if drift updates are enabled.
+
+One notable implementation detail is the use of a top-$k$ scoring approach over template banks. Instead of using only the single best or single mean score, the module averages the top few template similarities. This reduces the effect of one anomalous stored template.
+
+\section{Challenge-Response Module}
+The challenge-response logic is implemented in \texttt{auth/challenge\_response.py}. A challenge contains a unique challenge ID, device ID, random nonce, creation time, and expiry. The stable feature bytes are derived by coarse quantization of the embedding, then combined with the nonce and server secret through \ac{hkdf} to derive the MAC key. The final response is an \ac{hmac} over challenge data. This prevents straightforward replay because each challenge is single-use and nonce-bound.
+
+\section{Database Implementation}
+The persistence layer is implemented with SQLAlchemy in \texttt{db/models.py}. There are three tables:
+\begin{itemize}
+	\item \texttt{Device}: stores device ID, name, embedding path, metadata, and timestamp,
+	\item \texttt{Challenge}: stores active challenge state and expiry,
+	\item \texttt{AuditLog}: stores event details for important actions.
+\end{itemize}
+
+The database is SQLite by default, which is reasonable for a capstone prototype and simplifies setup. The code also keeps the schema narrow, which reduces maintenance complexity.
+
+\section{Frontend Implementation}
+The frontend application under \texttt{frontend/src/} provides a simple but effective control surface. The home page frames the project as ``noise-based device verification from camera and microphone fingerprints.'' Dedicated pages are available for enrollment, authentication, and device viewing. The frontend service layer centralizes HTTP calls to the backend and defines typed request and response interfaces.
+
+\section{Configuration and Operational Controls}
+Configuration values in \texttt{config.py} make the implementation flexible without being over-engineered. Important controls include:
+\begin{itemize}
+	\item model checkpoint paths,
+	\item confidence thresholds,
+	\item identification margin,
+	\item source weights,
+	\item drift-update parameters,
+	\item challenge expiry,
+	\item demo-mode source limits,
+	\item optional API key and rate limiting settings.
+\end{itemize}
+
+Such configurability is valuable in a thesis setting because it makes experimentation explicit and reproducible.
+
+\section{Illustrative Code Snippet}
+The following excerpt illustrates the style of the implementation by showing a representative configuration block:
+
+\begin{lstlisting}[language=Python]
+AUTH_CONFIDENCE_STRONG = 0.97
+AUTH_CONFIDENCE_UNCERTAIN = 0.92
+AUTH_IDENTIFICATION_MARGIN = 0.02
+AUTH_TEMPLATE_CHUNK_SIZE = 5
+AUTH_MAX_TEMPLATES_PER_SOURCE = 4
+AUTH_DRIFT_EMA_ALPHA = 0.2
+AUTH_SOURCE_WEIGHTS = {
+    "camera": 0.7,
+    "microphone": 0.3,
+}
+\end{lstlisting}
+
+This reflects the overall implementation philosophy of the project: keep the runtime rules explicit and inspectable rather than burying key decisions inside opaque code paths.

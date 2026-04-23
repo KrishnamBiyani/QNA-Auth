@@ -231,6 +231,8 @@ def features_from_split(
     fast_features: bool = False,
     augment_camera_train: bool = False,
     camera_aug_copies: int = 3,
+    augment_microphone_train: bool = False,
+    microphone_aug_copies: int = 3,
     seed: int = 42,
 ) -> Dict[str, Dict[str, List[np.ndarray]]]:
     split_feature_map: Dict[str, Dict[str, List[np.ndarray]]] = {}
@@ -276,13 +278,54 @@ def features_from_split(
 
         return variants
 
+    def augment_microphone_sample(raw: np.ndarray) -> List[np.ndarray]:
+        variants: List[np.ndarray] = []
+        base = np.asarray(raw, dtype=np.float32).reshape(-1)
+        if base.size < 16:
+            return variants
+
+        base_std = float(np.std(base) + 1e-6)
+        for _ in range(max(0, microphone_aug_copies)):
+            arr = base.copy()
+
+            # Mild amplitude perturbation to mimic input gain variation.
+            arr = arr * float(rng.uniform(0.94, 1.06))
+
+            # Small additive noise approximates ambient microphone floor changes.
+            arr = arr + rng.normal(0.0, 0.008 * base_std, size=arr.shape).astype(np.float32)
+
+            # Light temporal shift for alignment robustness.
+            if arr.size >= 32:
+                max_shift = max(1, arr.size // 100)
+                shift = int(rng.integers(-max_shift, max_shift + 1))
+                if shift != 0:
+                    arr = np.roll(arr, shift)
+
+            # Gentle smoothing or high-frequency attenuation to simulate device path differences.
+            if arr.size >= 5 and rng.random() < 0.6:
+                kernel = np.array([1.0, 2.0, 1.0], dtype=np.float32)
+                kernel = kernel / kernel.sum()
+                arr = np.convolve(arr, kernel, mode="same").astype(np.float32)
+
+            # Random window attenuation mimics slight occlusion / transient handling noise.
+            if arr.size >= 64 and rng.random() < 0.5:
+                width = max(8, arr.size // 50)
+                start = int(rng.integers(0, max(1, arr.size - width)))
+                arr[start:start + width] *= float(rng.uniform(0.75, 0.98))
+
+            variants.append(np.nan_to_num(arr, nan=0.0, posinf=0.0, neginf=0.0).astype(np.float32))
+
+        return variants
+
     total_records = sum(len(recs) for recs in splits.values())
     logger.info(
-        "Starting feature extraction (total_records=%d, fast_features=%s, augment_camera_train=%s, camera_aug_copies=%d)",
+        "Starting feature extraction (total_records=%d, fast_features=%s, augment_camera_train=%s, camera_aug_copies=%d, augment_microphone_train=%s, microphone_aug_copies=%d)",
         total_records,
         bool(fast_features),
         bool(augment_camera_train),
         int(camera_aug_copies),
+        bool(augment_microphone_train),
+        int(microphone_aug_copies),
     )
 
     started_all = time.perf_counter()
@@ -298,6 +341,11 @@ def features_from_split(
 
             if split_name == "train" and augment_camera_train and r.source == "camera":
                 for aug_raw in augment_camera_sample(raw):
+                    aug_vec = converter.to_vector(preprocessor.extract_all_features(aug_raw))
+                    by_device.setdefault(r.device_id, []).append(aug_vec)
+                    augmented_count += 1
+            if split_name == "train" and augment_microphone_train and r.source == "microphone":
+                for aug_raw in augment_microphone_sample(raw):
                     aug_vec = converter.to_vector(preprocessor.extract_all_features(aug_raw))
                     by_device.setdefault(r.device_id, []).append(aug_vec)
                     augmented_count += 1

@@ -1,0 +1,25 @@
+flowchart TD
+    S["Live authentication request"] --> C["Camera similarity"]
+    S --> M["Microphone similarity"]
+
+    C --> CW{"Camera >= camera threshold?"}
+    M --> MW{"Microphone available?"}
+
+    MW -- "No" --> F1["Use camera-only decision path"]
+    MW -- "Yes" --> F2["Weighted score = 0.85 * camera + 0.15 * microphone"]
+
+    CW -- "No" --> R["Reject"]
+    CW -- "Yes" --> G{"Margin above second-best device?"}
+
+    F1 --> G
+    F2 --> G
+
+    G -- "No" --> U["Uncertain / collect more samples"]
+    G -- "Yes" --> A["Accept"]
+
+    classDef node fill:#12263f,stroke:#5ea4ff,color:#eef5ff,stroke-width:2px;
+    classDef result fill:#17354f,stroke:#65e3b4,color:#eef5ff,stroke-width:2px;
+    classDef reject fill:#3f1c25,stroke:#ff8b8b,color:#fff0f0,stroke-width:2px;
+    class S,C,M,CW,MW,F1,F2,G node;
+    class A,U result;
+    class R reject;

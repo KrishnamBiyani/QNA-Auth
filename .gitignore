@@ -54,6 +54,17 @@ dataset/samples/json/
 dataset/training_data/
 auth/device_embeddings/
 auth/test_embeddings/
+server/models/*
+!server/models/camera_real_aug_v2_best_model.pt
+!server/models/microphone_real_aug_v2_best_model.pt
+!report_images/
+!report_images/*.png
+!report_mermaid/
+!report_mermaid/*.mmd
+!report_mermaid/*.md
+!report_tables/
+!report_tables/*.md
+!report_tables/*.csv
 
 # Logs
 *.log
@@ -87,7 +98,6 @@ tmp/
 
 # Local config and temp files
 config.py
-server/models/
 
 # Local participant collection dumps (generated)
 qna_auth_collection_*/
