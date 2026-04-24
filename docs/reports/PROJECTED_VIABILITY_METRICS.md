@@ -88,3 +88,24 @@ That is the defensible narrative:
 - better than older single-mic live fingerprints;
 - weaker than mature offline PRNU;
 - still viable because the operating constraints are much harder.
+
+## Slide-Ready Table with PPT Column Names
+
+The presentation slide uses this exact column order:
+
+| Method | Modality | ROC-AUC | EER | Accuracy | Fusion | Replay Protection | Method |
+|---|---|---:|---:|---:|---|---|---|
+| Lukas et al. (2006) - PRNU | Camera only | ~0.95+ | ~4% | ~96% | None | None | Lukas et al. (2006) - PRNU |
+| Goljan et al. (2009) - Large-scale PRNU | Camera only | ~0.97+ | ~2.5% | ~97% | None | None | Goljan et al. (2009) - Large-scale PRNU |
+| Chen et al. (2008) - ML-PRNU | Camera only | ~0.96+ | ~2% | ~97% | None | None | Chen et al. (2008) - ML-PRNU |
+| Das et al. (2014) - Acoustic fingerprint | Mic only | ~0.82 | ~9% | ~85% | None | None | Das et al. (2014) - Acoustic fingerprint |
+| QNA-Auth - Camera only | Camera | 0.858 | 26.8% | 78.9% | No | HKDF nonce | QNA-Auth - Camera only |
+| QNA-Auth - Mic only | Mic | 0.710 | 36.4% | 64.6% | No | HKDF nonce | QNA-Auth - Mic only |
+| QNA-Auth - Fused system (conservative forecast) | Camera + Mic | 0.900 | 12.0% | 85.0% | Yes | HKDF nonce | QNA-Auth - Fused system (conservative forecast) |
+| QNA-Auth - Fused system (target forecast) | Camera + Mic | 0.930 | 8.0% | 89.0% | Yes | HKDF nonce | QNA-Auth - Fused system (target forecast) |
+| QNA-Auth - Fused system (stretch forecast) | Camera + Mic | 0.950 | 6.0% | 92.0% | Yes | HKDF nonce | QNA-Auth - Fused system (stretch forecast) |
+
+Notes:
+- The duplicated `Method` column is preserved intentionally because that is how the PowerPoint slide structure was specified.
+- The measured QNA-Auth camera and microphone rows come from repository evaluation artifacts.
+- The fused rows are forecast scenarios and should stay labeled as projected in discussion.

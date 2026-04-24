@@ -680,6 +680,52 @@ Synthetic-statistics ASR mean & 0.0000 \\
 
 For broader context, older evaluation JSON files in \texttt{model/evaluation/} show more mixed performance under other slices and configurations. For example, the microphone-only metrics file reports EER around 0.2777, while the combined metrics file reports EER around 0.3513. These differences reinforce an important thesis point: performance is sensitive to data conditions, split design, and artifact scope. The April 22 artifact is promising, but it must not be treated as universal.
 
+\section{Measured Modality Context}
+
+The repository also contains modality-specific evaluation JSON files under \texttt{model/evaluation/}. These files are useful because they show the broader measured range already available in the project, rather than only the strongest April 22 artifact slice. Table \ref{tab:measuredmodalitymetrics} summarizes the most thesis-relevant measured camera and microphone results that are already used in the report assets.
+
+\begin{table}[H]
+\centering
+\caption{Measured modality-level results from repository evaluation artifacts}
+\label{tab:measuredmodalitymetrics}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{p{0.22\textwidth}p{0.1\textwidth}p{0.1\textwidth}p{0.1\textwidth}p{0.1\textwidth}p{0.1\textwidth}p{0.1\textwidth}}
+\toprule
+\textbf{Configuration} & \textbf{ROC-AUC} & \textbf{PR-AUC} & \textbf{EER} & \textbf{Accuracy} & \textbf{FAR} & \textbf{FRR} \\
+\midrule
+Camera only (measured) & 0.8579 & 0.8820 & 0.2678 & 0.7887 & 0.0622 & 0.3655 \\
+Microphone only (measured) & 0.7096 & 0.7156 & 0.3641 & 0.6457 & 0.3050 & 0.4016 \\
+April 22 capstone artifact (measured) & N/A & N/A & 0.1000 & 0.8333 & 0.2000 & 0.0000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The camera result is stronger and more stable than the microphone result under the saved modality reports. This supports the engineering decision already reflected in the runtime policy: camera should remain the primary source, while microphone should be treated as supportive evidence rather than as an equal or stronger signal.
+
+\section{Projected Future Results}
+
+Because the current dataset is small, the thesis should not imply that future performance is already known. At the same time, the repository now includes a dedicated forecast bundle under \texttt{Predicted report/} to support a viability discussion. These projected values are not experimental outcomes. They are scenario estimates based on the current measured artifact range, expected benefits of multi-session data collection, and a camera-dominant fusion policy with better threshold calibration.
+
+Table \ref{tab:projectedfuturemetrics} summarizes three bounded forecast scenarios. The target scenario is the most defensible one to discuss in the thesis because it stays close to the strongest current artifact while still showing how the system could improve with more devices, more sessions, and better calibrated fusion.
+
+\begin{table}[H]
+\centering
+\caption{Projected future fused-system metrics under larger multi-session data}
+\label{tab:projectedfuturemetrics}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{p{0.22\textwidth}p{0.1\textwidth}p{0.1\textwidth}p{0.1\textwidth}p{0.1\textwidth}p{0.1\textwidth}p{0.1\textwidth}}
+\toprule
+\textbf{Scenario} & \textbf{ROC-AUC} & \textbf{PR-AUC} & \textbf{EER} & \textbf{Accuracy} & \textbf{FAR} & \textbf{FRR} \\
+\midrule
+Conservative fusion (projected) & 0.900 & 0.890 & 0.120 & 0.850 & 0.110 & 0.130 \\
+Target fusion (projected) & 0.930 & 0.920 & 0.080 & 0.890 & 0.070 & 0.090 \\
+Stretch fusion (projected) & 0.950 & 0.940 & 0.060 & 0.920 & 0.050 & 0.070 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The value of this projection is not that it proves future performance. Its value is that it shows a technically reasonable path forward. Under the target scenario, the system would likely remain below the best offline PRNU forensic pipelines, but it would compare more favorably against short-sample live verification settings and older acoustic-only approaches.
+
 \section{Visual Analysis}
 Figures \ref{fig:roc} and \ref{fig:pr} reproduce the latest saved ROC and PR curves from the artifact directory. Their presence in the report helps communicate threshold trade-offs more effectively than a metrics table alone.
 
@@ -697,6 +743,29 @@ Figures \ref{fig:roc} and \ref{fig:pr} reproduce the latest saved ROC and PR cur
 \label{fig:pr}
 \end{figure}
 
+Figures \ref{fig:projectedroc} and \ref{fig:projectedpr} show the corresponding projected ROC and PR curves from the forecast bundle. These figures are included only to visualize the future-work hypothesis under larger, better-calibrated data collection. They must be read as scenario illustrations, not as measured repository output.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.76\linewidth]{\detokenize{../Predicted report/images/projected_roc_curves.png}}
+\caption{Projected ROC curves for conservative, target, and stretch future fusion scenarios}
+\label{fig:projectedroc}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.76\linewidth]{\detokenize{../Predicted report/images/projected_pr_curves.png}}
+\caption{Projected precision-recall curves for conservative, target, and stretch future fusion scenarios}
+\label{fig:projectedpr}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\linewidth]{\detokenize{../Predicted report/images/measured_vs_projected_metrics.png}}
+\caption{Measured camera and microphone results versus the projected fused target scenario}
+\label{fig:measuredvsprojected}
+\end{figure}
+
 \section{Discussion}
 Three points emerge from the results.
 
@@ -705,6 +774,8 @@ First, the learned embedding approach is operationally meaningful. The existence
 Second, thresholding alone is not enough. The runtime design correctly adds confidence bands, per-source checks, and nearest-impostor margins. This is especially important because some older metrics in the repository show much higher FAR values under broader or noisier settings. A single threshold would make the system look better on paper than it behaves in practice.
 
 Third, the attack narrative is carefully bounded. The artifact reports zero mean attack success for replay, impersonation, and synthetic-statistics attacks under that evaluation configuration. This is encouraging, but it should be presented as evidence within that setup, not as proof of strong real-world adversarial robustness. The documentation already supports that conservative interpretation, and the thesis should preserve it.
+
+Fourth, the future-work projection is useful only because it is separated from measured evidence. The projected bundle suggests that more data, more sessions, and better source fusion could move the system toward approximately 0.93 ROC-AUC and 0.08 EER under the target scenario. That is a viability argument, not a completed result. Keeping that distinction explicit preserves the academic honesty of the thesis while still showing that the idea has room to mature.
 
 \section{Limitations}
 The main limitations are:
@@ -716,7 +787,7 @@ The main limitations are:
 \item mixed results across older metric files, indicating the need for stronger calibration and broader validation.
 \end{itemize}
 
-These limitations do not invalidate the project. They define the boundary within which the results should be interpreted.
+These limitations do not invalidate the project. They define the boundary within which both the measured and projected results should be interpreted. In particular, the projected figures in \texttt{Predicted report/} are justified only as future-work estimates under explicit assumptions, not as experimentally verified claims.
 
 \section{Reviewer-Safe Interpretation}
 The repository's review notes recommend language such as ``prototype device-verification pipeline'' and ``measured under our dataset and split policy.'' That recommendation is correct. The best interpretation of the results is that QNA-Auth demonstrates a technically coherent prototype with promising behavior under documented conditions, while still requiring more data and stronger longitudinal validation before stronger claims are justified.
