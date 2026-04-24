@@ -1,62 +1,77 @@
 \chapter{\MakeUppercase{Project Description and Goals}}
 \section{Literature Review}
-Representation learning for similarity has a long history, with Siamese architectures serving as one of the most influential formulations for verification tasks. Early work by Bromley et al. demonstrated that twin networks can learn useful comparison functions for signature verification \cite{bromley1993signature}. Later, contrastive-learning approaches and triplet-loss formulations broadened the same idea: instead of learning a closed-set classifier alone, the system learns a space in which same-class samples are close and different-class samples are separated \cite{hadsell2006dimensionality, schroff2015facenet}. QNA-Auth uses this logic for device verification by embedding engineered sensor-noise features into a normalized latent space.
 
-Signal-processing theory also plays a central role. The project does not operate on raw images or full waveforms alone; it relies on a canonical feature extractor that summarizes each sample through descriptive statistics, entropy, autocorrelation, and frequency-domain measures. Spectral estimation methods such as those discussed by Welch remain foundational when reasoning about how power is distributed across frequency components \cite{welch1967use}. Entropy measures trace back to the classical information-theoretic framework of Shannon \cite{shannon1948mathematical}, and are useful here because they capture disorder and distributional spread in noisy signals.
 
-From a methodological perspective, the project aligns more closely with applied security research than with isolated classification studies. A similarity score without a threat model is easy to misinterpret. For that reason, the repository includes a documented attacker model, explicit claim boundaries, confidence bands, rate limiting, audit logging, and nonce-based verification. These elements are part of the project's intellectual contribution, because the system is judged not only by model performance but also by how responsibly it handles uncertainty and exposure.
+\subsection{Large-Scale Test of Sensor Fingerprint Camera Identification}
+This paper evaluates PRNU-based camera fingerprinting across large datasets and demonstrates its scalability in real-world scenarios. It shows that sensor pattern noise remains stable across images from the same device. The study validates PRNU as a reliable identifier for digital cameras. 
+\vspace{1em}
+
+\subsection{Determining Image Origin Using Sensor Noise}
+This work introduces a maximum-likelihood approach for estimating PRNU noise patterns. It improves identification accuracy compared to traditional correlation-based methods. The paper provides a strong statistical basis for camera source attribution. 
+\vspace{1em}
+
+\subsection{Digital Camera Identification from Sensor Pattern Noise}
+This seminal work establishes PRNU as a unique fingerprint for digital cameras. It shows that manufacturing imperfections create consistent sensor noise patterns. The method enables reliable mapping of images to source devices. 
+\vspace{1em}
+
+\subsection{Do You Hear What I Hear? Fingerprinting Smart Devices through Acoustic Components}
+This paper explores acoustic fingerprinting using microphones and speakers. It demonstrates that hardware imperfections introduce unique audio distortions. These characteristics can be used for passive device identification. 
+\vspace{1em}
+
+\subsection{Siamese Neural Networks for One-Shot Image Recognition}
+This work introduces Siamese networks for learning similarity between inputs. It enables classification using minimal training samples through embedding comparison. The model generalizes well to unseen classes in verification tasks. 
+\vspace{1em}
+
+\subsection{FaceNet: A Unified Embedding for Face Recognition and Clustering}
+FaceNet proposes a triplet-loss-based embedding for face recognition. It maps inputs into a feature space where distances reflect identity similarity. The approach achieves high accuracy and scalability in large datasets. 
+\vspace{1em}
+
+\subsection{Handbook of Multibiometrics}
+This book presents comprehensive techniques for multi-modal biometric systems. It discusses fusion strategies at feature, score, and decision levels. The work shows how combining modalities improves system reliability. 
+\vspace{1em}
+
+\subsection{RFC 5869: HMAC-based Extract-and-Expand Key Derivation Function (HKDF)}
+This standard defines HKDF for deriving secure cryptographic keys. It extracts and expands entropy from input sources into usable keys. HKDF is widely used in modern secure communication systems. 
+\vspace{1em}
+
+\subsection{Template Update Methods in Adaptive Biometric Systems}
+This paper studies biometric template drift over time. It reviews methods for updating stored biometric representations. The work emphasizes adaptive mechanisms to maintain accuracy. 
+\vspace{1em}
+
+\subsection{Demystifying ARM TrustZone: A Comprehensive Survey}
+This survey explains the architecture and security model of ARM TrustZone. It highlights trusted execution environments for secure key storage. The work provides insights into hardware-backed authentication systems. 
 
 \section{Research Gap}
-The main research gap addressed by this project lies in the integration of three concerns that are often separated in smaller academic systems:
+While existing research covers hardware forensics and deep learning extensively, several critical gaps remain:
 \begin{itemize}
-	\item feature extraction and metric learning for noisy sensor data,
-	\item an operational application layer that can enroll, authenticate, and persist state,
-	\item a security-aware interpretation of similarity scores that explicitly models replay, uncertainty, and drift.
+	\item \textbf{What current systems fail to address:} Existing techniques struggle to verify the physical origin of a digital session securely in real-time without falling back to specialized cryptographic hardware or easily spoofed passwords.
+	\item \textbf{Limitations in previous studies:} Most sensory forensics work focuses on offline analysis of images or audio for evidence, rather than structuring it as a real-time web-authentication process.
+	\item \textbf{Missing features:} Continuous, rolling verification that dynamically adapts to a hardware's gradual physical wear (sensor drift) over time is largely absent from current fingerprinting implementations.
+	\item \textbf{Performance weaknesses:} Single-sensor approaches (relying only on a camera or only on a microphone) often suffer from higher False Acceptance Rates or struggle under environmental interference.
+	\item \textbf{Scalability and usability issues:} Hardware tokens lack the scalability required for rapid consumer deployment, whereas the proposed software-only solution leverages ubiquitous, pre-existing components.
 \end{itemize}
-
-Many small prototypes explore hardware-derived or sensor-derived signatures, but they often stop at pairwise score plots. Conversely, many application demos expose endpoints and user interfaces without a clear evaluation story or threat model. QNA-Auth sits between those extremes. It implements a complete service while preserving a research-style evaluation workflow and a defensible attacker narrative.
-
-Another gap is the treatment of ambiguity. Binary thresholding is common because it is easy to implement, but it is a poor representation of uncertain biometric-like signals. QNA-Auth addresses this by using three outcome bands: strong accept, uncertain, and reject. This is particularly useful for device-noise verification because environmental changes can produce genuine but borderline samples that should not be forced into a confident decision.
 
 \section{Objectives}
-The major objectives of the project are:
-\begin{enumerate}
-	\item To design a reusable feature-extraction pipeline for camera and microphone noise samples.
-	\item To build a Siamese-style embedding network suitable for similarity-based device matching.
-	\item To support multi-source enrollment and weighted fusion of source-wise embeddings.
-	\item To implement a runtime authentication policy using confidence bands, per-source checks, and nearest-impostor margins.
-	\item To harden verification against replay using a nonce-bound challenge-response protocol.
-	\item To package the system as a demonstrable backend-frontend application with persistent storage, tests, diagnostics, and reports.
-\end{enumerate}
-
-\section{Problem Statement}
-The project addresses the following problem statement:
-
-\begin{quote}
-Can a software system use camera and microphone sensor noise to build a practical prototype for high-confidence device verification, while remaining technically honest about uncertainty, replay risks, and dataset limitations?
-\end{quote}
-
-This problem is non-trivial because the signals are noisy, the device classes are closely related, and the output must be exposed as a usable service rather than as an offline metric alone. Any useful solution therefore requires feature stability, metric learning, threshold calibration, persistence, and secure workflow design.
-
-\section{Project Plan}
-The repository structure itself suggests the practical project plan followed during development. The work naturally breaks into phases:
+The primary objectives of this project form the basis for the QNA-Auth system:
 \begin{itemize}
-	\item data collection and dataset organization,
-	\item feature engineering and canonical preprocessing,
-	\item embedding model design and evaluation,
-	\item enrollment and authentication workflow implementation,
-	\item challenge hardening and operational controls,
-	\item review preparation, reporting, and demo stabilization.
+	\item To design a mechanism that securely captures and processes ambient noise from consumer cameras and microphones into high-dimensional, biometric-like embeddings.
+	\item To develop and train a Siamese neural network capable of computing similarity scores to differentiate between identical and distinct sensor hardware.
+	\item To construct a non-binary decision engine utilizing a weighted fusion model (70 percent camera, 30 percent microphone) and defined confidence bands for flexible authentication.
+	\item To implement a secure challenge-response authorization flow that uses nonce-bound Hash-based Message Authentication Codes to protect the embeddings against replay attacks.
+	\item To deploy a rolling Exponential Moving Average update mechanism that safely incorporates new sensor templates over time to accommodate hardware drift.
 \end{itemize}
 
-This phased plan is suitable for a capstone because each stage produces an independently testable artifact. It also supports iterative improvement. For example, drift logic and confidence-band policies can evolve without rewriting the core feature extractor.
+\section{Problem statement}
+Establishing definitive trust in the physical origin of a digital session is overwhelmingly dependent on static, explicit credentials or highly specialized hardware. Consequently, digital systems remain vulnerable to session hijacking, credential theft, and advanced emulation. There is a critical need for a passive, software-evaluating authentication layer that leverages universal consumer hardware—specifically cameras and microphones—to continuously verify a device's unique physical manufacturing imperfections without requiring active user involvement.
 
-\section{Expected Deliverables}
-The expected final deliverables of the project are not only code files but system capabilities:
+\section{Project plan}
+The development and validation of the QNA-Auth prototype are structured across the following primary phases:
 \begin{itemize}
-	\item a working backend with endpoints for enrollment, authentication, challenge creation, and verification,
-	\item a frontend for operating and demonstrating the system,
-	\item a database-backed store for devices, challenges, and audit logs,
-	\item evaluation artifacts with \ac{roc}, \ac{pr}, \ac{far}, \ac{frr}, and \ac{eer} reporting,
-	\item documentation suitable for project review and thesis submission.
+	\item \textbf{Phase 1: Data Collection and Preprocessing:} Gathering and sanitizing robust noise datasets from varied camera and microphone sensors to act as the foundational training data.
+	\item \textbf{Phase 2: Model Architecture and Training:} Designing the deep learning feature extractors and the Siamese network topology, followed by iterative training to optimize the separation distance between distinct devices.
+	\item \textbf{Phase 3: Core Algorithm Construction:} Developing the authentication logic, implementing the confidence band thresholding (strong accept, uncertain, reject), and calculating the sensor-weighted fusion results.
+	\item \textbf{Phase 4: Security and Drift Adaptation:} Integrating the Exponential Moving Average logic for template re-enrollment and constructing the challenge-response API bound by server-side secrets.
+	\item \textbf{Phase 5: Prototype Development and Evaluation:} Wrapping the models within the FastAPI backend architecture and Vite frontend, finalizing API routes, and running empirical evaluations on false acceptance and rejection parameters.
 \end{itemize}
+
+

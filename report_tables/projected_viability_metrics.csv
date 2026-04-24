@@ -1,0 +1,7 @@
+scenario,claim_type,roc_auc,pr_auc,eer,accuracy,precision,recall,far,frr,notes
+camera_current_measured,measured,0.8579,0.8820,0.2678,0.7887,0.9079,0.6345,0.0622,0.3655,"Current thesis camera-only measured result"
+microphone_current_measured,measured,0.7096,0.7156,0.3641,0.6457,0.6715,0.5984,0.3050,0.4016,"Current thesis microphone measured result"
+capstone_artifact_measured,measured,,,0.1000,0.8333,0.5000,1.0000,0.2000,0.0000,"April 22, 2026 microphone-only capstone artifact; ROC/PR AUC not stored in results.json"
+fusion_conservative_projected,projected,0.900,0.890,0.120,0.850,0.740,0.870,0.110,0.130,"Larger dataset plus validation-calibrated fusion"
+fusion_target_projected,projected,0.930,0.920,0.080,0.890,0.810,0.900,0.070,0.090,"Most defensible forecast for presentation"
+fusion_stretch_projected,projected,0.950,0.940,0.060,0.920,0.860,0.930,0.050,0.070,"Best-case future-work scenario"

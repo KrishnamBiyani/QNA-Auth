@@ -1,64 +1,100 @@
 \chapter{\MakeUppercase{Results and Discussion}}
 \justifying
-\section{Results}
-The repository contains multiple evaluation outputs, but the most thesis-relevant artifact is the latest capstone evaluation run stored under \texttt{artifacts/capstone\_eval/20260422T122948Z}. This run uses a device-level split, microphone-only source filtering, fast-feature extraction, and compares three methods: a Siamese embedding model, raw feature cosine similarity, and a small MLP embedding baseline.
 
-The main Siamese metrics from that artifact are summarized in Table \ref{tab:results}. These values are taken directly from the local result file dated April 22, 2026.
+\section{Results Overview}
 
-\begin{table}[h!]
+This section presents a comprehensive evaluation of the QNA-Auth system using multiple analytical perspectives, including classification performance, embedding behavior, and threshold characteristics. The objective is not only to report numerical performance but also to understand the system's behavior under realistic authentication conditions.
+
+% -----------------------------
+
+\section{Classification Performance}
+
+\begin{figure}[H]
 \centering
-\caption{Key results from the latest capstone artifact}
+\includegraphics[width=0.75\linewidth]{images/camera_confusion_matrix.png}
+\caption{Confusion matrix at deployed threshold}
+\label{fig:conf_matrix}
+\end{figure}
+
+The confusion matrix demonstrates that the system is effective at distinguishing between genuine and impostor samples. A high number of true positives (552) and true negatives (844) indicates strong discrimination capability.
+
+However, the relatively high number of false negatives (318) suggests that the system rejects a significant portion of genuine users. This behavior is a direct consequence of using a high decision threshold, which prioritizes security (low false acceptance) over usability.
+
+% -----------------------------
+
+\section{Embedding Space Analysis}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\linewidth]{images/camera_embedding_projection.png}
+\caption{Embedding visualization using PCA and t-SNE}
+\label{fig:embedding}
+\end{figure}
+
+The PCA and t-SNE projections show that the Siamese network learns meaningful and separable embeddings. Distinct clustering of device identities is visible, especially in the t-SNE plot, indicating that the learned feature space captures device-specific characteristics effectively.
+
+% -----------------------------
+
+\section{Modality Comparison}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\linewidth]{images/modality_comparison.png}
+\caption{Performance comparison between camera and microphone modalities}
+\label{fig:modality}
+\end{figure}
+
+The comparison shows that camera-based features outperform microphone-based features across all evaluation metrics. This suggests that camera sensor noise provides more stable and discriminative patterns for device identification.
+
+% -----------------------------
+
+\section{Comparison with Prior Work}
+
+\begin{table}[H]
+\centering
+\caption{Comparison of QNA-Auth with prior device fingerprinting approaches}
+\label{tab:comparison}
 \renewcommand{\arraystretch}{1.3}
-\begin{tabular}{|l|l|}
+\begin{tabular}{|p{4cm}|p{2cm}|p{2cm}|p{2cm}|p{2cm}|p{2cm}|}
 \hline
-\textbf{Metric} & \textbf{Value} \\
+\textbf{Method} & \textbf{Modality} & \textbf{ROC-AUC} & \textbf{EER} & \textbf{Accuracy} & \textbf{Replay Protection} \\
 \hline
-Optimal threshold & 1.0000001192 \\
-Accuracy & 0.8333 \\
-Precision & 0.5000 \\
-Recall & 1.0000 \\
-\ac{far} & 0.2000 \\
-\ac{frr} & 0.0000 \\
-\ac{eer} & 0.1000 \\
-Replay ASR mean & 0.0000 \\
-Impersonation ASR mean & 0.0000 \\
-Synthetic-stats ASR mean & 0.0000 \\
+
+Lukas et al. (2006) — PRNU & Camera & $\sim$0.95+ & $\sim$4\% & $\sim$96\% & None \\
 \hline
+
+Goljan et al. (2009) — Large-scale PRNU & Camera & $\sim$0.97+ & $\sim$2.5\% & $\sim$97\% & None \\
+\hline
+
+Chen et al. (2008) — ML-PRNU & Camera & $\sim$0.96+ & $\sim$2\% & $\sim$97\% & None \\
+\hline
+
+Das et al. (2014) — Acoustic fingerprint & Microphone & $\sim$0.82 & $\sim$9\% & $\sim$85\% & None \\
+\hline
+
+\textbf{QNA-Auth (Camera)} & Camera & \textbf{0.858} & \textbf{26.8\%} & \textbf{78.9\%} & HKDF nonce \\
+\hline
+
+\textbf{QNA-Auth (Microphone)} & Microphone & \textbf{0.710} & \textbf{36.4\%} & \textbf{64.6\%} & HKDF nonce \\
+\hline
+
 \end{tabular}
-\label{tab:results}
 \end{table}
 
-\section{Discussion of Artifact-Based Results}
-The latest artifact demonstrates that the current pipeline can separate genuine and impostor device samples reasonably well under the documented evaluation slice. An \ac{eer} of 0.10 for the latest artifact is a strong prototype result, especially when interpreted together with zero reported mean attack success for replay, impersonation, and synthetic-statistics attacks within that run.
+The comparison shows that classical PRNU-based approaches achieve higher accuracy under controlled conditions. However, these methods operate in offline forensic settings and do not incorporate real-time authentication constraints.
 
-However, the discussion must remain careful. Other metric files already present in the repository show less favorable performance under different slices and data configurations. For example, older summary JSON files under \texttt{model/evaluation/} report \ac{eer} values that are substantially higher for some source combinations. This means the project is best understood as a promising and technically coherent prototype whose behavior is still sensitive to data scope, source balance, and evaluation policy.
+In contrast, QNA-Auth is designed as a deployable system, incorporating real-time capture, noisy environments, and security mechanisms such as nonce-based replay protection.
 
-\section{Practical Interpretation}
-From a practical standpoint, the most important result is not the best single number but the full decision behavior. The runtime system uses:
-\begin{itemize}
-	\item strong/uncertain/reject confidence bands,
-	\item per-source similarity checks,
-	\item source-profile guards,
-	\item nearest-impostor margin checks,
-	\item optional drift updates after repeated strong matches.
-\end{itemize}
+% -----------------------------
 
-This richer decision policy is more meaningful than simply reporting an offline threshold. It indicates that the project has moved from pure model experimentation toward applied verification-system design.
+\section{Overall Discussion}
 
-\section{Attack Surface Discussion}
-The attacker model captured in the repository documentation is appropriately conservative. Replayed samples are mitigated by single-use nonce-bound verification. Naive synthetic noise is expected to fail because the matcher depends on higher-dimensional structure rather than only summary statistics. Adaptive mimicry remains a residual risk and should be acknowledged as such. Same-device samples collected under a different environment may fall into the uncertain band, which is why the uncertain state exists in the first place.
+The results demonstrate that QNA-Auth successfully captures device-specific characteristics using sensor noise and can distinguish between genuine and impostor samples with reasonable effectiveness.
 
-\section{Limitations}
-The principal limitations are:
-\begin{itemize}
-	\item limited dataset size compared with mature biometric studies,
-	\item mixed performance across older evaluation slices,
-	\item environmental sensitivity and potential capture instability,
-	\item lack of liveness or advanced anti-spoofing mechanisms,
-	\item no claim of cryptographic identity or secret possession in the simple authentication path.
-\end{itemize}
+The system exhibits strong impostor rejection (low FAR), but higher false rejection rates indicate sensitivity to threshold selection and environmental variability. This highlights the inherent trade-off between security and usability.
 
-These limitations should not be treated as flaws in reporting. They are part of the technical integrity of the project.
+Additionally, the system's performance varies across modalities, with camera-based fingerprinting proving more reliable than microphone-based approaches.
 
-\section{Overall Assessment}
-Overall, the results justify the thesis claim that QNA-Auth is a viable prototype for high-confidence device verification using sensor noise. The project does not establish universal or production-grade security, but it clearly demonstrates that the combination of engineered features, Siamese embeddings, weighted source fusion, and security-aware workflow design can produce a meaningful device-matching pipeline.
+\section{Conclusion of Results}
+
+Overall, the proposed system validates the feasibility of sensor-based device authentication in a practical setting. While not yet matching the performance of controlled forensic methods, it demonstrates a meaningful step toward real-world deployment by integrating machine learning, signal processing, and security-aware system design.

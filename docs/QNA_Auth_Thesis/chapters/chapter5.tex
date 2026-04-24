@@ -1,6 +1,14 @@
 \chapter{\MakeUppercase{Methodology and Testing}}
 
 \section{Methodology}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.95\linewidth]{images/methodology.png}
+	\caption{Methodology of QNA-Auth}
+	\label{fig:system_design}
+\end{figure}
+
 The QNA-Auth methodology proceeds through five stages: data acquisition, feature extraction, embedding generation, decision scoring, and system-level verification. This staged structure is important because a thesis must explain not only what the code does but why the ordering and dependencies are reasonable.
 
 \subsection{Noise Acquisition}
@@ -85,19 +93,3 @@ Testing in QNA-Auth can be grouped into four categories:
 	\item operational diagnostics and preflight scripts.
 \end{itemize}
 
-\section{Evaluation Procedure}
-The evaluation module computes pairwise similarity scores, threshold sweeps, target-\ac{far} thresholds, \ac{eer}, \ac{roc}, \ac{pr}, and score-distribution summaries. It also supports direct-vector baselines so that the learned Siamese embedding can be compared with simpler alternatives. The latest artifact stored in the repository was generated on April 22, 2026 and uses a device-level split on microphone samples with fast features enabled.
-
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=0.66\linewidth]{../../artifacts/capstone_eval/20260422T122948Z/roc_siamese.png}
-    \caption{ROC curve from the latest capstone evaluation artifact}
-    \label{fig:roc_eval}
-\end{figure}
-
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=0.66\linewidth]{../../artifacts/capstone_eval/20260422T122948Z/pr_siamese.png}
-    \caption{Precision-recall curve from the latest capstone evaluation artifact}
-    \label{fig:pr_eval}
-\end{figure}

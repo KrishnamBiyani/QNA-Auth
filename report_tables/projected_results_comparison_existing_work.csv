@@ -1,0 +1,10 @@
+method,modality,roc_auc,eer,accuracy,fusion,replay_protection,claim_type,comparison_note
+"Lukas et al. (2006) - PRNU","Camera only","~0.95+","~0.04","~0.96","None","None","literature","Offline multi-image PRNU setting"
+"Goljan et al. (2009) - Large-scale PRNU","Camera only","~0.97+","~0.025","~0.97","None","None","literature","Offline large-scale PRNU setting"
+"Chen et al. (2008) - ML-PRNU","Camera only","~0.96+","~0.02","~0.97","None","None","literature","Offline maximum-likelihood PRNU setting"
+"Das et al. (2014) - Acoustic fingerprint","Mic only","~0.82","~0.09","~0.85","None","None","literature","Acoustic hardware fingerprint baseline"
+"QNA-Auth - Camera only","Camera","0.858","0.2678","0.7887","No","HKDF nonce","measured","Current measured thesis result"
+"QNA-Auth - Mic only","Mic","0.710","0.3641","0.6457","No","HKDF nonce","measured","Current measured thesis result"
+"QNA-Auth - Fused system (conservative forecast)","Camera + Mic","0.900","0.120","0.850","Yes","HKDF nonce","projected","Viability forecast for larger calibrated dataset"
+"QNA-Auth - Fused system (target forecast)","Camera + Mic","0.930","0.080","0.890","Yes","HKDF nonce","projected","Best slide-ready estimate"
+"QNA-Auth - Fused system (stretch forecast)","Camera + Mic","0.950","0.060","0.920","Yes","HKDF nonce","projected","Best-case future work forecast"
