@@ -1,26 +1,26 @@
 \chapter{\MakeUppercase{Technical Specification}}
 \section{Requirements}
 \subsection{Functional Requirements}
-QNA-Auth satisfies the following functional requirements:
+QNA-Auth will meet the following functional requirements: 
 \begin{itemize}
-	\item The system shall enroll a device using camera and/or microphone noise samples.
-	\item The system shall create and persist device template bundles for later verification.
-	\item The system shall authenticate a claimed device using fresh samples.
-	\item The system shall expose a two-step challenge and verification flow.
-	\item The system shall list, inspect, and delete enrolled devices.
-	\item The system shall record database-backed challenge state and audit events.
+	\item the ability to enroll a device by capturing noise samples via the camera or microphone.
+	\item the ability to create and store device templates for future verification.
+	\item the ability to verify a device that has been verified with new noise samples.
+	\item the ability to create and execute a two-step challenge/verification.
+	\item the ability to view, manage, and delete enrolled devices.
+	\item and the ability to log verification requests and audit log entries into your database.
 \end{itemize}
 
 \subsection{Non-Functional Requirements}
-Important non-functional requirements include reproducibility, modularity, explainability, and review-day stability. The repository addresses these requirements with centralized configuration, a shared feature pipeline, runtime counters, diagnostic scripts, and fallback demo documentation. These concerns are especially important in a thesis context because a result that cannot be explained or repeated has limited academic value.
+Reproducibility, modularity, explainability, and review-day stability are non-functional requirements that are critical; the repository supports these requirements through centralized configuration, a shared feature pipeline, runtime counters, diagnostic scripts, and fallback demo documentation. In the thesis context, results that are not reproducible or explainable have limited academic value, therefore these issues need to be taken seriously.
 
 \subsection{Software and Hardware Requirements}
-The software requirements are Python, FastAPI, PyTorch, NumPy, SciPy, SQLAlchemy, SQLite, React, and Vite. Hardware requirements are modest: a system capable of running the backend and frontend, optionally equipped with a camera and microphone for live collection. For demonstrations, pre-recorded client samples can be supplied through the API if live hardware is unstable.
+The software requirements to run the system include: Python, FastAPI, PyTorch, NumPy, SciPy, SQLAlchemy, SQLite, React, Vite. The hardware requirements are low; just a system capable of running both the backend and frontend along with an optional camera and microphone to collect data live. If live hardware is unstable, pre-recorded client samples may be provided via the API for demonstration.
 
 \section{Feasibility Study}
-The project is technically feasible because feature extraction operates on one-dimensional arrays and a relatively lightweight embedding model. The backend can work with CPU execution if GPU inference is unavailable. Operationally, the system is feasible as a capstone because it includes demo-mode configuration, diagnostic preflight scripts, and artifact-based fallback flows.
+Because of how feature extraction functions over a 1D array and how light the embedding model is, this project is possible from a technical perspective. In addition, the backend can support CPU execution (if GPU inference is not available).The system is operationally feasible for a capstone project because it contains demo-mode configuration, preflight diagnostic scripts, and artifact-based fallback procedures.
 
-Research feasibility is positive but bounded. The codebase already supports multiple evaluation modes, threshold sweeps, and attack summaries. However, the dataset size is still limited, so the system is feasible as a prototype research contribution rather than as a final production-grade conclusion.
+From a research standpoint, it has been confirmed that the research feasibility is positive but limited. The codebase already has multiple evaluation modes, sweepable thresholds and attack summary modes; however, due to the dataset size limitations, it has not yet been fully proven that the system is possible in research as a prototype only (i.e., no final production-level conclusion).
 
 \section{System Specification}
 The project uses a layered architecture. Table \ref{tab:specstack} summarizes the core technical specification.
@@ -45,7 +45,7 @@ The project uses a layered architecture. Table \ref{tab:specstack} summarizes th
 \end{table}
 
 \section{Feature Pipeline Specification}
-The canonical feature pipeline in \texttt{preprocessing/features.py} is versioned and shared across training, evaluation, and runtime use. This is an important design decision because inconsistency between train-time features and serve-time features is one of the easiest ways to invalidate a similarity system.
+The canonical feature pipeline in \texttt{preprocessing/features.py} The implementation of shared features across multiple usage contexts, e.g. training, evaluation, or run-time (serving), is critical to the design of a similarity system due to the fact that having different sets of features between training and serving is one of the simple ways to invalidate a similarity system’s usefulness.
 
 Each sample is converted into a fixed-dimensional representation consisting of:
 \begin{itemize}
@@ -84,14 +84,14 @@ s_{claimed} - s_{best\_other} \geq \ac{margin}
 where the configured margin is 0.02. This reduces the chance of accepting a claimed device when an impostor score is nearly as high.
 
 \section{Security Controls}
-The main security controls in the implementation are:
+The principal security measures contained within this implementation include:
 \begin{itemize}
-	\item nonce-bound challenge generation with short expiry,
-	\item \ac{hkdf}-derived MAC keys tied to stable feature bytes, nonce, and server secret,
-	\item optional API key enforcement,
-	\item per-IP rate limiting,
-	\item database-backed challenge persistence,
-	\item audit logs for enrollment, authentication, verification, and deletion.
+	\item Nonce bound challenge generation with short expiration,
+	\item \ac{hkdf} derived MAC keys bound to a combination of stable feature bytes, nonce, and server secret,
+	\item Optional enforcement of an API Key,
+	\item Rate limiting by IP address,
+	\item Challenge persistence through database storage,
+	\item Audit logging of enrollment, authentication, verification, and deletion.
 \end{itemize}
 
 These controls do not make the system invulnerable, but they do meaningfully improve the quality of the implementation relative to a purely academic scoring script.

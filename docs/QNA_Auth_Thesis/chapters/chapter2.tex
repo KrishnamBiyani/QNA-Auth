@@ -1,77 +1,94 @@
 \chapter{\MakeUppercase{Project Description and Goals}}
+
 \section{Literature Review}
 
+At the nexus of sensor forensics, deep metric learning, acoustic fingerprinting and the derivation of cryptographic keys lies QNA-Auth (a secure camera identification solution). The current survey explores the most important preceding work in these fields and outlines both the contributions relevant to QNA-Auth's design and the constraints that drive its development.
 
-\subsection{Large-Scale Test of Sensor Fingerprint Camera Identification}
-This paper evaluates PRNU-based camera fingerprinting across large datasets and demonstrates its scalability in real-world scenarios. It shows that sensor pattern noise remains stable across images from the same device. The study validates PRNU as a reliable identifier for digital cameras. 
-\vspace{1em}
+\subsection{Camera-Based Device Fingerprinting}
 
-\subsection{Determining Image Origin Using Sensor Noise}
-This work introduces a maximum-likelihood approach for estimating PRNU noise patterns. It improves identification accuracy compared to traditional correlation-based methods. The paper provides a strong statistical basis for camera source attribution. 
-\vspace{1em}
+The most significant signal used to identify cameras passively is PRNU. Each imager is made during the manufacturing process and exhibits different levels of sensitivity, which contributes to the generation of a specific noise pattern that will exist in all photos taken with that camera. The PRNU-Bench Anonymous (2025) establishes a large-scale benchmark for open set camera identification from consumer cameras made between 2021 and 2024. By using Hadamard-product similarity scoring, they demonstrate that the method is generalizable across devices. However, the benchmark's protocol requires the collection of several natural scene images before identifying a specific device via PRNU, and does not evaluate the ability to authenticate the device using only one image of the device's user. QNA-Auth solves those limitations by allowing the pattern of PRNU noise to be extracted from a set of images using the same single-pass pipeline and therefore al-lowing for real-time authentication through its use of 50 black images of the same camera while the lens is covered (without requiring an entire collection of images taken in varying conditions).
 
-\subsection{Digital Camera Identification from Sensor Pattern Noise}
-This seminal work establishes PRNU as a unique fingerprint for digital cameras. It shows that manufacturing imperfections create consistent sensor noise patterns. The method enables reliable mapping of images to source devices. 
-\vspace{1em}
+CAMPrints Sun et al. (2025) build on previous work in PRNU modelling to create an encoding function that remains consistent across crop, resize, and distortion transformations, allowing for matching of fingerprints after post-processing. Building the encoder requires training on extensive, device-diverse datasets, and this paper does not demonstrate the robustness of their approach to real-time compressed frames captured by smartphones. QNA-Auth also provides an alternative for extracting features from the raw noise residuals without relying on a learned encoder to yield features. Instead, the 50-dimensional canonical feature vector used by QNA-Auth is extracted through the use of fixed statistical and spectral pipelines that eliminate the dependency of the feature extraction process on the availability of large training corpora.
 
-\subsection{Do You Hear What I Hear? Fingerprinting Smart Devices through Acoustic Components}
-This paper explores acoustic fingerprinting using microphones and speakers. It demonstrates that hardware imperfections introduce unique audio distortions. These characteristics can be used for passive device identification. 
-\vspace{1em}
+A systematic literature review of deep learning approaches to source camera identification covering the time period from 2016 to 2025 Unknown (2025) found that encoder-decoder and residual architectures can provide performance superior to traditional PRNU under both compression and overexposure conditions. It was also noted that almost all deep learning methods reviewed were designed for offline forensic analysis and did not provide an adaptive enrollment/replay resistant means for real-time authentication. QNA-Auth addresses the above limitation by mapping the camera noise features of each different camera into a shared metric space using the Siamese network architecture developed by Bromley et al. (1993), thus creating a means to make same-device or different-device online decisions based on the cosine similarity scores computed from L2-normalized, 128-dimensional feature embeddings.
 
-\subsection{Siamese Neural Networks for One-Shot Image Recognition}
-This work introduces Siamese networks for learning similarity between inputs. It enables classification using minimal training samples through embedding comparison. The model generalizes well to unseen classes in verification tasks. 
-\vspace{1em}
+\subsection{Acoustic and Microphone Fingerprinting}
 
-\subsection{FaceNet: A Unified Embedding for Face Recognition and Clustering}
-FaceNet proposes a triplet-loss-based embedding for face recognition. It maps inputs into a feature space where distances reflect identity similarity. The approach achieves high accuracy and scalability in large datasets. 
-\vspace{1em}
+Two complementary studies confirm acoustic fingerprinting as a viable two-factor authentication signal. The 2025 work constructs robust acoustic fingerprints based on magnitude and phase distortions introduced by speaker-microphone pairs in the modulation domain, and improves this approach with timing-based detection and active mitigation of distance effects. Both methods require controlled emission of a beep signal by both the enrolled and authenticating devices to prevent passive interception by a single device and to ensure application to situations involving two communicating devices. In addition, the design of controlled signals provides insufficient protection against replay attacks in which stored samples are presented independently of operation of a live device.
 
-\subsection{Handbook of Multibiometrics}
-This book presents comprehensive techniques for multi-modal biometric systems. It discusses fusion strategies at feature, score, and decision levels. The work shows how combining modalities improves system reliability. 
-\vspace{1em}
+Passive acquisition of microphone fingerprints is achieved without emission of an active signal from 0.5 s of ambient noise recorded at 44.1 kHz, and each response to an authentication request is linked cryptographically to a nonce issued by the server. As a result, previously recorded signals are cryptographically invalid.
 
-\subsection{RFC 5869: HMAC-based Extract-and-Expand Key Derivation Function (HKDF)}
-This standard defines HKDF for deriving secure cryptographic keys. It extracts and expands entropy from input sources into usable keys. HKDF is widely used in modern secure communication systems. 
-\vspace{1em}
+\subsection{Contrastive Learning and Multimodal Sensor Fusion}
 
-\subsection{Template Update Methods in Adaptive Biometric Systems}
-This paper studies biometric template drift over time. It reviews methods for updating stored biometric representations. The work emphasizes adaptive mechanisms to maintain accuracy. 
-\vspace{1em}
+Chen et al. \cite{chen2024rf} Use of positive and negative device pair learning can show that they produce embeddings that are domain invariant for RF device fingerprinting, and that this leads to an improvement of 10-28% in accuracy as compared to supervised baselines under temporal shift. However, since the study is limited to RF signals, it does not show how these embeddings perform in heterogeneous multimodal sensor spaces. QNA-Auth uses the same positive-negative pair method via the Siamese architecture.\cite{bromley1993signature, hadsell2006dimensionality} both camera and microphone feature vectors are processed separately. For both modalities, we utilize a consistent embedding network, composed of three fully-connected layers with 256/256/128 widths (Tanh activation); L2 normalizing the output, and trained with triplet loss having 1.0 margin. \cite{schroff2015facenet}.
 
-\subsection{Demystifying ARM TrustZone: A Comprehensive Survey}
-This survey explains the architecture and security model of ARM TrustZone. It highlights trusted execution environments for secure key storage. The work provides insights into hardware-backed authentication systems. 
+The conclusion is that weighted score-level fusion between two CNN biometric modalities decreases the Equal Error Rate compared to using one modality. However, if one of the two modalities has degraded in quality at the time of image processing, the trained fusion weights for combining the two modalities will not provide for a fall-back on to using just one modality. QNA-Auth assigns a weight to the infrared image equal to 0.85 and a weight to the microphone equal to 0.15 based on the results of the two modality's Equal Error Rate validation using a held out sample of images. Furthermore, "a three-band confidence scheme" was created to accept-certain images with a high level of certainty($\geq 0.97$) to be used after training, reject -certain images which are not acceptable($< 0.92$) to be used after training, as well as uncertain images ($0.92$--$0.96$) which will not be used for either the camera or microphone modalities.
+
+\subsection{Key Derivation and Replay-Resistant Authentication}
+RFC 5869 \cite{krawczyk2010hkdf} is the HMAC-based Extract-and-Expand Key Derivation Function (HKDF) which provides a principled approach to deriving session-bound cryptographic material from an input secret keying material along with an optional salt. HKDF has a fundamental constraint of requiring stable and sufficiently-high entropy keying material inputs to derive cryptographic material from; therefore, if raw noisy sensor vectors were to be consumed as an input secret keying material instead of being fed through the HKDF, there is a risk of entropy collapse due to inter-session variance on the uncalibrated dimensions of the features. The QNA-Auth protocol provides a solution for this as the QNA-Auth protocol requires the quantization of the embedding coordinate vectors (from the sensor data) to 16-bit integer representations through coarse rounding prior to their submission to the HKDF, thus ensuring a consistent entropy contribution.
+To generate the 32-byte nonce per challenge, the server sets a maximum expiry timeframe of 60 seconds for each nonce and tracks consumed (or used) nonces for a 300-second time duration in order to implement an anti-replay window. Lastly, the HMAC value will be validated (or verified) using constant-time comparison in order to prevent any possible timing-based oracle attacks.
+\subsection{Template Security and Hardware Isolation}
+
+Mazumdar et al. \cite{mazumdar2019backdoors} This study shows that unsupervised template update schemes are susceptible to have an adversary move the stored biometric template towards an impostor embedding with each subsequent low-confidence level of authentication. The validity of this attack was shown with unimodal and will not take into account multimodal fusion with gated update controls. The QNA-Auth system uses an Exponential Moving Average re-enrollment policy with a smoothing factor of alpha = 0.2, gated by the requirement of two consecutive strong-accept matches before any template update will occur. In addition, the QNA-Auth system maintains a bank of up to four templates per modality per device, and updates only if the incoming similarity score exceeds the strong accept threshold, to prevent low-confidence or adversarial samples from affecting the stored state.
+
+The 2024 hardware security review of Internet of Things (IoT) identity assurance hardwareiot2024 categorized Trusted Execution Environment (TEE), TPM, PUF and secure-element architectures as the best choices for secure key storage. Overall TEE-based key storage is the easiest application-layer integration option for all applications dependent upon OS-level privilege or support by the vendor, both of which are typically not available in browser-first solutions. QNA-Auth limits its security scope to the application layer, using environment-variable injected server secrets to manage HKDF keys. QNA-Auth has created TEE integration paths for those deployments where privileged user access will allow for their use.
+
+%─────────────────────────────────────────────────────────────────────────────
 
 \section{Research Gap}
-While existing research covers hardware forensics and deep learning extensively, several critical gaps remain:
+
+The surveyed literature, while extensive, leaves several critical limitations unaddressed in combination:
+
 \begin{itemize}
-	\item \textbf{What current systems fail to address:} Existing techniques struggle to verify the physical origin of a digital session securely in real-time without falling back to specialized cryptographic hardware or easily spoofed passwords.
-	\item \textbf{Limitations in previous studies:} Most sensory forensics work focuses on offline analysis of images or audio for evidence, rather than structuring it as a real-time web-authentication process.
-	\item \textbf{Missing features:} Continuous, rolling verification that dynamically adapts to a hardware's gradual physical wear (sensor drift) over time is largely absent from current fingerprinting implementations.
-	\item \textbf{Performance weaknesses:} Single-sensor approaches (relying only on a camera or only on a microphone) often suffer from higher False Acceptance Rates or struggle under environmental interference.
-	\item \textbf{Scalability and usability issues:} Hardware tokens lack the scalability required for rapid consumer deployment, whereas the proposed software-only solution leverages ubiquitous, pre-existing components.
+    \item \textbf{Real-time passive origin verification:} Camera and microphone fingerprinting methods reviewed in the literature have been developed for off-line forensic workflows. Previous systems exist to structurally verify passive, dark-frame camera noise, and ambient microphone noise as a real-time challenge/response web authentication method without the need for specialized hardware or explicit user credentials. 
+
+    \item \textbf{Single-device Passive Acoustic Capture:} Current active signal emission-based methods of acoustic fingerprint authentication require active communications between two cooperating devices when enrolling and authenticating (logging in.) there appears to be no method, using a single microphone device for passive fingerprint generation and authentication as part of a routine web-based login flow in previous publications.
+
+    \item \textbf{Compensating for sensor drift while minimizing the risk of poisoning:} The performance of consumer-grade sensors declines gradually over time resulting in an increasing mismatch between the enrolled templates and the current live samples. The biometric literature has some discussion regarding the periodic updating of templates, but as demonstrated in Mazumdar et al. Mazumdar2019Backdoors, there is a vulnerability of these rolling template updates (uncontrolled rolling template updates) to being poisoned due to a lack of gating controls. An acceptable method for re-enrollments (compensating for drift) without being compromised by adversarial manipulation has never been demonstrated in the context of hardware device fingerprinting. 
+
+    \item \textbf{Calibrated multimodal score-level fusion with graceful degradation:} Methods utilizing a single sensor can yield a higher error rate than when multiple sensors are involved due to environmental interference. Therefore, using calibrated score-level fusion with modality-specific confidence bands (that will degrade gracefully when only one modality produces a bad signal) has not been attempted for hardware noise fingerprinting to provide authentication.
+
+    \item \textbf{Nonce-bounded Replay Resilience of Sensor Based Credentials:} Prior to our work that derives cryptographic materials from biometric or sensor based features shown that the responses produced do not bind the derived response to per session server nonce thereby placing the channel subject to replay of prior observations of the embedded values.
 \end{itemize}
+
+%─────────────────────────────────────────────────────────────────────────────
 
 \section{Objectives}
-The primary objectives of this project form the basis for the QNA-Auth system:
+
+The primary objectives of this project are:
+
 \begin{itemize}
-	\item To design a mechanism that securely captures and processes ambient noise from consumer cameras and microphones into high-dimensional, biometric-like embeddings.
-	\item To develop and train a Siamese neural network capable of computing similarity scores to differentiate between identical and distinct sensor hardware.
-	\item To construct a non-binary decision engine utilizing a weighted fusion model (70 percent camera, 30 percent microphone) and defined confidence bands for flexible authentication.
-	\item To implement a secure challenge-response authorization flow that uses nonce-bound Hash-based Message Authentication Codes to protect the embeddings against replay attacks.
-	\item To deploy a rolling Exponential Moving Average update mechanism that safely incorporates new sensor templates over time to accommodate hardware drift.
+    \item Construct a pipeline to passively capture image and sound from a consumer camera and microphone, respectively, that will 1) capture 50 dark frames at 60 Hz from the camera using OpenCV and 50 ambient sound samples at 44,100 Hz from the microphone, and 2) create 50-dimensional canonical feature vectors based on statistical moments, spectral features, Shannon entropies, and autocorrelations.\cite{shannon1948mathematical, welch1967use}.
+
+    \item Develop a Siamese neural network architecture for the two modalities; both share a four-layer embedding network structure (input: 50-dim; hidden1: 256; hidden2: 256; output: L2 normalized 128-dim) using a triplet loss function with a margin of 1.0 to differentiate between same and different devices based on cosine similarity. \cite{bromley1993signature, schroff2015facenet}.
+
+    \item Create a non-binary decision-making engine that takes concatenated cosine similarity scores from both modalities, assigns calibrated weights to each modality (camera = 0.85, microphone = 0.15) and classifies the final output into three bands of confidence: strong (0.971), uncertain (0.9192-0.916), reject (0.9190).
+
+    \item The server generates a 32-bit nonce, which remains valid for a period of 60 seconds. The client calculates its session MAC via HKDF-SHA256 on the quantized embedding of the device it will authenticate from, along with the original nonce provided by the server. The server checks the validity of both the nonce and session MAC by performing a constant-time process to compare their HMAC outputs.\cite{krawczyk2010hkdf}.
+
+    \item To implement a process of re-enrolling onto the device using an EMA algorithm (alpha = 0.2), this mechanism requires a minimum of two consecutive strong-accept matches before allowing any modification to the bank per-device template (with up to four per-modality) to gracefully accommodate minor variances in hardware (e.g., gradual camera drift) while still maintaining a high confidence in detecting attacks (low-confidence impostors).\cite{mazumdar2019backdoors}.
 \end{itemize}
 
-\section{Problem statement}
-Establishing definitive trust in the physical origin of a digital session is overwhelmingly dependent on static, explicit credentials or highly specialized hardware. Consequently, digital systems remain vulnerable to session hijacking, credential theft, and advanced emulation. There is a critical need for a passive, software-evaluating authentication layer that leverages universal consumer hardware—specifically cameras and microphones—to continuously verify a device's unique physical manufacturing imperfections without requiring active user involvement.
+%─────────────────────────────────────────────────────────────────────────────
 
-\section{Project plan}
-The development and validation of the QNA-Auth prototype are structured across the following primary phases:
+\section{Problem Statement}
+
+The fundamentals of establishing that an interaction with a digital asset has taken place within a trust framework is dependent on the currently accepted methods of user authentication. The most common forms of establishing identity are traditional, functionally-based credentials (password, pin, etc.) and possession-based (hardware token, etc.). Both of these cues do not provide any evidence that the device being used to authenticate is the same device that was used to enroll the user. Therefore, both methods can be compromised allowing unauthorized access through credential theft, session hijacking and device emulation. The majority of modern consumer-grade devices contain unique electronic characteristics based on their manufacturing tolerances that will remain constant while recording pictures or audio over time and cannot be created with software emulation. Therefore, there is a need for a passive authentication layer of software that will interactively capture these electronic characteristics at the time of login, compare them to the characteristics of the user that has been previously enrolled using some similarity measure, and associate the results with a cryptographic challenge that only applies to one session, therefore allowing for the continuous verification of the authenticity of the device being used without requiring active participation on the part of the user or the need for any additional hardware not already found on standard computer systems
+
+%─────────────────────────────────────────────────────────────────────────────
+
+\section{Project Plan}
+
+The development of the QNA-Auth prototype is structured across five sequential phases:
+
 \begin{itemize}
-	\item \textbf{Phase 1: Data Collection and Preprocessing:} Gathering and sanitizing robust noise datasets from varied camera and microphone sensors to act as the foundational training data.
-	\item \textbf{Phase 2: Model Architecture and Training:} Designing the deep learning feature extractors and the Siamese network topology, followed by iterative training to optimize the separation distance between distinct devices.
-	\item \textbf{Phase 3: Core Algorithm Construction:} Developing the authentication logic, implementing the confidence band thresholding (strong accept, uncertain, reject), and calculating the sensor-weighted fusion results.
-	\item \textbf{Phase 4: Security and Drift Adaptation:} Integrating the Exponential Moving Average logic for template re-enrollment and constructing the challenge-response API bound by server-side secrets.
-	\item \textbf{Phase 5: Prototype Development and Evaluation:} Wrapping the models within the FastAPI backend architecture and Vite frontend, finalizing API routes, and running empirical evaluations on false acceptance and rejection parameters.
+    \item \textbf{Phase 1 - Data Collection and Preprocessing:} Collecting dark frame camera noise and ambient microphone noise datasets from various consumer electronics. Using a well-known method to extract 50-dimensional feature vectors (using statistical, spectral, entropy, and auto-correlation data) and creating labeled triplet sets for the purpose of training models. 
+
+    \item \textbf{Phase 2 - Model Architecture and Training:} Creating and training Siamese embedding networks separately on the camera and microphone modalities using triplet Loss (with a margin of 1.0). Training models in an iterative fashion over 50 epochs using a batch size of 32, and a learning rate of 10 ^ 3 and validating each epoch to save the best performing model.
+
+    \item \textbf{Phase 3 - Core Authentication Logic:} Implementing a weighted fusion engine along with three-band confidence thresholding and a minimum identification margin check requiring that the claimed device score 0.02 or higher than the next highest enrolled candidate. 
+
+    \item \textbf{Phase 4 - Security and Drift Adaptation:} Integrating the HKDF nonce-bound challenge-response layer providing a challenge expiration of 60 seconds, along with an anti-replay tracking period of 300 seconds for the responses and allowing for the implementation of the EMA-gated template re-enrolment mechanism using alpha = 0.2 with a minimum of two consecutive strong accept gate matches.
+
+    \item \textbf{Phase 5 — Prototype Integration and Evaluation:P/} Deployment of the complete pipeline using FastAPI for the back-end (the SQLite audit log will be created through SQLAlchemy) and React 18 / TypeScript / Vite for the front-end, with endpoint finalization  (\texttt{/enroll}, \texttt{/challenge}, \texttt{/verify}, \texttt{/authenticate}), and actual measurements of the false acceptance rate, false rejection rate, and total authentication latency.
 \end{itemize}
-
-
