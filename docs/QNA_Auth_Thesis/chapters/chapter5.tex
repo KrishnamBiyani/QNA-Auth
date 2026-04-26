@@ -9,38 +9,40 @@
 	\label{fig:system_design}
 \end{figure}
 
-The QNA-Auth methodology proceeds through five stages: data acquisition, feature extraction, embedding generation, decision scoring, and system-level verification. This staged structure is important because a thesis must explain not only what the code does but why the ordering and dependencies are reasonable.
+The five phases that define the QNA-Auth method are data acquisition, feature extraction, generation of embeddings, decision scoring, and verification at the level of individual systems. Explaining how the method achieves each of these phases (i.e., what the code does) also has to be justified as to why each of these phases fits together in both order and dependency.
 
 \subsection{Noise Acquisition}
-The active runtime sources are camera and microphone. During enrollment, the backend can either collect samples directly from the local hardware or accept client-provided sample arrays through the API. Direct collection is useful for live demos. Client-provided payloads are useful for testing, reproducibility, and fallback demonstrations. The same dual-mode logic is also available for authentication.
+Camera and microphone are presently active sources for runtime. The backend captures samples directly from local hardware during the enrollment process, or they can accept sample array input from clients via the API. The direct collection method is best for live demonstrations, and client-provided payloads are used for testing and reproducibility, or provide alternative demonstrations. Authentication will work the same way in using both methods.
 
 \subsection{Feature Extraction}
-Every raw sample is reshaped into a one-dimensional numeric array and sanitized for invalid values. The system then computes a bounded analysis view for expensive transforms and extracts both raw-domain and normalized-domain features. This hybrid design is stronger than relying on normalized features alone because raw-domain amplitude descriptors still carry useful information about the acquisition path.
+Reshaping each raw sample into a one-dimensional numeric array also includes scanning through those arrays for invalid entries. After this scanning occurs, each sample adds otherwise expensive transformation analysis views. Features are extracted from both the raw domain as well as the normalized domain of the sample data being analyzed. The combined hybrid design is preferred to a design that only includes normalized features since the adjectives associated with raw domain amplitude measurements still provide useful information regarding how the sample was measured.
 
 \subsection{Embedding and Similarity}
-The feature vector is passed through a Siamese-style embedding network. The network uses a multilayer perceptron with hidden dimensions and a 128-dimensional normalized output embedding. Similarity is measured by cosine similarity. The system supports both triplet and contrastive formulations, but the runtime interface only depends on the final embedding and similarity functions.
+A Siamese-like architecture is used to learn embeddings from the feature vectors; it consists of a multi-layer perceptron with degrees of freedom (Dof) at all hidden layers and a normalized output embedding of 128 dimensions at the last layer. Cosine similarity is the method used for measuring similarity. The runtime interface only uses the last layer of the model to get an embedding and the cosine similarity to compare embeddings (the system supports both triplet and contrastive configurations).
 
 \subsection{Template Bank Construction}
-Enrollment samples are not collapsed into a single vector only. The implementation creates:
+The enrollment sample is stored in different ways rather than a single vector representation. The implementation consists of:
 \begin{itemize}
-	\item source embeddings,
-	\item source template banks,
-	\item combined embeddings,
-	\item combined template banks.
+	\item Source embeddings
+	\item Source template banks
+	\item Combined embeddings
+	\item Combined template banks
 \end{itemize}
-The bank approach improves robustness because the runtime sample can be compared against several stored enrollment summaries rather than one fragile aggregate.
+Using a bank approach will provide enhanced robustness; i.e., each runtime sample could refer to multiple stored enrollment summaries, rather than using one "fragile" aggregated enrollment summary.
 
 \subsection{Confidence Bands and Drift Updates}
-The project avoids a rigid accept/reject policy by introducing strong accept, uncertain, and reject bands. This is a better fit for noisy sensor verification because it allows the system to ask for more samples or fallback authentication when the evidence is not sufficiently strong.
+The project creates a more flexible acceptance/rejection policy through the use of strong acceptance, uncertainty and rejects bands. By using this approach there is a better matching of weak sensor verification data than rigidly accepting or rejecting.
+Additionally, this allows the system to request additional data samples or an alternative method to authenticate if there is not an adequate level of certainty for the evidence collected such that it can be considered accurate.
 
-Template drift is handled through an \ac{ema} update strategy gated by strong accepts. If $e_{old}$ is the stored embedding and $e_{auth}$ is a fresh strong-match embedding, the updated template is:
+Template drift is handled through an ema update strategy gated by strong accepts. If $e_{old}$ is the stored embedding and $e_{auth}$ is a fresh strong-match embedding, the updated template is:
 \begin{equation}
-e_{new} = \frac{(1-\ac{alpha})e_{old} + \ac{alpha}e_{auth}}{\|(1-\ac{alpha})e_{old} + \ac{alpha}e_{auth}\|_2}
+e_{new} = \frac{(1-\alpha)e_{old} + \alpha e_{auth}}{\|(1-\alpha)e_{old} + \alpha e_{auth}\|_2}
 \end{equation}
-The code further requires a minimum number of strong matches before applying the update, which helps reduce gradual poisoning risk.
+
+Finally, the coding requirements for a minimum number of strong matches prior to performing an update helps to reduce the potential for gradual poisoning of the sensor data.
 
 \section{Algorithms}
-\begin{algorithm}
+\begin{algorithm}[H]
 	\caption{Enrollment algorithm}
 	\label{alg:enrollment}
 	\begin{algorithmic}
@@ -56,7 +58,7 @@ The code further requires a minimum number of strong matches before applying the
 	\end{algorithmic}
 \end{algorithm}
 
-\begin{algorithm}
+\begin{algorithm}[H]
 	\caption{Authentication algorithm}
 	\label{alg:authentication}
 	\begin{algorithmic}
@@ -83,13 +85,14 @@ The code further requires a minimum number of strong matches before applying the
 \end{algorithm}
 
 \section{Testing Strategy}
-The repository contains dedicated tests for model evaluation, feature scaling, drift updates, authentication guards, margin checks, multi-template matching, and session split behavior. This is a strong engineering characteristic because the most brittle parts of an authentication system often lie in edge-case decision logic, not just in the model.
+There are specific tests that are conducted to evaluate the model, selection rates of all users, determine if the features
+have any form of drift, confirm feature importances, and perform authentication guards and margin checks. 
 
 Testing in QNA-Auth can be grouped into four categories:
 \begin{itemize}
-	\item preprocessing and feature consistency tests,
-	\item model and evaluation tests,
-	\item authentication-rule and guard tests,
-	\item operational diagnostics and preflight scripts.
+	\item Preprocessing and feature consistency tests
+	\item Model and evaluation tests
+	\item Authentication-rule and guard tests
+	\item Operational diagnostics and preflight scripts
 \end{itemize}
 

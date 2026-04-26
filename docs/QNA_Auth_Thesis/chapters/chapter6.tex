@@ -29,38 +29,38 @@ The file auth/authentication.py is where the implementation of Authentication is
 One special note in the development of the module was to use a top-k scoring methodology when comparing the scores in the template banks. Rather than using just a single best or a single average score from the matching templates, the module creates an average score of the top x number of template similarities. This provides less influence on the score of one outlier template.
 
 \section{Challenge-Response Module}
-The challenge-response logic is implemented in \texttt{auth/challenge\_response.py}. A challenge contains a unique challenge ID, device ID, random nonce, creation time, and expiry. The stable feature bytes are derived by coarse quantization of the embedding, then combined with the nonce and server secret through \ac{hkdf} to derive the MAC key. The final response is an \ac{hmac} over challenge data. This prevents straightforward replay because each challenge is single-use and nonce-bound.
+The implementation of the challenge-response logic can be found in auth/challenge response.py. A challenge is made of the following properties: a unique challenge ID, the identifier of the device that will respond to the challenge, a randomly generated nonce, a creation time, and an expiration time. The stable bytes of an embedding are built by taking the coarse quantization of the embedding, and then appending the nonce and server secret to those bytes to compute an MAC key. As a result, the final response will be an over-challenge data. This will help in preventing the straightforward reuse of a challenge because challenges are created once (single use) and each nonce is unique to a specific challenge.
 
 \section{Database Implementation}
-The persistence layer is implemented with SQLAlchemy in \texttt{db/models.py}. There are three tables:
+SQLAlchemy is used to implement the persistence layer in db/models.py. Three tables are created:
 \begin{itemize}
-	\item \texttt{Device}: stores device ID, name, embedding path, metadata, and timestamp,
-	\item \texttt{Challenge}: stores active challenge state and expiry,
-	\item \texttt{AuditLog}: stores event details for important actions.
+	\item \texttt{Device}: holds the following attributes: Device ID, name, embedding path, metadata, timestamp.
+	\item \texttt{Challenge}: holds the state of an active challenge and the time it will expire.
+	\item \texttt{AuditLog}: holds information about the events that take place when performing important actions.
 \end{itemize}
 
-The database is SQLite by default, which is reasonable for a capstone prototype and simplifies setup. The code also keeps the schema narrow, which reduces maintenance complexity.
+The chosen database is SQLite (as the default), which will work fine as a database for a university capstone prototype project and makes setting up the database easier than other databases and limiting the schema results in less operational overhead when maintaining.
 
 \section{Frontend Implementation}
-The frontend application under \texttt{frontend/src/} provides a simple but effective control surface. The home page frames the project as ``noise-based device verification from camera and microphone fingerprints.'' Dedicated pages are available for enrollment, authentication, and device viewing. The frontend service layer centralizes HTTP calls to the backend and defines typed request and response interfaces.
+The frontend app can be found under the frontend/src/ directory and provides a simple yet effective control surface. The home page describes the project as a "Verification of Noise Based Devices via Audio/Camera Fingerprints". There are dedicated pages for enrollment, authentication and device viewing. The frontend service layer centers around making HTTP calls from the frontend to the backend, while providing a set of typed request and response interfaces.
 
 \section{Configuration and Operational Controls}
-Configuration values in \texttt{config.py} make the implementation flexible without being over-engineered. Important controls include:
+Implementing configurable parameters within the config.py file enables implementation flexibility while adhering to an appropriate level of engineering complexity. Configuration variables of interest are:
 \begin{itemize}
-	\item model checkpoint paths,
-	\item confidence thresholds,
-	\item identification margin,
-	\item source weights,
-	\item drift-update parameters,
-	\item challenge expiry,
-	\item demo-mode source limits,
-	\item optional API key and rate limiting settings.
+	\item Model checkpoint file paths
+	\item Confidence Thresholds
+	\item Identification margin
+	\item Source weights
+	\item Drift update
+	\item Expiration of challenges
+	\item Demo mode source limits
+	\item Up to and including optional API key rate limiting
 \end{itemize}
 
-Such configurability is valuable in a thesis setting because it makes experimentation explicit and reproducible.
+As these parameters are configured, they can be used as tools in a thesis that would allow for experimentation in a well-defined way while still allowing for re-experiencing similar experiments using the same set up.
 
 \section{Illustrative Code Snippet}
-The following excerpt illustrates the style of the implementation by showing a representative configuration block:
+Here is an illustration of the implementation style by looking at a configuration block that represents what can be done with this approach to creating a configuration:
 
 \begin{lstlisting}[language=Python]
 AUTH_CONFIDENCE_STRONG = 0.97
@@ -75,4 +75,4 @@ AUTH_SOURCE_WEIGHTS = {
 }
 \end{lstlisting}
 
-This reflects the overall implementation philosophy of the project: keep the runtime rules explicit and inspectable rather than burying key decisions inside opaque code paths.
+This conveys the entire philosophy of how the implementation will be performed with respect to making all run-time rule representations visible and easy to review versus embedding key decision points elsewhere in opaque programming constructs.

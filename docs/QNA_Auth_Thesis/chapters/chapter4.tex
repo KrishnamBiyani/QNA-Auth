@@ -4,7 +4,7 @@
 
 \subsection{Architecture}
 
-The project follows a layered architecture where data collection, preprocessing, embedding, application logic, persistence, and user interface are separated into distinct layers. This ensures modularity, scalability, and ease of maintenance.
+A layered architectural approach which separates each major function (data collection, data preprocessing, data embedding, application logic, data persistence, user interface) into individual layers was used in the project to guarantee modularity, scalability, and ease of maintenance.
 
 \begin{figure}[H]
 	\centering
@@ -13,7 +13,7 @@ The project follows a layered architecture where data collection, preprocessing,
 	\label{fig:qna_arch}
 \end{figure}
 
-At startup, the backend initializes the model, preprocessing pipeline, and database connections to ensure efficient request handling.
+At the startup, the backend initializes the model, preprocessing pipeline, and database connections to ensure efficient requests handling.
 
 % -----------------------------
 
@@ -26,7 +26,7 @@ At startup, the backend initializes the model, preprocessing pipeline, and datab
 	\label{fig:system_design}
 \end{figure}
 
-The system design follows a structured pipeline consisting of data capture, feature engineering, model processing, and decision logic. Sensor inputs from the camera and microphone are transformed into statistical and frequency-based features before being normalized. These features are passed through a Siamese network to generate embeddings and compute similarity scores. The final decision is made using weighted fusion and thresholding, ensuring robust and reliable device authentication.
+The design of this system has followed a structured approach; which consists of data capture, feature engineering model processing and decision logic. Input from the camera and microphone (e.g. sensor data) is processed into statistical and frequency-based vectors; then transformed using normalization techniques. Outputs from the camera and microphone are then sent through a Siamese network to produce embeddings; from which a set of similarity scores are derived. Finally, the process includes weighted fusion and thresholding to provide a robust; reliable device authentication outcome.
 
 % -----------------------------
 
@@ -41,13 +41,13 @@ The system design follows a structured pipeline consisting of data capture, feat
 	\label{fig:class_diag}
 \end{figure}
 
-The class diagram represents the modular organization of the system and the interaction between core components. The FastAPI server acts as the entry point, coordinating enrollment and authentication workflows. Classes such as DeviceEnroller, DeviceAuthenticator, and NoisePreprocessor handle data processing, feature extraction, and verification logic. The design ensures separation of concerns, making the system scalable, maintainable, and easy to extend.
+The class diagram shows how the system is organized into modular components and how those components interact with one another. The entry point is through the FastAPI server, which coordinates both the enrollment and authentication workflows. Several classes such as DeviceEnroller, DeviceAuthenticator, and NoisePreprocessor are responsible for processing data, extracting features, and performing verification logic. The design has created a clear separation of concerns, allowing the system to be easily scalable, maintainable, and extensible.
 
 % -----------------------------
 
 \subsection{API Design}
 
-The backend exposes a compact set of endpoints aligned with the system workflow:
+The backend exposes a small number of endpoints that are in alignment with the workflow of the system:
 
 \begin{itemize}
 	\item \texttt{POST /enroll}
@@ -61,4 +61,4 @@ The backend exposes a compact set of endpoints aligned with the system workflow:
 	\item \texttt{GET /stats}
 \end{itemize}
 
-This API structure supports enrollment, authentication, device management, and system monitoring while maintaining simplicity and clarity.
+This API structure enables enrollment, authentication, device management, and system monitoring while keeping an easy to understand and use structure.

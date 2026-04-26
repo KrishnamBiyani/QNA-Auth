@@ -3,7 +3,7 @@
 
 \section{Results Overview}
 
-This section presents a comprehensive evaluation of the QNA-Auth system using multiple analytical perspectives, including classification performance, embedding behavior, and threshold characteristics. The objective is not only to report numerical performance but also to understand the system's behavior under realistic authentication conditions.
+In this section of the report we provide an analysis of various aspects of the QNA-Auth system. We will evaluate how well it classifies data, embeds that data into the user’s session and how many users are able to pass through the defined thresholds. This analysis will include some qualitative information to describe the performance of the QNA-Auth system from a real world perspective.
 
 % -----------------------------
 
@@ -16,9 +16,9 @@ This section presents a comprehensive evaluation of the QNA-Auth system using mu
 \label{fig:conf_matrix}
 \end{figure}
 
-The confusion matrix demonstrates that the system is effective at distinguishing between genuine and impostor samples. A high number of true positives (552) and true negatives (844) indicates strong discrimination capability.
+As can be observed from the confusion matrix, the ability of the system to identify both real and fake/proxy samples is very good. The very high number of true positives (552) and true negatives (844) indicate that the system has a very strong discrimination ability.
 
-However, the relatively high number of false negatives (318) suggests that the system rejects a significant portion of genuine users. This behavior is a direct consequence of using a high decision threshold, which prioritizes security (low false acceptance) over usability.
+However, the false negatives (318) are also high, indicating that the system has a large number of legitimate user transactions/activities that it did not allow through because of the high decision threshold used to prioritize security (i.e., to remove as many false acceptances as possible) over usability.
 
 % -----------------------------
 
@@ -31,7 +31,7 @@ However, the relatively high number of false negatives (318) suggests that the s
 \label{fig:embedding}
 \end{figure}
 
-The PCA and t-SNE projections show that the Siamese network learns meaningful and separable embeddings. Distinct clustering of device identities is visible, especially in the t-SNE plot, indicating that the learned feature space captures device-specific characteristics effectively.
+PCA and t-SNE projections illustrate that the siamese network can produce useful and easily separabled embeddings. As demonstrated in ahown in t-SNE, the semantic identities of devices are clustered, reinforcing that the feature space is good at modelling device-level attributes.
 
 % -----------------------------
 
@@ -44,7 +44,7 @@ The PCA and t-SNE projections show that the Siamese network learns meaningful an
 \label{fig:modality}
 \end{figure}
 
-The comparison shows that camera-based features outperform microphone-based features across all evaluation metrics. This suggests that camera sensor noise provides more stable and discriminative patterns for device identification.
+Camera-based attributes outperform microphone-based attributes across all evaluation metrics according to the comparison performed. This indicates that sensor noise from cameras generate stable and discriminating characteristics that can be used to identify devices.
 
 % -----------------------------
 
@@ -81,15 +81,16 @@ Das et al. (2014) — Acoustic fingerprint & Microphone & $\sim$0.82 & $\sim$9\%
 \end{tabular}
 \end{table}
 
-The comparison shows that classical PRNU-based approaches achieve higher accuracy under controlled conditions. However, these methods operate in offline forensic settings and do not incorporate real-time authentication constraints.
+The results of comparison reveal that classical PRNU methods provide significantly better accuracy than QNA-Auth when used in strictly controlled forensics environments (no choice for
+real time), while QNA-Auth can be used in both controlled and non-controlled forensics environments. 
 
-In contrast, QNA-Auth is designed as a deployable system, incorporating real-time capture, noisy environments, and security mechanisms such as nonce-based replay protection.
+In addition, QNA-Auth has the advantages of being able to capture in real-time with the means of nonce-based replay protection, while PRNU methods have no means of protecting against replay through the use of nonce-based replay protection.
 
 % -----------------------------
 
 \section{Measured and Projected Future Results}
 
-The repository now contains two distinct result categories that should be kept separate in the thesis narrative. First, there are measured results already saved under \texttt{model/evaluation/} and \texttt{artifacts/capstone\_eval/}. Second, there is a forecast bundle under \texttt{Predicted report/} that estimates what a larger, multi-session fused system could achieve in future work.
+There are two separate types of results in the repository, which need to be discussed separately in the Thesis narrative. The first type of results are currently stored in Model/Evaluation/ & Artifacts/Capstone Eval/ & contain data that have been measured & stored. The second type of results are in Predicted Report/ & provide an estimate of what a larger, multi-session fused system could produce when performing additional work in the future.
 
 \begin{table}[H]
 \centering
@@ -115,7 +116,7 @@ QNA-Auth (Fused stretch scenario) & 0.950 & 6.0\% & 92.0\% & Projected \\
 \end{tabular}
 \end{table}
 
-The projected rows are not claimed as measured output. They are scenario estimates derived from the current artifact range and from the expected benefit of larger device diversity, repeated sessions, validation-calibrated thresholds, and camera-dominant fusion. This distinction matters because the thesis must show both current evidence and the future viability path without conflating the two.
+Measuring the projected rows will not be reported in the measured output and will be listed as scenario estimates based on the actual artifact range and large device diversity, consistent session lengths, validated thresholds, and camera-fusion. The thesis must demonstrate that both the current and future viability paths exist with separate evidence sources.
 
 \begin{figure}[H]
 \centering
@@ -135,14 +136,14 @@ The projected rows are not claimed as measured output. They are scenario estimat
 
 \section{Overall Discussion}
 
-The results demonstrate that QNA-Auth successfully captures device-specific characteristics using sensor noise and can distinguish between genuine and impostor samples with reasonable effectiveness.
+The findings indicate that the use of QNA-Auth allows for capturing device-specific information from sensor noise and can provide a reasonably effective means for differentiating between real and false samples.
 
-The system exhibits strong impostor rejection (low FAR), but higher false rejection rates indicate sensitivity to threshold selection and environmental variability. This highlights the inherent trade-off between security and usability.
+The development of a highly effective 「impostor rejection」 system (i.e., low rate of false alarm), coupled with an increased rate of false alarm, suggests that the system may be sensitive to both the threshold used for making decisions and the variability caused by different environments. This also illustrates the ongoing tension between security and usability.
 
-Additionally, the system's performance varies across modalities, with camera-based fingerprinting proving more reliable than microphone-based approaches.
+The relative performance of the authentication system was highly variable when using different input modalities. For example, fingerprinting using a camera was demonstrated to be a more reliable form of input than recording via a microphone.
 
-The projected future results strengthen the viability argument without changing the evidentiary boundary. They show that, if the dataset is expanded and calibrated fusion is evaluated under stronger split discipline, the system could move from a promising prototype toward a more competitive short-sample verification pipeline. That is an academically useful conclusion because it explains why the project is worth continuing, even though the current measured results remain bounded.
+The projected results increase the argument for the viability of the project by not altering the legal basis upon which a court could find the authentication system to be reliable. The experiments suggest that, as the dataset grows and extensive testing under stronger divisions of fused testing are undertaken, the authentication system has the potential to develop from a prototype with promise to a more competitive pipeline for authentication of short samples. This positive conclusion is of sufficient benefit to academia to continue with the project even with the results to-date being limited in quantity.
 
 \section{Conclusion of Results}
 
-Overall, the proposed system validates the feasibility of sensor-based device authentication in a practical setting. While not yet matching the performance of controlled forensic methods, it demonstrates a meaningful step toward real-world deployment by integrating machine learning, signal processing, and security-aware system design.
+The validity of sensor-based device authentication has been proved in practice, but not to the extent of forensic methods in terms of accuracy. Nevertheless, through the combination of machine learning, signal processing and security-focused system design, progression towards practical application of sensor-based authentication will be achieved.
