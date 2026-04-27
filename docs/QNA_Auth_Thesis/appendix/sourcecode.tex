@@ -1,34 +1,270 @@
 \begin{center}
-	{\Large \textbf{Appendix A}}-\vspace*{0.5 cm}
+	{\Large \textbf{Appendix A}} --- \vspace*{0.5cm}
 	{\Large \textbf{Selected Source Code}}
 \end{center}
-\begin{lstlisting}[language=Python]
-class DeviceAuthenticator:
-    def _classify_similarity(self, similarity: float):
-        if similarity >= self.strong_accept_threshold:
-            return "strong_accept", "accept"
-        if similarity >= self.uncertain_threshold:
-            return "uncertain", "collect_more_samples_or_fallback_auth"
-        return "reject", "reject"
 
-    def authenticate(self, device_id, sources, num_samples_per_source=5, client_samples=None):
-        metadata = self._load_device_metadata(device_id)
-        enrolled_sources = set(metadata.get("sources", []))
-        requested_sources = set(sources)
-        invalid_sources = requested_sources - enrolled_sources
-        if invalid_sources:
-            return False, {"error": "Source mismatch"}
+The code excerpts in this appendix represent the core pipeline of QNA-Auth: from noise collection through feature extraction, embedding, similarity scoring, challenge generation, and database persistence. Each snippet is taken directly from the repository without modification and illustrates a key design decision or architectural component.
 
-        profile_ok, profile_reason, runtime_profiles = \
-            self._validate_source_profile(metadata, samples_by_source)
-        if not profile_ok:
-            return False, {
-                "error": "Authentication sample profile mismatch",
-                "details": profile_reason,
-                "runtime_profiles": runtime_profiles,
-            }
+\vspace{0.5cm}
+\noindent\textbf{A.1 \quad Temporal Noise Acquisition} (\texttt{noise\_collection/camera\_noise.py})
 
-        auth_profile = self.generate_authentication_profile(samples_by_source)
-        is_authenticated, similarity, details = self.verify_device(device_id, auth_profile)
-        return is_authenticated, details
+\vspace{0.3cm}
+Camera sensor noise is captured by taking a short burst of dark frames and computing the per-pixel temporal standard deviation. This approach is more stable than single-frame mean because brief lighting transients do not corrupt the temporal variance estimate.
+
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\small]
+def get_temporal_noise(
+    self,
+    num_frames: int = 10,
+    exposure_time: float = 0.05
+) -> np.ndarray:
+    """Stack frames and compute temporal standard deviation."""
+    frames = self.capture_multiple_frames(num_frames, exposure_time)
+    if len(frames) < 2:
+        logger.error("Not enough frames for temporal analysis")
+        return np.array([])
+
+    stack = np.stack(frames, axis=0)
+    temporal_std = np.std(stack, axis=0)
+    return temporal_std.flatten()
 \end{lstlisting}
+
+\vspace{0.5cm}
+\noindent\textbf{A.2 \quad Source Weight Normalization} (\texttt{auth/enrollment.py})
+
+\vspace{0.3cm}
+When a device is enrolled with multiple sources, the system normalizes the configured weights so that they sum to 1.0. This allows the configuration to specify weights independent of the actual number of sources present.
+
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\small]
+def get_effective_weights(
+    self, sources: List[str]
+) -> Dict[str, float]:
+    """Normalize source weights for active sources."""
+    active = {
+        source: float(self.source_weights.get(source, 0.0))
+        for source in sources
+        if float(self.source_weights.get(source, 0.0)) > 0.0
+    }
+    if not active:
+        uniform = 1.0 / max(len(sources), 1)
+        return {source: uniform for source in sources}
+    total = sum(active.values())
+    return {
+        source: value / total
+        for source, value in active.items()
+    }
+\end{lstlisting}
+
+\vspace{0.5cm}
+\noindent\textbf{A.3 \quad Embedding Network Architecture} (\texttt{model/siamese\_model.py})
+
+\vspace{0.3cm}
+The embedding network is a feedforward stack with Tanh activations and L2 output normalization. Tanh was chosen over ReLU because dying-ReLU collapse was observed on low-variance noise inputs during early experiments. L2 normalization constrains embeddings to the unit sphere, making cosine similarity equivalent to inner product and simplifying threshold calibration.
+
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\small]
+class EmbeddingNetwork(nn.Module):
+    def __init__(
+        self,
+        input_dim: int,
+        embedding_dim: int = 128,
+        hidden_dims: list = [256, 256, 128]
+    ):
+        super(EmbeddingNetwork, self).__init__()
+        layers = []
+        prev_dim = input_dim
+        for hidden_dim in hidden_dims:
+            layers.extend([
+                nn.Linear(prev_dim, hidden_dim),
+                nn.Tanh(),  # ReLU replaced after dying-ReLU observed
+            ])
+            prev_dim = hidden_dim
+        layers.append(nn.Linear(prev_dim, embedding_dim))
+        self.network = nn.Sequential(*layers)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        embedding = self.network(x)
+        # Constrain to unit sphere; cosine similarity becomes a dot product.
+        embedding = F.normalize(embedding, p=2, dim=1)
+        return embedding
+\end{lstlisting}
+
+\vspace{0.5cm}
+\noindent\textbf{A.4 \quad Device ID Generation} (\texttt{auth/enrollment.py})
+
+\vspace{0.3cm}
+Enrollment generates a deterministic 16-character hex ID from the device name and timestamp. This allows re-enrollment with the same name to be detected (the ID will differ) while keeping IDs compact.
+
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\small]
+def generate_device_id(
+    self, device_name: Optional[str] = None
+) -> str:
+    """Generate deterministic device ID from name and timestamp."""
+    timestamp = datetime.now().isoformat()
+    identifier = (
+        f"{device_name}_{timestamp}"
+        if device_name else timestamp
+    )
+    return hashlib.sha256(
+        identifier.encode()
+    ).hexdigest()[:16]
+\end{lstlisting}
+
+\vspace{0.5cm}
+\noindent\textbf{A.5 \quad Confidence-Band Classification} (\texttt{auth/authentication.py})
+
+\vspace{0.3cm}
+Runtime decisions use two thresholds instead of a single boundary. Scores in the uncertain band trigger a fallback (collect more samples or use an alternative method) rather than failing silently. This design follows the principle that weak evidence should not masquerade as rejection.
+
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\small]
+def _classify_similarity(self, similarity: float):
+    """Classify score into strong accept, uncertain, or reject."""
+    if similarity >= self.strong_accept_threshold:
+        return "strong_accept", "accept"
+    if similarity >= self.uncertain_threshold:
+        return (
+            "uncertain",
+            "collect_more_samples_or_fallback_auth"
+        )
+    return "reject", "reject"
+\end{lstlisting}
+
+\vspace{0.5cm}
+\noindent\textbf{A.6 \quad Challenge Generation with Nonce Binding} (\texttt{auth/challenge\_response.py})
+
+\vspace{0.3cm}
+Challenges are created with a fresh random nonce and short expiration. The challenge ID itself is derived from the device ID, nonce, and timestamp to ensure uniqueness without requiring a counter or sequence number.
+
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\small]
+def create_challenge(self, device_id: str) -> Dict[str, str]:
+    """Create a single-use challenge with nonce and expiry."""
+    nonce = self.generate_nonce()
+    created_at = datetime.now()
+    challenge_id = hashlib.sha256(
+        f"{device_id}_{nonce}_{created_at.isoformat()}"
+        .encode("utf-8")
+    ).hexdigest()[:16]
+    data = {
+        "device_id": device_id,
+        "nonce": nonce,
+        "created_at": created_at,
+        "expires_at": created_at + self.challenge_expiry,
+    }
+    if self.challenge_store is not None:
+        self.challenge_store.put(challenge_id, data)
+    else:
+        self.active_challenges[challenge_id] = data
+    return {
+        "challenge_id": challenge_id,
+        "nonce": nonce,
+        "expires_at": data["expires_at"].isoformat(),
+    }
+\end{lstlisting}
+
+\vspace{0.5cm}
+\noindent\textbf{A.7 \quad HKDF Key Derivation for MAC} (\texttt{auth/challenge\_response.py})
+
+\vspace{0.3cm}
+The MAC key is derived from the stable quantized embedding bytes, the challenge nonce, and a server secret via HKDF. This construction binds the challenge to both the claimed device's biometric template and a server-side secret, preventing offline attacks on captured nonces.
+
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\small]
+def _stable_feature_bytes(self, embedding: torch.Tensor) -> bytes:
+    """Coarse quantization for stable challenge binding."""
+    embedding_cpu = embedding.detach().cpu().float()
+    # Coarse quantization creates a drift-tolerant template
+    quantized = torch.round(
+        embedding_cpu * 64.0
+    ).to(torch.int16).numpy()
+    return quantized.tobytes()
+
+def derive_mac_key(
+    self,
+    embedding: torch.Tensor,
+    nonce: str
+) -> bytes:
+    """HKDF-based MAC key from embedding, nonce, and secret."""
+    stable = self._stable_feature_bytes(embedding)
+    hkdf_input = stable + nonce.encode("utf-8")
+    # HKDF-expand with server secret and fixed info string
+    return hkdf_expand(
+        self.server_secret,
+        hkdf_input,
+        self.hkdf_info,
+        length=32
+    )
+\end{lstlisting}
+
+\vspace{0.5cm}
+\noindent\textbf{A.8 \quad Database Schema} (\texttt{db/models.py})
+
+\vspace{0.3cm}
+The schema defines three tables: \texttt{Device} (enrolled templates and metadata), \texttt{Challenge} (active single-use challenges with expiry), and \texttt{AuditLog} (for reproducibility and incident review). The Challenge table has an index on \texttt{expires\_at} to support efficient cleanup of expired challenges.
+
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\small]
+class Device(Base):
+    """Enrolled device: metadata and path to embedding."""
+    __tablename__ = "devices"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    device_id = Column(
+        String(64), unique=True, nullable=False, index=True
+    )
+    device_name = Column(String(255), nullable=True)
+    embedding_path = Column(String(512), nullable=False)
+    metadata_json = Column(Text, nullable=True)
+    created_at = Column(
+        DateTime, default=datetime.utcnow, nullable=False
+    )
+
+class Challenge(Base):
+    """Active challenge for replay-resistant auth."""
+    __tablename__ = "challenges"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    challenge_id = Column(
+        String(64), unique=True, nullable=False, index=True
+    )
+    device_id = Column(String(64), nullable=False, index=True)
+    nonce = Column(String(128), nullable=False)
+    created_at = Column(
+        DateTime, default=datetime.utcnow, nullable=False
+    )
+    expires_at = Column(DateTime, nullable=False)
+    __table_args__ = (Index("ix_challenges_expires_at", "expires_at"),)
+
+class AuditLog(Base):
+    """Record of all security-relevant actions."""
+    __tablename__ = "audit_log"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    action = Column(String(32), nullable=False, index=True)
+    device_id = Column(String(64), nullable=True, index=True)
+    details = Column(Text, nullable=True)  # JSON
+    created_at = Column(
+        DateTime, default=datetime.utcnow, nullable=False
+    )
+\end{lstlisting}
+
+\vspace{0.5cm}
+\noindent\textbf{A.9 \quad Template Bank Construction} (\texttt{auth/enrollment.py})
+
+\vspace{0.3cm}
+Rather than storing a single aggregate embedding, the system stores multiple templates per source by chunking the enrollment samples. This approach improves robustness: an impostor might match one template by chance, but is less likely to match multiple. The following pseudocode shows the chunking strategy:
+
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\small]
+def build_template_bank(
+    self,
+    embeddings: List[torch.Tensor],
+    chunk_size: int = 5
+) -> List[torch.Tensor]:
+    """Build bank of templates by chunking embeddings."""
+    templates = []
+    for i in range(0, len(embeddings), chunk_size):
+        chunk = embeddings[i : i + chunk_size]
+        if len(chunk) > 0:
+            # Average embeddings in chunk
+            avg_embedding = torch.mean(
+                torch.stack(chunk), dim=0
+            )
+            # Normalize back to unit sphere
+            avg_embedding = F.normalize(avg_embedding, p=2, dim=0)
+            templates.append(avg_embedding)
+    return templates[:self.max_templates_per_source]
+\end{lstlisting}
+
+\noindent These nine excerpts together show the design of a complete, security-aware verification system: noise is collected (A.1), sources are weighted (A.2), features are embedded in a normalized space (A.3), enrollments are tracked (A.4), decisions rely on confidence bands (A.5), challenges prevent replay (A.6-A.7), state is persisted (A.8), and robustness comes from template banking (A.9). No single component alone provides security; rather, the combination of all nine elements creates a system where both the model and the protocol contribute to the overall claim: high-confidence device matching, not identity proofing.

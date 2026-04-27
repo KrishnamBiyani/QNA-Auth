@@ -1,13 +1,19 @@
 \begin{center}
-	{\Large \textbf{Appendix B}}-\vspace*{0.5 cm}
-	{\Large \textbf{Supporting References and Publication-Style Pointers}}
+	{\Large \textbf{Appendix B}} --- \vspace*{0.5cm}
+	{\Large \textbf{Key References}}
 \end{center}
-\begin{center}
-	\begin{itemize}
-		\item Bromley, J., Guyon, I., LeCun, Y., Sackinger, E., \& Shah, R. (1993). Signature verification using a ``Siamese'' time delay neural network.
-		\item Hadsell, R., Chopra, S., \& LeCun, Y. (2006). Dimensionality reduction by learning an invariant mapping.
-		\item Schroff, F., Kalenichenko, D., \& Philbin, J. (2015). FaceNet: A unified embedding for face recognition and clustering.
-		\item Shannon, C. E. (1948). A mathematical theory of communication.
-		\item Welch, P. (1967). The use of fast Fourier transform for the estimation of power spectra.
-	\end{itemize}
-\end{center}
+
+\vspace{0.3cm}
+This appendix notes the key papers and standards that informed the system design.
+
+\vspace{0.3cm}
+\noindent\textbf{Metric Learning.} The Siamese architecture follows Bromley et al.\ (1993) and the contrastive loss follows Hadsell et al.\ (2006). Both are standard in similarity learning for tasks where classes are not fixed at training time.
+
+\vspace{0.3cm}
+\noindent\textbf{Camera Identification.} PRNU-Bench (2025) and CAMPrints (2025) provide recent context for camera-based device identification. QNA-Auth does not claim PRNU-level performance, only prototype-level similarity matching. Alshardan et al.\ (2024) on multimodal biometrics informed the source-weighting strategy.
+
+\vspace{0.3cm}
+\noindent\textbf{Signal Processing.} Welch (1967) underpins the spectral density features and Shannon (1948) the entropy measures. These are cited for completeness, as they are foundational to the feature pipeline.
+
+\vspace{0.3cm}
+\noindent\textbf{Security and Protocols.} RFC 5869 (HKDF) is cited as the normative reference for the challenge-response key derivation. Ren et al.\ (2024, 2025) on acoustic fingerprint authentication provide the closest published system to QNA-Auth's microphone channel. Mazumdar et al.\ (2019) on biometric backdoor attacks informed the template drift update policy, which gates updates on a minimum number of strong matches.
