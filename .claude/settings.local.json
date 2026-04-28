@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -lh server/models/*.pt)",
+      "Bash(grep -r \"0\\\\.1\\\\|memory.*score\" . --include=*.py --exclude-dir=.venv)",
+      "Bash(python3:*)",
+      "Bash(python:*)",
+      "Bash(ls -la auth/device_embeddings/*.pt)",
+      "Bash(ls -lt auth/device_embeddings/*_embedding.pt)",
+      "Bash(ls -1 auth/device_embeddings/*_embedding.pt)",
+      "Bash(pkill -f \"uvicorn.*app:app\")"
+    ]
+  }
+}

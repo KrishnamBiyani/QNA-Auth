@@ -6,6 +6,8 @@ Implements REST API for device enrollment and authentication
 from __future__ import annotations
 
 import sys
+import faulthandler
+faulthandler.enable()  # Dumps native stack trace to stderr on crash
 from pathlib import Path
 
 # Ensure project root is on sys.path when running `python server/app.py`

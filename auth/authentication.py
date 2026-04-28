@@ -429,6 +429,14 @@ class DeviceAuthenticator:
 
         auth_profile["source_profiles"] = runtime_profiles
         is_authenticated, similarity, details = self.verify_device(device_id, auth_profile)
+        logger.info(
+            "Auth result: device=%s, authenticated=%s, similarity=%.6f, band=%s, per_source=%s",
+            device_id,
+            is_authenticated,
+            similarity,
+            details.get("confidence_band"),
+            {k: f'{v.get("similarity", 0):.6f}' for k, v in details.get("per_source_similarity", {}).items()},
+        )
         details["num_samples_collected"] = sample_count
         details["sources_used"] = sources
         details["runtime_profiles"] = runtime_profiles

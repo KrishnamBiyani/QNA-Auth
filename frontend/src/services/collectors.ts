@@ -25,8 +25,10 @@ export class CameraNoiseCollector {
             this.video = document.createElement('video');
             this.video.srcObject = this.stream;
             // Required for mobile safari/chrome to play without UI
-            this.video.setAttribute('playsinline', 'true'); 
+            this.video.setAttribute('playsinline', 'true');
             await this.video.play();
+            // Allow camera auto-exposure to stabilize before capturing
+            await new Promise(resolve => setTimeout(resolve, 1500));
             return true;
         } catch (error) {
             console.error('Camera initialization failed:', error);
@@ -37,6 +39,8 @@ export class CameraNoiseCollector {
                 this.video.srcObject = this.stream;
                 this.video.setAttribute('playsinline', 'true');
                 await this.video.play();
+                // Allow camera auto-exposure to stabilize before capturing
+                await new Promise(resolve => setTimeout(resolve, 1500));
                 return true;
             } catch (retryError) {
                 console.error('Retry failed:', retryError);
